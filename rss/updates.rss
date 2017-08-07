@@ -1,0 +1,118 @@
+<?
+#=----------------------------------------------------------------------------=#
+require('server.php');
+require('debug.php');
+require('sql.php');
+#=----------------------------------------------------------------------------=#
+
+function description($data)
+{
+	switch ($data['map_type'])
+		{
+		case 'standard':
+			$map_text = 'Classic SC map. ';
+			break;
+		case 'prebuilt':
+			$map_text = 'Random placement map (first player can be on the edge). ';
+			break;
+		case 'twisted':
+			$map_text = 'Twisted map. ';
+			break;
+		case 'mirror':
+			$map_text = 'Mirror map. ';
+			break;
+		case 'balanced':
+			$map_text = 'Balanced map. ';
+			break;
+		default:
+			$map_text = '';
+			break;
+		}
+
+
+	if ($data['avg_min'] != $data['avg_fuel'] or $data['avg_min'] != $data['avg_ag'])
+		$average_resources = $data['avg_min'].'/'.$data['avg_fuel'].'/'.$data['avg_ag'].' average minerals/fuel/agriculture';
+	else
+		$average_resources = $data['average_resources'].' average resources';
+
+	$description = (($data['bridier'] < 0 or $data['password1']) ? 'Started by '.$data['created_by'].'. ' : '').
+				   ($data['team_game'] ? 'Team game. ' : '').($data['diplomacy'] == 6 ? 'Shared HQ. ' : '').
+				   'Updates every '.($data['update_time'] % 3600 == 0 ? ($data['update_time']/3600).' hours' : ($data['update_time']/60).' minutes').', '.
+				   ($data['weekend_updates'] ? '' : 'no weekend updates, ').
+				   $data['max_players'].' players, '.$data['systems_per_player'].' systems per player. '.
+				   $map_text.( !$data['map_visible'] ? 'Map hidden until game starts. ' : '' ).
+				   number_format($data['tech_multiple'], 2, '.', '').' tech, '.$average_resources.', ';
+		
+	if (!$data['min_wins'] and $data['max_wins'] == -1)
+		$description .= 'anyone can join.';
+    else if ($data['max_wins'] == -1)
+    	$description .= $data['min_wins'].' or more wins needed to join.';
+    else
+    	$description .= 'from '.$data['min_wins'].' to '.$data['max_wins'].' wins needed to join.';
+    	
+   	$description .= ($data['build_cloakers_cloaked'] ? ' Cloakers built cloaked.' : '').
+					($data['cloakers_as_attacks'] ? ' Cloakers appear as attacks.' : '');
+					   	
+   	switch ($data['diplomacy'])
+		{
+		case 2: $description .= ' Truce, trade and alliances not allowed.';	break;
+		case 3: $description .= ' Trade and alliances not allowed.';		break;
+		case 4: $description .= ' No alliances allowed.';					break;
+		}
+
+	$description .= ($data['password1'] ? ' Password required to join the game.' : '');
+	
+	return $description;
+}
+
+#=----------------------------------------------------------------------------=#
+
+$fields = array();
+$fields[] = 'series.*';
+$fields[] = 'games.game_number';
+$fields[] = 'games.created_at';
+$fields[] = 'games.last_update';
+$fields[] = 'games.id AS game_id';
+$fields[] = 'players.id AS player_id';
+$fields[] = 'players.ended_turn';
+
+$tables = 'series INNER JOIN games ON series.id = games.series_id '.
+				 'INNER JOIN players ON games.id = players.game_id '.
+				 'INNER JOIN empires ON players.name = empires.name';
+
+$conditions = 'MD5(CONCAT(empires.id, empires.name, empires.join_date)) = "'.$_GET['id'].'" AND update_count > 0 AND ended_turn = "0"';
+
+$order = 'ORDER BY series.update_time, series.name, games.game_number ASC';
+
+$result = sc_mysql_query('SELECT '.implode(',', $fields).' FROM '.$tables.' WHERE '.$conditions.' '.$order);
+
+#=----------------------------------------------------------------------------=#
+
+header('Content-Type: application/xml'."\n\n");
+echo '<?xml version="1.0" encoding="ISO-8859-1" ?>';
+?>
+<rss version="2.0">
+	<channel>
+		<title>Stellar Crisis: Iceberg - Game updates</title>
+		<link>http://sc.aleks.ca:8080/</link>
+		<description>The web's first complete multi-player strategy game.</description>
+<?
+while ($row = mysql_fetch_array($result))
+	{
+	$select_messages = sc_mysql_query('SELECT COUNT(*) FROM messages WHERE player_id = '.$row['player_id'].' AND flag = "0"');
+	if ($unread_messages = mysql_result($select_messages, 0, 0))
+		$messages = 'You have '.$unread_messages.' unread message'.($unread_messages != 1 ? 's' : '').'.';
+	else
+		$messages = '';
+?>
+		<item>
+			<title><?= 'An update has occured for '.$row['name'].' '.$row['game_number'].'.'; ?></title>
+			<link>http://sc.aleks.ca:8080/</link>
+			<pubDate><?= date('r', time()); ?></pubDate>
+			<description><?= $messages; ?></description>
+		</item>
+<?
+	}
+?>
+	</channel>
+</rss>

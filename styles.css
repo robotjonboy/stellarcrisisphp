@@ -1,0 +1,285 @@
+body
+	{
+	background-color: black;
+	background-image: url("images/starfield.jpg");
+	color: #9AD;
+	}
+
+a
+	{
+	color: #99F;
+	text-decoration: underline;
+	}
+	
+a:hover
+	{
+	color: #99F;
+	text-decoration: none;
+	}
+
+tr.top td
+	{
+	vertical-align: top;	
+	}
+
+tr.center td { text-align: center;	 }
+	
+th
+	{
+	text-align: center;
+	font-weight: bold;
+	}
+
+td { text-align: left; }
+
+
+img { border: 0pt; }
+
+.updateHeader			{ text-align: left; font-size: 10pt; font-weight: bold; color: white; }
+.updateText				{ text-align: left; font-size: 10pt; margin-top: 10pt; margin-bottom: 10pt; }
+.updateColonize			{ color: #AAFFAA; }
+.updateTerraform		{ color: #FFFFAA; }
+.updateEngineer			{ color: #60FFFF; }
+.updateDestroy			{ color: #FFAAAA; }
+.updateExplore			{ color: #AAAAAA; }
+.updateNuke				{ color: red; }
+.updateInvade			{ color: red; }
+.updateFailedInvasion	{ color: #AAAAAA; }
+.updateFirstContact		{ color: #FFFF60; }
+.updateUncloak			{ color: #FF99FF; }
+
+.messageHeader
+	{
+	font-size: 10pt;
+	font-weight: bold;
+	color: white;
+	}
+
+.messageText
+	{
+	font: 10pt Courier;
+	margin-top: 10pt;
+	margin-bottom: 10pt;
+	white-space: pre;
+	}
+
+.messageTextPrivate
+	{
+	font: 10pt Courier;
+	color: #BBB;
+	margin-top: 10pt;
+	margin-bottom: 10pt;
+	white-space: pre;
+	}
+
+.messageTextTeam
+	{
+	font: 10pt Courier;
+	color: #EFE;
+	margin-top: 10pt;
+	margin-bottom: 10pt;
+	white-space: pre;
+	}
+
+.scoutReport
+	{
+	font-size: 10pt;
+	margin-top: 10pt;
+	margin-bottom: 10pt;
+	}
+
+.tableCaption
+	{
+	font-size: 12pt;
+	font-weight: bold;
+	text-align: center;
+	margin-bottom: 5pt;
+	}
+
+.message
+	{
+	font-size: 10pt;
+	text-align: center;
+	margin-top: 10pt;
+	}
+
+.white { color: white; }
+
+.whiteBold
+	{
+	color: white;
+	font-weight: bold;
+	}
+	
+.red
+	{
+	color: red;
+	}
+	
+.redBold
+	{
+	color: red;
+	font-weight: bold;
+	}
+
+.green
+	{
+	color: lime;
+	}
+
+.greenBold
+	{
+	color: lime;
+	font-weight: bold;
+	}
+	
+.blue
+	{
+	color: #47F;
+	}
+	
+.blueBold
+	{
+	color: #47F;
+	font-weight: bold;
+	}
+
+.yellow	{ color: yellow; }
+.grey	{ color: #808080; }
+.pink	{ color: #FF9999; }
+
+.requestStats	{ text-align: center; color: white; font-size: 7pt; }
+.quickStats		{ text-align: center; color: white; font-size: 9pt; margin-top: 10pt; }
+.pageTitle		{ font-size: 24pt; font-weight: bold; text-align: center; }
+.smallTitleLeft	{ font-size: 13pt; font-weight: bold; text-align: left; }
+.smallTitle		{ font-size: 13pt; font-weight: bold; text-align: center; }
+.tableTitle			{ font-size: 12pt; font-weight: bold; text-align: center; }
+.gameMessage			{ font-size: 10pt; text-align: center; }
+.messageBold		{ font-size: 10pt; font-weight: bold; text-align: center; }
+.center			{ text-align: center; }
+.smallText		{ font-size: 8pt; }
+
+.spacerule
+	{
+	height: 10px;
+	width: 100%;
+	clear: both;
+	margin-left: 0pt;
+	margin-right: 0pt;
+	margin-top: 10pt;
+	margin-bottom: 10pt;
+	}
+
+.spaceruleThin
+	{
+	height: 3px;
+	width: 100%;
+	clear: both;
+	margin-left: 0pt;
+	margin-right: 0pt;
+	margin-top: 10pt;
+	margin-bottom: 10pt;
+	}
+	
+.playerListing
+	{
+	font-size: 8pt;
+	color: yellow;
+	position: relative;
+	z-index: 0;
+	text-align: left;
+	}
+
+.playerListing a
+	{
+	color: yellow;
+	text-decoration: none;
+	font-weight: bold;
+	}
+
+.playerListing a:hover
+	{
+	color: red;
+	cursor: help;
+	}
+
+.playerListing a span
+	{
+	display: none;
+	}
+
+.playerListing a:hover span
+	{
+	display: block;
+	
+	position: absolute;
+	top: 0px;
+	left: 175px;
+	
+	color: white;
+	background: black;
+	
+	padding: 5px;
+	border: 3px groove #90A0CC;
+	
+	text-align: left;
+	text-decoration: none;
+	
+	z-index: 10;
+	}
+	
+div.motdBox
+	{
+	background-color: #446;
+	color: #CCF;
+	
+	border: 2pt groove #CCF;
+	
+	width: 80%;
+	margin-left: auto;
+	margin-right: auto;
+	
+	padding-left: 10pt;
+	padding-right: 10pt;
+	
+	text-align: left;
+	font-size: 8pt;
+	}
+	
+div.motd_subject_red
+	{
+	color: red;
+	
+	margin-top: 10pt;
+	
+	font-size: 9pt;
+	font-weight: bold;
+	}
+div.motd_subject_yellow
+	{
+	color: yellow;
+	
+	margin-top: 10pt;
+	
+	font-size: 9pt;
+	font-weight: bold;
+	}
+div.motd_subject_green
+	{
+	color: lime;
+	
+	margin-top: 10pt;
+	
+	font-size: 9pt;
+	font-weight: bold;
+	}
+
+div.motd_text
+	{
+	margin-top: 5pt;
+	margin-bottom: 15pt;
+	
+	padding-left: 10pt;
+	
+	font-size: 8pt;
+	}
