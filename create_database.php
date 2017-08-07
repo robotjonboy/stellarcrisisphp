@@ -1,4 +1,5 @@
 <?php
+#to run tournaments, you will have to add tables from tournaments.sql
 echo "create_tables.php <p>";
 require('server.php');
 echo "create_tables.php <p>";
@@ -385,6 +386,6 @@ CREATE TABLE words (
   PRIMARY KEY  (id)
 ) TYPE=MyISAM;
 
-    
+echo 'add tournament tables from tournaments.sql';
 
 ?>
