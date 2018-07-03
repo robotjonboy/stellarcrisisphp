@@ -1051,7 +1051,7 @@ function playerList($gameID, $empire)
 
 function nextUpdate($series, $game)
 {
-	$weekend = eregi('(Sat|Sun)', date('D', time()));
+	$weekend = preg_match('/Sat|Sun/i', date('D', time()));
 	
     if ($game['player_count'] == 1 or ($series['team_game'] and $game['closed'] == 0))
 		$next_update = 'Waiting for other players.';
