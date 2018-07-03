@@ -13,7 +13,7 @@ function sc_errorHandler($errno, $errstr, $errfile, $errline, $errctx)
 	// We know about this warning. When a deadlock is encountered, a query won't be able to get a result.
 	// We re-issue these queries and they eventually get processed so we don't need to know about this warning.
 	// A failed query will still trigger an error.
-	if ($errno == 2 and eregi('Unable to save result set', $errstr)) return;
+	if ($errno == 2 and preg_match('/Unable to save result set/i', $errstr)) return;
 		
 	if ($errno != E_NOTICE)
 		reportError($errno, $errstr, $errfile, $errline, $errctx);
@@ -55,7 +55,7 @@ function reportError($error_number, $error_string, $file, $line, $context)
 	for ($index = count($backtrace)-1; $index >= 0; $index--)
 		{
 		// Skip some functions; we know about them.
-		if (eregi('errorHandler|reportError|trigger_error', $backtrace[$index]['function'])) continue;
+		if (preg_match('/errorHandler|reportError|trigger_error/i', $backtrace[$index]['function'])) continue;
 
 		$arguments = ($backtrace[$index]['args'] ? htmlspecialchars(implode(', ', $backtrace[$index]['args'])) : '');
 
