@@ -1,0 +1,49 @@
+		Change log
+2008-03-21
+adjusted help from room to wiki.
+added spam protection to wiki.
+  passwords on front pages
+  blocklist2.php & site.blocklist containing words.
+
+Note:
+File name is at margin,
+   action is indented.
+---------------------------------------------------
+
+utility/create_tables	
+   missing quote, 
+	create table => $sql='create table if not exist...' & mysql_query($sql);
+debug
+   created logfile and chmod to allow writing.
+sc
+   no memory_get_usage php-function
+	was this a php version problem?
+   mysql version must be > 4.1
+   Upgraded my mysql
+   inserted version check (where error occured -> put at start)
+      found old version check - mysql uses new version format
+
+tables
+   added 4 fields to empires
+	is_admin 
+	email_visible
+	tos_accepted 
+	validation_info
+   added to series
+	custom 
+	creator
+	cloakers_as_attacks
+	max_allies
+	avg_min
+	avg_fuel
+	avg_ag
+   added to ships
+	order_arguments
+	player_id
+   addet to fleets
+	order_arguments
+
+create_tables
+   made all above changes
+   inserted ship_type table structure
+   loaded ship_type in create_tables

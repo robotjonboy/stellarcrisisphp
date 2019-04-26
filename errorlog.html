@@ -1,0 +1,50 @@
+<html><head><title>Bug report</title><style>
+	table
+		{
+		font: 8pt "Trebuchet MS";
+		border: 1pt solid black;
+		margin-left: auto; margin-right: auto; margin-bottom: 10pt;
+		}
+
+	th, td
+		{
+		text-align: left;
+		font-size: 8pt;
+		border: 1pt solid;
+		padding: 5pt;
+		}
+
+	.redBox
+		{
+		font-weight: bold;
+		color: white; background-color: #922;
+		border-top-color: #C55; border-right-color: #522;
+		border-bottom-color: #522; border-left-color: #C55;
+		}
+	
+	.greyBox
+		{
+		background-color: #EEE;
+		border-top-color: #FFF; border-right-color: #888;
+		border-bottom-color: #888; border-left-color: #FFF;
+		}
+		
+	.darkGreyBox
+		{
+		background-color: #DDD;
+		border-top-color: #EEE; border-right-color: #666;
+		border-bottom-color: #666; border-left-color: #EEE;
+		}
+
+	pre { font: 8pt "Trebuchet MS"; color: black; }
+
+	.bold		{ font-weight: bold; }
+	.function	{ font-weight: bold; color: #229; }
+	.arguments	{ font-weight: bold; color: #161; }
+</style>
+</head><body><div style="text-align: center;"><table cellspacing=0><tr><th class=redBox>2012-07-22 20:02:00</th></tr><tr><td class=darkGreyBox><pre>Error #1024
+
+1064 - You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'where
+game = 68' at line 1
+
+update tournamentgame set winner =  where game = 68</pre></td></tr><tr><td class=greyBox><div class=function>gameAction&nbsp;(&nbsp;<span class=arguments>Array</span>&nbsp;)</div><div>Line <span class=bold>152</span> of file <span class=bold>C:\wamp\www\sc\sc.php</span></div></td></tr><tr><td class=greyBox><div class=function>endTurnUpdate&nbsp;(&nbsp;<span class=arguments>Array, Array</span>&nbsp;)</div><div>Line <span class=bold>229</span> of file <span class=bold>C:\wamp\www\sc\game\game.php</span></div></td></tr><tr><td class=greyBox><div class=function>update_game&nbsp;(&nbsp;<span class=arguments>Array, Array, 1343001720</span>&nbsp;)</div><div>Line <span class=bold>601</span> of file <span class=bold>C:\wamp\www\sc\game\game.php</span></div></td></tr><tr><td class=greyBox><div class=function>endGame&nbsp;(&nbsp;<span class=arguments>Array, Array, Array, Array</span>&nbsp;)</div><div>Line <span class=bold>1749</span> of file <span class=bold>C:\wamp\www\sc\update.php</span></div></td></tr><tr><td class=greyBox><div class=function>sc_mysql_query&nbsp;(&nbsp;<span class=arguments>update tournamentgame set winner =  where game = 68</span>&nbsp;)</div><div>Line <span class=bold>454</span> of file <span class=bold>C:\wamp\www\sc\history.php</span></div></td></tr></table></div></body></html>
