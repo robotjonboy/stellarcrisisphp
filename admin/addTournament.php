@@ -1,4 +1,4 @@
-<?
+<?php
 function addTournament($vars)
 {
 	$empire = $vars['empire_data'];
