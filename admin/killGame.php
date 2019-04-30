@@ -1,4 +1,4 @@
-<?
+<?php
 function killGame($vars)
 {
 	$empire = $vars['empire_data'];

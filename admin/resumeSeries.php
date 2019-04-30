@@ -1,4 +1,4 @@
-<?
+<?php
 function resumeSeries($vars)
 {
 	standardHeader('Resume Series', $vars['empire_data']);

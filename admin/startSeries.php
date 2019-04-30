@@ -1,4 +1,4 @@
-<?
+<?php
 function startSeries($vars)
 {
 	$empire = $vars['empire_data'];

@@ -1,4 +1,4 @@
-<?
+<?php
 require('../server.php');
 require('../debug.php');
 require('../sql.php');

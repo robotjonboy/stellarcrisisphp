@@ -1,4 +1,4 @@
-<?
+<?php
 # file: debug.php
 #
 # cjp -Added view errors to admin menu
@@ -70,11 +70,11 @@ function reportError($error_number, $error_string, $file, $line, $context)
 	$buffer = str_replace('***ERROR_REPORT***', $error_report, $buffer);
 	
 	ob_start();
-?>
+echo "
 <style>
 	table
 		{
-		font: 8pt "Trebuchet MS";
+		font: 8pt \"Trebuchet MS\";
 		border: 1pt solid black;
 		margin-left: auto; margin-right: auto; margin-bottom: 10pt;
 		}
@@ -109,13 +109,13 @@ function reportError($error_number, $error_string, $file, $line, $context)
 		border-bottom-color: #666; border-left-color: #EEE;
 		}
 
-	pre { font: 8pt "Trebuchet MS"; color: black; }
+	pre { font: 8pt \"Trebuchet MS\"; color: black; }
 
 	.bold		{ font-weight: bold; }
 	.function	{ font-weight: bold; color: #229; }
 	.arguments	{ font-weight: bold; color: #161; }
-</style>
-<?
+</style>";
+
 	$style_data = ob_get_contents();
 	ob_end_clean();
 

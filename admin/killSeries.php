@@ -1,4 +1,4 @@
-<?
+<?php
 function killSeries($vars)
 {
 	$empire = $vars['empire_data'];

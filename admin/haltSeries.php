@@ -1,4 +1,4 @@
-<?
+<?php
 function haltSeries($vars)
 {
 	standardHeader('Halt series', $vars['empire_data']);

@@ -1,4 +1,4 @@
-<?
+<?php
 function editMessage($vars)
 {
 	$empire = $vars['empire_data'];

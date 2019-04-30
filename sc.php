@@ -53,9 +53,9 @@ else
 */
 #----------------------------------------------------------------------------------------------------------------------#
 require('server.php');
-//require('debug.php');
-//require('sql.php');
-//require('admin/admin.php');
+require('debug.php');
+require('sql.php');
+require('admin/admin.php');
 //require('ship_types.php');  //contains global $ship_types array
 //require('history.php');
 //require('main/main.php');

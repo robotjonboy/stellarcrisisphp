@@ -1,4 +1,4 @@
-<?
+<?php
 #----------------------------------------------------------------------------------------------------------------------#
 require('createSeries.php');
 require('dbCleanup.php');
@@ -64,41 +64,41 @@ function mainPage_admin($vars)
 
 	standardHeader('Admin', $empire);
 
-	echo "<div class=pageTitle>".$empire['name']." : Administration</div>";
-?>
-<input type=hidden name="name" value="<? echo $empire['name']; ?>">
-<input type=hidden name="pass" value="<? echo $empire['password']; ?>">
-<input type=hidden name="section" value="admin">
-<input type=hidden name="empireID" value="<? echo $vars['empireID']; ?>"><!--cjp-->
-<input type=hidden name="page" value="main">
+	echo "<div class=pageTitle>".$empire['name']." : Administration</div>
 
-<?
+<input type=hidden name=\"name\" value=\"" . $empire['name'] . "\">
+<input type=hidden name=\"pass\" value=\"" . $empire['password'] . "\">
+<input type=hidden name=\"section\" value=\"admin\">
+<input type=hidden name=\"empireID\" value=\"" . $vars['empireID'] . "\"><!--cjp-->
+<input type=hidden name=\"page\" value=\"main\">";
+
+
 	echo drawButtons($empire).serverTime().onlinePlayers().empireMissive($empire);
-?>
-<img class=spacerule src="images/spacerule.jpg" width="100%">
+	echo "
+<img class=spacerule src=\"images/spacerule.jpg\" width=\"100%\">
 
-<div style="text-align: center;">
-<select name="adminAction" onChange="document.forms[0].go.disabled = (document.forms[0].adminAction.value == 0)">
+<div style=\"text-align: center;\">
+<select name=\"adminAction\" onChange=\"document.forms[0].go.disabled = (document.forms[0].adminAction.value == 0)\">
 	<option value=0>Admin action...
-	<option value="createSeries">Create a new series
-	<option value="editSeries">Edit series
-	<option value="haltSeries">Halt series
-	<option value="resumeSeries">Resume series
-	<option value="killSeries">Kill series
-	<option value="killGame">Kill game
-	<option value="dbClean">Database cleanup
-	<option value="editMOTD">Edit message of the day
-	<option value="editPrivacy">Edit privacy policy
-	<option value="editPolicies">Edit policy statement
-	<option value="editTOS">Edit terms of service
-	<option value="editNews">Edit server news
-	<option value="viewErrs">View Errors
-	<option value="addTournament">Add Tournament
-	<option value="editTournament">Edit Tournament
+	<option value=\"createSeries\">Create a new series
+	<option value=\"editSeries\">Edit series
+	<option value=\"haltSeries\">Halt series
+	<option value=\"resumeSeries\">Resume series
+	<option value=\"killSeries\">Kill series
+	<option value=\"killGame\">Kill game
+	<option value=\"dbClean\">Database cleanup
+	<option value=\"editMOTD\">Edit message of the day
+	<option value=\"editPrivacy\">Edit privacy policy
+	<option value=\"editPolicies\">Edit policy statement
+	<option value=\"editTOS\">Edit terms of service
+	<option value=\"editNews\">Edit server news
+	<option value=\"viewErrs\">View Errors
+	<option value=\"addTournament\">Add Tournament
+	<option value=\"editTournament\">Edit Tournament
 </select>
-<input type=submit name="go" value="Go" disabled>
-</div>
-<?
+<input type=submit name=\"go\" value=\"Go\" disabled>
+</div>";
+
 	footer();
 }
 

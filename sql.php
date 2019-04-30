@@ -1,25 +1,27 @@
-<?
+<?php
 #--------------------------------------------------------------------------------------------------------------------#
 # Function to make MySQL queries and attempt to trap and correct some key errors
 #
 
 function sc_mysql_query($query, $fileinfo = 'unknown*unknown', $ignored_errors = array())
 {
+	global $mysqli;
+	
 	// We'll loop endlessly here, until we either fully process an error or get a valid MySQL query result.
 	while (true)
 		{
 		// Attempt, or re-attempt the query.
-		if ($result = @mysql_query($query))
+		if ($result = $mysqli->query($query))
 			return $result;
 		
 		// If we get here, we have an SQL error.
 		// Our error handler will take care of reporting the snag, but we need
 		// to check a few others things by ourselves.
-		$error_string = mysql_error();
-		$error_number = mysql_errno();
+		$error_string = $mysqli->error;
+		$error_number = $mysqli->errno;
 		
 		// First, attempt a rollback to cleanup what was done.
-		$rollback_status = mysql_query('ROLLBACK');
+		$rollback_status = $mysqli->query('ROLLBACK');
 
 		// If we have a deadlock, we'll re-issue the query after a few seconds.
 		# 1205: "Lock wait timeout exceeded; Try restarting transaction"
@@ -35,6 +37,7 @@ function sc_mysql_query($query, $fileinfo = 'unknown*unknown', $ignored_errors =
 		else
 			{
 			// Report the error and die.
+			error_log($error_number.' - '.$error_string."\n\n".$query);
 			trigger_error($error_number.' - '.$error_string."\n\n".$query);
 			sqlError($rollback_status);
 			}

@@ -1,4 +1,4 @@
-<?
+<?php
 function dbClean($vars)
 {
 	standardHeader('Database Cleanup', $vars['empire_data']);

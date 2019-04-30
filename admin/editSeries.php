@@ -1,4 +1,4 @@
-<?
+<?php
 function debugecho($msg)
 {
 //	$debug=true;

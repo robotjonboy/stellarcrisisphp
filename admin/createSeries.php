@@ -1,17 +1,17 @@
-<?
+<?php
 function createSeries($vars)
 {
 	$empire = $vars['empire_data'];
 	
 	standardHeader('Create Series', $empire);
-?>
-<input type=hidden name="name" value="<? echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<? echo $vars['pass']; ?>">
-<input type=hidden name="empireID" value="<? echo $empire['id']; ?>">
-<input type=hidden name="section" value="admin">
-<input type=hidden name="page" value="createSeries">
+echo "
+<input type=hidden name=\"name\" value=\"" . $vars['name'] . "\">
+<input type=hidden name=\"pass\" value=\"" . $vars['pass'] . "\">
+<input type=hidden name=\"empireID\" value=\"" . $empire['id'] . "\">
+<input type=hidden name=\"section\" value=\"admin\">
+<input type=hidden name=\"page\" value=\"createSeries\">";
 
-<?
+
 	// show online players drop box
     echo "<div class=pageTitle>Create a New Series</div>";
 	echo drawButtons($empire); //EmpireName : create a series
@@ -21,71 +21,71 @@ function createSeries($vars)
 	echo "<img class=spacerule src=\"images/spacerule.jpg\" ";
 	echo      "width=\"100%\" height=10 alt=\"spacerule.jpg\">";
 	echo '</div>';
-?>
+	echo "
 
-<div style="text-align: center;">
-<table style="text-align: center; margin-left: auto; margin-right: auto;">
+<div style=\"text-align: center;\">
+<table style=\"text-align: center; margin-left: auto; margin-right: auto;\">
 	<tr>
-		<th style="text-align: right;">Series Name:</th>
-		<td><input type=text size=40 maxlength=40 name="series_name"></td>
+		<th style=\"text-align: right;\">Series Name:</th>
+		<td><input type=text size=40 maxlength=40 name=\"series_name\"></td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Average agriculture:</th>
-		<td><input type=text size=5 maxlength=4 name="avg_ag" value="30"></td>
+		<th style=\"text-align: right;\">Average agriculture:</th>
+		<td><input type=text size=5 maxlength=4 name=\"avg_ag\" value=\"30\"></td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Average fuel:</th>
-		<td><input type=text size=5 maxlength=4 name="avg_fuel" value="30"></td>
+		<th style=\"text-align: right;\">Average fuel:</th>
+		<td><input type=text size=5 maxlength=4 name=\"avg_fuel\" value=\"30\"></td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Average minerals:</th>
-		<td><input type=text size=5 maxlength=4 name="avg_min" value="30"></td>
+		<th style=\"text-align: right;\">Average minerals:</th>
+		<td><input type=text size=5 maxlength=4 name=\"avg_min\" value=\"30\"></td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Bridier allowed:</th>
+		<th style=\"text-align: right;\">Bridier allowed:</th>
 		<td>
-			<select name="bridier_allowed">
+			<select name=\"bridier_allowed\">
 				<option value=0 selected>No
 				<option value=1>Yes
 			</select>
 		</td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Can draw (2-player games only):</th>
+		<th style=\"text-align: right;\">Can draw (2-player games only):</th>
 		<td>
-			<select name="can_draw">
+			<select name=\"can_draw\">
 				<option value=0 selected>No
 				<option value=1>Yes
 			</select>
 		</td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Can surrender (2-player games only):</th>
+		<th style=\"text-align: right;\">Can surrender (2-player games only):</th>
 		<td>
-			<select name="can_surrender">
+			<select name=\"can_surrender\">
 				<option value=0 selected>No
 				<option value=1>Yes
 			</select>
 		</td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Cloakers appear as attacks:</th>
+		<th style=\"text-align: right;\">Cloakers appear as attacks:</th>
 		<td>
-			<select name="cloakers_as_attacks">
+			<select name=\"cloakers_as_attacks\">
 				<option value=0 
-				   <? echo ($series['cloakers_as_attacks'] == 0 ? ' selected' : ''); ?>>
+				   " . ($series['cloakers_as_attacks'] == 0 ? ' selected' : '') . ">
 				   No
 				<option value=1 
-				   <? echo ($series['cloakers_as_attacks'] == 1 ? ' selected' : ''); ?>>
+				   " . ($series['cloakers_as_attacks'] == 1 ? ' selected' : '') . ">
 				   Yes
 			</select>
 		</td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Cloakers build cloaked:</th>
+		<th style=\"text-align: right;\">Cloakers build cloaked:</th>
 		<td>
-			<select name="build_cloakers_cloaked">
-				<option value=1<? echo ($series['build_cloakers_cloaked'] == 1 ? ' selected' : ''); ?>>Yes
+			<select name=\"build_cloakers_cloaked\">
+				<option value=1 " . ($series['build_cloakers_cloaked'] == 1 ? ' selected' : '') . ">Yes
 				<option value=0<? echo ($series['build_cloakers_cloaked'] == 0 ? ' selected' : ''); ?>>No
 			</select>
 		</td>
