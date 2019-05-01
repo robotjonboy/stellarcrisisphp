@@ -2,18 +2,17 @@
 function dbClean($vars)
 {
 	standardHeader('Database Cleanup', $vars['empire_data']);
-?>
+echo "
 <div class=pageTitle>Database Cleanup</div>
 <div>
-<input type=hidden name="name" value="<? echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<? echo $vars['pass']; ?>">
-<input type=hidden name="section" value="admin">
-<input type=hidden name="page" value="dbClean">
-<?
+<input type=hidden name=\"name\" value=\"" . $vars['name'] . "\">
+<input type=hidden name=\"pass\" value=\"" . $vars['pass'] . "\">
+<input type=hidden name=\"section\" value=\"admin\">
+<input type=hidden name=\"page\" value=\"dbClean\">";
+
 	echo drawButtons($vars['empire_data']).serverTime().onlinePlayers().empireMissive($vars['empire_data']);
-?>
-<img class=spacerule src="images/spacerule.jpg">
-<?
+	echo "<img class=spacerule src=\"images/spacerule.jpg\">";
+
 	if (isset($vars['clean']))
 		{
 		$execute = (isset($vars['execute']));
@@ -32,37 +31,37 @@ function dbClean($vars)
 			case 'Systems':				$output = clean_systems($execute);			break;
 			}
 		}
-?>
-<div style="text-align: center;">Cleanup to perform:
-	<select name="cleanUpAction">
-		<option<? echo ($vars['cleanUpAction'] == 'Explored' ? ' selected' : ''); ?>>Explored
-		<option<? echo ($vars['cleanUpAction'] == 'Fleets' ? ' selected' : ''); ?>>Fleets
-		<option<? echo ($vars['cleanUpAction'] == 'Games' ? ' selected' : ''); ?>>Games
-		<option<? echo ($vars['cleanUpAction'] == 'History' ? ' selected' : ''); ?>>History
-		<option<? echo ($vars['cleanUpAction'] == 'Jumps' ? ' selected' : ''); ?>>Jumps
-		<option<? echo ($vars['cleanUpAction'] == 'Messages' ? ' selected' : ''); ?>>Messages
-		<option<? echo ($vars['cleanUpAction'] == 'Players' ? ' selected' : ''); ?>>Players
-		<option<? echo ($vars['cleanUpAction'] == 'Scouting Reports' ? ' selected' : ''); ?>>Scouting Reports
-		<option<? echo ($vars['cleanUpAction'] == 'Ships' ? ' selected' : ''); ?>>Ships
-		<option<? echo ($vars['cleanUpAction'] == 'Systems' ? ' selected' : ''); ?>>Systems
+echo "
+<div style=\"text-align: center;\">Cleanup to perform:
+	<select name=\"cleanUpAction\">
+		<option " . ($vars['cleanUpAction'] == 'Explored' ? ' selected' : '') . ">Explored
+		<option " . ($vars['cleanUpAction'] == 'Fleets' ? ' selected' : '') . ">Fleets
+		<option " . ($vars['cleanUpAction'] == 'Games' ? ' selected' : '') . ">Games
+		<option " . ($vars['cleanUpAction'] == 'History' ? ' selected' : '') . ">History
+		<option " . ($vars['cleanUpAction'] == 'Jumps' ? ' selected' : '') . ">Jumps
+		<option " . ($vars['cleanUpAction'] == 'Messages' ? ' selected' : '') . ">Messages
+		<option " . ($vars['cleanUpAction'] == 'Players' ? ' selected' : '') . ">Players
+		<option " . ($vars['cleanUpAction'] == 'Scouting Reports' ? ' selected' : '') . ">Scouting Reports
+		<option " . ($vars['cleanUpAction'] == 'Ships' ? ' selected' : '') . ">Ships
+		<option " . ($vars['cleanUpAction'] == 'Systems' ? ' selected' : '') . ">Systems
 	</select>
 </div>
 
-<div style="text-align: center; margin-top: 10pt;">
-	<input type=checkbox name="execute">&nbsp;Correct discrepancies
+<div style=\"text-align: center; margin-top: 10pt;\">
+	<input type=checkbox name=\"execute\">&nbsp;Correct discrepancies
 </div>
 
-<div style="text-align: center; margin-top: 10pt;">
-	<input type=submit name="clean" value="Clean">&nbsp;<input type=submit name="cancel" value="Cancel">
-</div>
-<?	
+<div style=\"text-align: center; margin-top: 10pt;\">
+	<input type=submit name=\"clean\" value=\"Clean\">&nbsp;<input type=submit name=\"cancel\" value=\"Cancel\">
+</div>";
+
 	if ($output)
 		{
-?>
-<blockquote style="color: white; font-size: 10pt; text-align: left;">
-	<pre><? echo implode("\n", $output); ?></pre>
-</blockquote>
-<?
+echo "
+<blockquote style=\"color: white; font-size: 10pt; text-align: left;\">
+	<pre>" . implode("\n", $output) . "</pre>
+</blockquote>";
+
 		}
 
 	footer();

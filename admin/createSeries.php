@@ -86,18 +86,18 @@ echo "
 		<td>
 			<select name=\"build_cloakers_cloaked\">
 				<option value=1 " . ($series['build_cloakers_cloaked'] == 1 ? ' selected' : '') . ">Yes
-				<option value=0<? echo ($series['build_cloakers_cloaked'] == 0 ? ' selected' : ''); ?>>No
+				<option value=0 " . ($series['build_cloakers_cloaked'] == 0 ? ' selected' : '') . ">No
 			</select>
 		</td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Creator:</th>
-		<td><input type=text size=20 maxlength=20 name="creator" value="admin"></td>
+		<th style=\"text-align: right;\">Creator:</th>
+		<td><input type=text size=20 maxlength=20 name=\"creator\" value=\"admin\"></td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Diplomatic states allowed:</th>
+		<th style=\"text-align: right;\">Diplomatic states allowed:</th>
 		<td>
-			<select name="diplomacy">
+			<select name=\"diplomacy\">
 				<option value=6 selected>All (Shared HQ)
 				<option value=5>Up to alliance
 				<option value=4>Up to trade
@@ -107,13 +107,13 @@ echo "
 		</td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Map compresison:</th>
-		<td><input type=text size=5 maxlength=5 name="map_compression" value="0.001"></td>
+		<th style=\"text-align: right;\">Map compresison:</th>
+		<td><input type=text size=5 maxlength=5 name=\"map_compression\" value=\"0.001\"></td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Map type:</th>
+		<th style=\"text-align: right;\">Map type:</th>
 		<td>
-			<select name="map_type">
+			<select name=\"map_type\">
 				<option value=1 selected>Classic
 				<option value=2>Pre-built (random placement)
 				<option value=3>Twisted (2-player or team game only)
@@ -123,64 +123,64 @@ echo "
 		</td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Map visible before game start:</th>
+		<th style=\"text-align: right;\">Map visible before game start:</th>
 		<td>
-			<select name="map_visible">
+			<select name=\"map_visible\">
 				<option value=1>Yes
 				<option value=0 selected>No
 			</select>
 		</td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Maximum players:</th>
-		<td><input type=text size=3 maxlength=3 name="max_players" 
-		      value="8">
+		<th style=\"text-align: right;\">Maximum players:</th>
+		<td><input type=text size=3 maxlength=3 name=\"max_players\" 
+		      value=\"8\">
 		</td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Maximum wins:</th>
+		<th style=\"text-align: right;\">Maximum wins:</th>
 		<td>
-			<input type=text size=5 maxlength=7 name="max_wins">
-			<input type=checkbox name="no_max_wins" checked>No maximum
+			<input type=text size=5 maxlength=7 name=\"max_wins\">
+			<input type=checkbox name=\"no_max_wins\" checked>No maximum
 		</td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Minimum wins:</th>
-		<td><input type=text size=5 name="min_wins" value="0"></td>
+		<th style=\"text-align: right;\">Minimum wins:</th>
+		<td><input type=text size=5 name=\"min_wins\" value=\"0\"></td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Systems per player:</th>
-		<td><input type=text size=3 maxlength=3 name="systems_per_player" value="15"></td>
+		<th style=\"text-align: right;\">Systems per player:</th>
+		<td><input type=text size=3 maxlength=3 name=\"systems_per_player\" value=\"15\"></td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Team game:</th>
+		<th style=\"text-align: right;\">Team game:</th>
 		<td>
-			<select name="team_game">
+			<select name=\"team_game\">
 				<option value=1>Yes
 				<option value=0 selected>No
 			</select>
 		</td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Tech multiple:</th>
-		<td><input type=text size=5 maxlength=5 name="tech_multiple" value="2.5"></td>
+		<th style=\"text-align: right;\">Tech multiple:</th>
+		<td><input type=text size=5 maxlength=5 name=\"tech_multiple\" value=\"2.5\"></td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Update Time:</th>
+		<th style=\"text-align: right;\">Update Time:</th>
 		<td>
-			<input type=text size=5 maxlength=5 name="update_time" value="26">
-			<select name="update_time_unit">
-				<option value="1">Minutes
-				<option value="2" selected>Hours
-				<option value="3">Days
+			<input type=text size=5 maxlength=5 name=\"update_time\" value=\"26\">
+			<select name=\"update_time_unit\">
+				<option value=\"1\">Minutes
+				<option value=\"2\" selected>Hours
+				<option value=\"3\">Days
 			</select>
-			<input type=checkbox name="weekend_updates"> Weekend Updates
+			<input type=checkbox name=\"weekend_updates\"> Weekend Updates
 		</td>
 	</tr>
 	<tr>
-		<th style="text-align: right;">Visible builds:</th>
+		<th style=\"text-align: right;\">Visible builds:</th>
 		<td>
-			<select name="visible_builds">
+			<select name=\"visible_builds\">
 				<option value=1>Yes
 				<option value=0 selected>No
 			</select>
@@ -188,10 +188,10 @@ echo "
 	</tr>
 </table>
 <br>
-<input type=submit name="confirm" value="Create">
-<input type=submit name="confirm" value="Cancel">
-</div>
-<?
+<input type=submit name=\"confirm\" value=\"Create\">
+<input type=submit name=\"confirm\" value=\"Cancel\">
+</div>";
+
 	footer();
 }
 
