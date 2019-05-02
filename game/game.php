@@ -1,4 +1,4 @@
-<?
+<?php
 #----------------------------------------------------------------------------------------------------------------------#
 require('info.php');
 require('tech.php');
@@ -457,7 +457,7 @@ function gameHeader($vars, $title)
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <link rel=StyleSheet href="styles.css" type="text/css">
 <script src="sc.js" type="text/javascript"></script>
-<?
+<?php
 	if ($empire['draw_background'] == 0)
 		echo '<style>body { background: none; background-color: black; }</style>';
 	else
@@ -468,25 +468,25 @@ function gameHeader($vars, $title)
 		echo '<style>body { background-attachment: '.$empire['background_attachment'].'; }</style>';
 		}
 ?>
-<title>SC <? echo $server['version'].' @ '.$server['servername'].': '.$title.': '.$series['name'].' '.$game['game_number']; ?></title>
-<? 
+<title>SC <?php echo $server['version'].' @ '.$server['servername'].': '.$title.': '.$series['name'].' '.$game['game_number']; ?></title>
+<?php 
 // page updates are too fast on 4 minute games -cannot move ships
 // echo '<body'.'>'.$server['standard_header_text']; 
 echo '<body'.($empire['auto_update'] ? ' onLoad="setTimeout('.$gotoDoc.','.($time_to_update*1000).')"' : '').'>'.$server['standard_header_text']; 
 ?>
 </head>
 <form method=post action="sc.php">
-<input type=hidden name=name value="<? echo $player['name']; ?>">
-<input type=hidden name=pass value="<? echo $empire['password']; ?>">
-<input type=hidden name=series_id value="<? echo $series['id']; ?>">
-<input type=hidden name=game_number value="<? echo $game['game_number']; ?>">
-<input type=hidden name=game_id value="<? echo $game['id']; ?>">
+<input type=hidden name=name value="<?php echo $player['name']; ?>">
+<input type=hidden name=pass value="<?php echo $empire['password']; ?>">
+<input type=hidden name=series_id value="<?php echo $series['id']; ?>">
+<input type=hidden name=game_number value="<?php echo $game['game_number']; ?>">
+<input type=hidden name=game_id value="<?php echo $game['id']; ?>">
 <input type=hidden name=section value="game">
-<input type=hidden name=play value="<? echo $title; ?>">
-<? //echo $cjp_check_all. '=========='; ?>
+<input type=hidden name=play value="<?php echo $title; ?>">
+<?php //echo $cjp_check_all. '=========='; ?>
 
-<div class=pageTitle><? echo $player['name'].' '.$title.': '.$series['name'].' '.$game['game_number']; ?></div>
-<?
+<div class=pageTitle><?php echo $player['name'].' '.$title.': '.$series['name'].' '.$game['game_number']; ?></div>
+<?php
 	if ($title != 'Info')
 		echo '<div style="text-align: center; margin-top: 5pt;">'.$next_update.'</div>';
 
@@ -528,19 +528,19 @@ function ratios($player)
 <table width="100%">
 	<tr>
 		<td style="text-align: right; color: white;">Maintenance Ratio:</td>
-		<td><? echo ($player['mineral_ratio'] ? number_format($player['mineral_ratio'], 5, '.', '') : '--'); ?></td>
+		<td><?php echo ($player['mineral_ratio'] ? number_format($player['mineral_ratio'], 5, '.', '') : '--'); ?></td>
 		<td style="text-align: right; color: white;">Fuel Ratio:</td>
-		<td><? echo ($player['fuel_ratio'] ? number_format($player['fuel_ratio'], 5, '.', '') : '--'); ?></td>
+		<td><?php echo ($player['fuel_ratio'] ? number_format($player['fuel_ratio'], 5, '.', '') : '--'); ?></td>
 		<td style="text-align: right; color: white;">Agriculture Ratio:</td>
-		<td><? echo ($player['agriculture_ratio'] ? number_format($player['agriculture_ratio'], 5, '.', '') : '--'); ?></td>
+		<td><?php echo ($player['agriculture_ratio'] ? number_format($player['agriculture_ratio'], 5, '.', '') : '--'); ?></td>
 	 	<td style="text-align: right; color: white;">Tech Level:</td>
-		<td><? echo number_format($player['tech_level'], 5, '.', ''); ?></td>
+		<td><?php echo number_format($player['tech_level'], 5, '.', ''); ?></td>
 		<td style="text-align: right; color: white;">Tech Development:</td>
-		<td><? echo number_format($player['tech_development'], 5, '.', ''); ?></td>
+		<td><?php echo number_format($player['tech_development'], 5, '.', ''); ?></td>
 	</tr>
 </table>
 <img class=spacerule src="images/spacerule.jpg" alt="spacerule.jpg">
-<?
+<?php
 }
 
 #----------------------------------------------------------------------------------------------------------------------#

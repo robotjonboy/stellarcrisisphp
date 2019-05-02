@@ -1,4 +1,4 @@
-<?
+<?php
 function messageHistory($vars)
 {
 	$series = $vars['series_data'];
@@ -49,16 +49,16 @@ Choose the category of messages you wish to display.
 </div>
 <div style="text-align: center; margin-top: 10pt;">
 	<select name="message_history_filter">
-		<? echo $options; ?>
-		<option value="all"<? echo ($filter == 'all' ? ' selected' : ''); ?>>
-				All (<? echo $total_messages; ?>)
+		<?php echo $options; ?>
+		<option value="all"<?php echo ($filter == 'all' ? ' selected' : ''); ?>>
+				All (<?php echo $total_messages; ?>)
 	</select>&nbsp;
 	<input	type='checkbox' 
-		name=reverse_order<? echo ($vars['reverse_order'] ? ' checked' : ''); ?>>
+		name=reverse_order<?php echo ($vars['reverse_order'] ? ' checked' : ''); ?>>
 		Reverse order&nbsp;
    <input type=submit name=filterHistory value="Go">
 </div>
-<?
+<?php
 	}
 	else
 	{
@@ -107,7 +107,7 @@ Choose the category of messages you wish to display.
 <table style="margin-left: auto; margin-right: auto; margin-top: 10pt;">
 	<tr>
 		<td align=left>
-<?		
+<?php		
 		echo implode("<br>\n", $tmp_missives);
 ?>
 		</td>
@@ -128,7 +128,7 @@ Choose the category of messages you wish to display.
 			name='deleteMessages' 
 			value="Delete selected messages">
 </div>
-<?
+<?php
 		}
 	#else if ($filter != '')
 	#	echo '<div align=center>There are no archived messages of this type ('.$filter.').</div>';

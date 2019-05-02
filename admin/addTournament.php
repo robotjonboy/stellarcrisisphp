@@ -16,13 +16,13 @@ function addTournament($vars)
 	
 	standardHeader('Add Tournament', $empire);
 ?>
-<input type=hidden name="name" value="<? echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<? echo $vars['pass']; ?>">
-<input type=hidden name="empireID" value="<? echo $empire['id']; ?>">
+<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
+<input type=hidden name="pass" value="<?php echo $vars['pass']; ?>">
+<input type=hidden name="empireID" value="<?php echo $empire['id']; ?>">
 <input type=hidden name="section" value="admin">
 <input type=hidden name="page" value="addTournament">
 
-<?
+<?php
 	// show online players drop box
     echo "<div class=pageTitle>Add a Tournament</div>";
 	echo drawButtons($empire); //EmpireName : create a series
@@ -69,7 +69,7 @@ function addTournament($vars)
 <input type=submit name="confirm" value="Create">
 <input type=submit name="confirm" value="Cancel">
 </div>
-<?
+<?php
 	footer();
 }
 

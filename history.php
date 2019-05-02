@@ -1,4 +1,4 @@
-<?
+<?php
 #----------------------------------------------------------------------------------------------------------------------#
 # Dumps accumulated history to the history table.
 #
@@ -276,9 +276,9 @@ function endGame($series, $game, $history, $saved_map)
 		<td>Adjustment</td>
 		<td>New Value</td>
 	</tr>
-	<? echo $bridier_string; ?>
+	<?php echo $bridier_string; ?>
 </table></div>
-<?
+<?php
 		}
 
 	$history_string = ob_get_contents();
@@ -289,45 +289,45 @@ function endGame($series, $game, $history, $saved_map)
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
-	<title><? echo $title_string; ?></title>
-	<link rel="stylesheet" type="text/css" href="<? echo $server['history_css_path'].'styles.css'; ?>">
+	<title><?php echo $title_string; ?></title>
+	<link rel="stylesheet" type="text/css" href="<?php echo $server['history_css_path'].'styles.css'; ?>">
 	<script type="text/javascript" src="MapDraw.js"></script>
 	<script>
 		var universe = new Array();
 		var nPlanets = 0;
-		icons = new Array("<? echo implode('","', $icon_list); ?>");
+		icons = new Array("<?php echo implode('","', $icon_list); ?>");
 		owner_history = new Array();
 		***HISTORY_JAVASCRIPT***
-		var firstUpdate = <? echo $first_update; ?>;
-		var lastUpdate = <? echo $update; ?>;
+		var firstUpdate = <?php echo $first_update; ?>;
+		var lastUpdate = <?php echo $update; ?>;
 	</script>
 </head>
 <body>
-<div style="text-align: center; font-size: 13pt;"><? echo $title_string; ?></div>
-<div style="text-align: center;">Stellar Crisis <? echo $server['version'].' @ '.$server['servername']; ?></div>
+<div style="text-align: center; font-size: 13pt;"><?php echo $title_string; ?></div>
+<div style="text-align: center;">Stellar Crisis <?php echo $server['version'].' @ '.$server['servername']; ?></div>
 
-<img class=spacerule src="<? echo $server['history_image_path']; ?>spacerule.jpg">
+<img class=spacerule src="<?php echo $server['history_image_path']; ?>spacerule.jpg">
 
 <div style="text-align: center;">
 <table style="margin-left: auto; margin-right: auto;">
 	<tr>
 		<td>
-			<? echo $history_string; ?>
-<img class=spaceruleThin src="<? echo $server['history_image_path']; ?>spacerule.jpg">
+			<?php echo $history_string; ?>
+<img class=spaceruleThin src="<?php echo $server['history_image_path']; ?>spacerule.jpg">
 <div class=smallTitle>Game Map</div>
-<div style="text-align: center; font-size: 8pt;">(<? echo implode(', ', $side); ?> as friendly ships)</div>
+<div style="text-align: center; font-size: 8pt;">(<?php echo implode(', ', $side); ?> as friendly ships)</div>
 <div style="text-align: center; margin: 10pt;"><img src="upno.gif"><img name="hundreds" src="blank.gif" width=16 height=24><img name="tens" src="blank.gif" width=16 height=24><img name="ones" src="blank.gif" width=16 height=24>
 
 	<script>
 		showUpdateNumber(lastUpdate);
-		imagePath = "<? echo $server['history_image_path']; ?>";
+		imagePath = "<?php echo $server['history_image_path']; ?>";
 		drawMap();
-		<? echo ($complete_game ? 'if (document.images) drawMovieControl();' : ''); ?>
+		<?php echo ($complete_game ? 'if (document.images) drawMovieControl();' : ''); ?>
 	</script>
 </div>
 </body>
 </html>
-<?
+<?php
 	$buffer = ob_get_contents();
 	ob_end_clean();
 

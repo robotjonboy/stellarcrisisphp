@@ -1,4 +1,4 @@
-<?
+<?php
 function mapScreen($vars)
 {
 	global $server;
@@ -246,8 +246,8 @@ function mapScreen($vars)
 	ratios($player);
 ?>
 <div class=messageBold>Click on a system for an up close view.</div>
-<div style="margin-top: 10pt;"><? echo $map; ?></div>
-<?
+<div style="margin-top: 10pt;"><?php echo $map; ?></div>
+<?php
 	footer();
 }
 
@@ -401,10 +401,10 @@ function miniMapScreen($vars)
 <div class=messageBold>Click on a system for an up close view.</div>
 <div style="margin-top: 10pt;">
 <table border=0 cellpadding=0 cellspacing=1 style="text-align: center; font-size: 8pt; margin-left: auto; margin-right: auto;">
-<? echo $map; ?>
+<?php echo $map; ?>
 </table>
 </div>
-<?
+<?php
 	footer();
 }
 

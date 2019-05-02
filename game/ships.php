@@ -1,4 +1,4 @@
-<?
+<?php
 function shipsScreen($vars)
 {
 	global $server, $system_cache;
@@ -517,7 +517,7 @@ function fleetsScreen($vars)
 					<th>Orders</th>
 					<th>Location</th>
 					<th rowspan=2>
-<?
+<?php
 		if ($fleet['collapsed'])
 			echo '<input type=submit name="expand['.$fleet['id'].']" value="Expand">';
 		else
@@ -526,21 +526,21 @@ function fleetsScreen($vars)
 					</th>
 				</tr>
 				<tr class=center>
-					<td><input type=text name="fleet_name[<? echo $fleet['id']; ?>]" value="<? echo stripslashes($fleet['name']); ?>" size=14 maxlength=20></td>
-					<td style="color: <? echo $brcolor; ?>;"><? echo number_format($fleet_br, 3, '.', ''); ?></td>
-				   	<td style="color: <? echo $next_brcolor; ?>;"><? echo number_format($fleet_nextbr, 3, '.', ''); ?></td>
-				   	<td><? echo number_format($fleet_maxbr, 3, '.', ''); ?></td>
-				   	<td><select name="fleet_orders[<? echo $fleet['id']; ?>]"><? echo $fleet_orders; ?></select></td>
-				   	<td><? echo ($system['annihilated'] ? 'Remains of ': '').$system['name'].' ('.xlateToLocal($system['coordinates']).')'; ?></td>
+					<td><input type=text name="fleet_name[<?php echo $fleet['id']; ?>]" value="<?php echo stripslashes($fleet['name']); ?>" size=14 maxlength=20></td>
+					<td style="color: <?php echo $brcolor; ?>;"><?php echo number_format($fleet_br, 3, '.', ''); ?></td>
+				   	<td style="color: <?php echo $next_brcolor; ?>;"><?php echo number_format($fleet_nextbr, 3, '.', ''); ?></td>
+				   	<td><?php echo number_format($fleet_maxbr, 3, '.', ''); ?></td>
+				   	<td><select name="fleet_orders[<?php echo $fleet['id']; ?>]"><?php echo $fleet_orders; ?></select></td>
+				   	<td><?php echo ($system['annihilated'] ? 'Remains of ': '').$system['name'].' ('.xlateToLocal($system['coordinates']).')'; ?></td>
 				</tr>
-<?
+<?php
 		if ($ship_list) echo $ship_list;
 ?>
 			</table>
 		</td>
 	</tr>
 </table>
-<?
+<?php
 		$fleet_list .= ob_get_contents();
 		ob_end_clean();
 		
@@ -581,7 +581,7 @@ function fleetsScreen($vars)
 		<th style="text-align: right;">Location:</th>
 		<td>
 			<select name="new_fleet_location">
-<?
+<?php
 		while ($row = mysql_fetch_array($select))
 			echo '<option value="'.xlateToLocal($row['location']).'">'.
 				 ($row['annihilated'] ? 'Remains of ' : '').
@@ -598,7 +598,7 @@ function fleetsScreen($vars)
 	</tr>
 </table>
 </div>
-<?
+<?php
 		}
 	else
 		echo '<div class=messageBold>You have no ships to gather in fleets.</div>'.$new_fleet;

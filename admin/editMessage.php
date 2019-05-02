@@ -1,11 +1,13 @@
 <?php
 function editMessage($vars)
 {
+	global $mysqli;
+	
 	$empire = $vars['empire_data'];
 	standardHeader('Edit Message', $empire);
 	
 	$select = sc_mysql_query('SELECT text FROM messages WHERE type = "'.$vars['message_type'].'" LIMIT 1');
-	$row = mysql_fetch_array($select);
+	$row = $select->fetch_assoc();
 	
 	switch ($vars['message_type'])
 		{
@@ -27,25 +29,24 @@ function editMessage($vars)
 		}
 		
 	$message .= '<div style="font-size: smaller;">It should be entered in HTML format.</div>';
-?>
+	echo "
 <div class=pageTitle>Message of the day</div>
 <div>
-<input type=hidden name="name" value="<? echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<? echo $vars['pass']; ?>">
-<input type=hidden name="message_type" value="<? echo $type; ?>">
-<input type=hidden name="section" value="admin">
-<input type=hidden name="page" value="editMessage">
-<input type=hidden name="message_type" value="<? echo $vars['message_type']; ?>">
-<?
+<input type=hidden name=\"name\" value=\"" . $vars['name'] . "\">
+<input type=hidden name=\"pass\" value=\"" . $vars['pass'] . "\">
+<input type=hidden name=\"message_type\" value=\"" . $type . "\">
+<input type=hidden name=\"section\" value=\"admin\">
+<input type=hidden name=\"page\" value=\"editMessage\">
+<input type=hidden name=\"message_type\" value=\"" . $vars['message_type'] . "\">";
 	echo drawButtons($empire).serverTime().onlinePlayers().empireMissive($empire);
-?>
-<img class=spacerule src="images/spacerule.jpg">
-<div class=messageBold><? echo $caption; ?></div>
-<div style="text-align: center; margin-top: 10pt;">
-	<textarea name="message" cols=100 rows=20><? echo stripslashes($row['text']); ?></textarea>
+	echo "
+<img class=spacerule src=\"images/spacerule.jpg\">
+<div class=messageBold>" . $caption . "</div>
+<div style=\"text-align: center; margin-top: 10pt;\">
+	<textarea name=\"message\" cols=100 rows=20>" . stripslashes($row['text']) . "</textarea>
 </div>
-<div style="text-align: center; margin-top: 10pt;"><input type=submit name="save" value="Save"></div>
-<?
+<div style=\"text-align: center; margin-top: 10pt;\"><input type=submit name=\"save\" value=\"Save\"></div>";
+
 	footer();
 }
 

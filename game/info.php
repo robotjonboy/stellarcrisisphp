@@ -1,4 +1,4 @@
-<?
+<?php
 function infoScreen($vars)
 {
 	$series = $vars['series_data'];
@@ -52,53 +52,53 @@ function infoScreen($vars)
 		<th colspan=6 style="text-align: center;">
 			<div class=tableTitle>Game Information</div>
 			<div style="font-size: 8pt; margin-bottom: 10pt;">
-				<a href="#" onClick="window.open('sc.php?seriesParameters=<? echo $series['id']; ?>','seriesParameters<? echo $series['id']; ?>','height=500,width=600,scrollbars=yes');return false;">Series parameters</a>
+				<a href="#" onClick="window.open('sc.php?seriesParameters=<?php echo $series['id']; ?>','seriesParameters<?php echo $series['id']; ?>','height=500,width=600,scrollbars=yes');return false;">Series parameters</a>
 			</div>
 		</th>
 	</tr>
 	<tr>
 		<td align=right class=white>Update Count:</td>
-		<td><? echo $game['update_count']; ?></td>
+		<td><?php echo $game['update_count']; ?></td>
 		<td align=right class=white>Last Update:</td>
-		<td><? echo $last_update; ?></td>
-		<td class=white style="text-align: center;" colspan=2><? echo $next_update; ?></td>
+		<td><?php echo $last_update; ?></td>
+		<td class=white style="text-align: center;" colspan=2><?php echo $next_update; ?></td>
 	</tr>
 	<tr>
-		<td style="text-align: center;" colspan=3>You are <? echo ($player['ended_turn'] ? '' : 'not '); ?>ready for an update</td>
-		<td style="text-align: center;" colspan=3><? echo $ended_turn.' of '.$game['player_count']; ?> players are ready for an update</td>
+		<td style="text-align: center;" colspan=3>You are <?php echo ($player['ended_turn'] ? '' : 'not '); ?>ready for an update</td>
+		<td style="text-align: center;" colspan=3><?php echo $ended_turn.' of '.$game['player_count']; ?> players are ready for an update</td>
 	</tr>
 	<tr><th colspan=6><div class=tableTitle>Empire Totals</div></tr>
 	<tr>
-		<td class=white>Minerals:</td><td><? echo $player['mineral']; ?></td>
-		<td class=white>Fuel:</td><td><? echo $player['fuel']; ?></td>
-		<td class=white>Agriculture:</td><td><? echo floor($player['agriculture']); ?></td>
+		<td class=white>Minerals:</td><td><?php echo $player['mineral']; ?></td>
+		<td class=white>Fuel:</td><td><?php echo $player['fuel']; ?></td>
+		<td class=white>Agriculture:</td><td><?php echo floor($player['agriculture']); ?></td>
 	</tr>
 	<tr>
-		<td class=white>Population:</td><td><? echo floor($player['population']); ?></td>
-		<td class=white>Target Population:</td><td><? echo $player['max_population']; ?></td>
-		<td class=white>Tech Level:</td><td><? echo number_format($player['tech_level'], 5, '.', ''); ?></td>
+		<td class=white>Population:</td><td><?php echo floor($player['population']); ?></td>
+		<td class=white>Target Population:</td><td><?php echo $player['max_population']; ?></td>
+		<td class=white>Tech Level:</td><td><?php echo number_format($player['tech_level'], 5, '.', ''); ?></td>
 	</tr>
 	<tr>
-		<td class=white>Economic Power:</td><td><? echo $player['economic_power']; ?></td>
-		<td class=white>Military Power:</td><td><? echo $player['military_power']; ?></td>
-		<td class=white>Tech Development:</td><td><? echo number_format($player['tech_development'], 5, '.', ''); ?></td>
+		<td class=white>Economic Power:</td><td><?php echo $player['economic_power']; ?></td>
+		<td class=white>Military Power:</td><td><?php echo $player['military_power']; ?></td>
+		<td class=white>Tech Development:</td><td><?php echo number_format($player['tech_development'], 5, '.', ''); ?></td>
 	</tr>
 	<tr><th colspan=6><div class=tableTitle>Ratios and Usage</div></th></tr>
 	<tr>
 		<td class=white>Maintenance Ratio:</td>
-		<td><? echo ($player['mineral_ratio'] ? number_format($player['mineral_ratio'], 5, '.', '') : '--'); ?></td>
+		<td><?php echo ($player['mineral_ratio'] ? number_format($player['mineral_ratio'], 5, '.', '') : '--'); ?></td>
 		<td class=white>Fuel Ratio:</td>
-		<td><? echo ($player['fuel_ratio'] ? number_format($player['fuel_ratio'], 5, '.', '') : '--'); ?></td>
+		<td><?php echo ($player['fuel_ratio'] ? number_format($player['fuel_ratio'], 5, '.', '') : '--'); ?></td>
 		<td class=white>Agriculture Ratio:</td>
-		<td><? echo ($player['agriculture_ratio'] ? number_format($player['agriculture_ratio'], 5, '.', '') : '--'); ?></td>
+		<td><?php echo ($player['agriculture_ratio'] ? number_format($player['agriculture_ratio'], 5, '.', '') : '--'); ?></td>
 	</tr>
 	<tr>
-		<td class=white>Total Build:</td><td><? echo $player['build']; ?></td>
-		<td class=white>Total Maintenance:</td><td><? echo $player['maintenance']; ?></td>
-		<td class=white>Total Fuel Use:</td><td><? echo $player['fuel_use']; ?></td>
+		<td class=white>Total Build:</td><td><?php echo $player['build']; ?></td>
+		<td class=white>Total Maintenance:</td><td><?php echo $player['maintenance']; ?></td>
+		<td class=white>Total Fuel Use:</td><td><?php echo $player['fuel_use']; ?></td>
 	</tr>
 </table>
-<?
+<?php
 	footer();
 }
 ?>

@@ -1,4 +1,4 @@
-<?
+<?php
 function notesScreen($vars)
 {
 	$player = $vars['player_data'];

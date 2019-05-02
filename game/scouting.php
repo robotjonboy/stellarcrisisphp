@@ -1,4 +1,4 @@
-<?
+<?php
 #-----------------------------------------------------------------------------------------------------------------------------------------#
 # $planet is a coordinate that comes from the system screen in the sender's local space.
 #

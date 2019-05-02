@@ -6,18 +6,18 @@ function killSeries($vars)
 	standardHeader('Kill Series', $empire);
 ?>
 <div class=pageTitle>Kill a Series</div>
-<input type=hidden name="name" value="<? echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<? echo $vars['pass']; ?>">
+<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
+<input type=hidden name="pass" value="<?php echo $vars['pass']; ?>">
 <input type=hidden name="section" value="admin">
 <input type=hidden name="page" value="killSeries">
-<?
+<?php
 	echo drawButtons($empire).serverTime().onlinePlayers().empireMissive($empire);
 ?>
 <img class=spacerule src="images/spacerule.jpg">
 <div style="text-align: center;">
 	<select name="seriesToKill">
 		<option value=0>Kill series...
-<?
+<?php
 	$fields = array();
 	$fields[] = 'series.id';
 	$fields[] = 'series.name';
@@ -36,7 +36,7 @@ function killSeries($vars)
 	<input type=submit name="killSeries" value="Kill">
 	<input type=submit name="cancel" value="Cancel">
 </div>
-<?
+<?php
 	footer();
 }
 

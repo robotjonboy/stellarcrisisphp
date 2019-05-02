@@ -5,11 +5,11 @@ function haltSeries($vars)
 ?>
 <div class=pageTitle>Halt series</div>
 
-<input type=hidden name="name" value="<? echo $vars['name']; ?>">
+<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
 <input type=hidden name="pass" value="<? echo $vars['pass']; ?>">
 <input type=hidden name="section" value="admin">
 <input type=hidden name="page" value="haltSeries">
-<?
+<?php
 	echo drawButtons($vars['empire_data']).serverTime().onlinePlayers().empireMissive($vars['empire_data']);
 
 	$select = sc_mysql_query('SELECT id, name FROM series WHERE halted = "0" ORDER BY name ASC');
@@ -19,7 +19,7 @@ function haltSeries($vars)
 <div style="text-align: center; margin-left: auto; margin-right: auto;">
 <select name="seriesToHalt" onChange="document.forms[0].halt.disabled = (document.forms[0].seriesToHalt.value == 0)">
 	<option value="">Halt series...
-<?
+<?php
 	while ($series = mysql_fetch_array($select))
 		echo '<option value="'.$series['id'].'">'.$series['name'];	
 ?>
@@ -29,7 +29,7 @@ function haltSeries($vars)
 	<input type=submit name=halt value="Halt" disabled>
 	<input type=submit name=cancel value="Cancel">
 </div>
-<?
+<?php
 	footer();
 }
 

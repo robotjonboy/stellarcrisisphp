@@ -1,4 +1,4 @@
-<?
+<?php
 function inviteScreen($vars)
 {
 	$empire = $vars['empire_data'];

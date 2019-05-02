@@ -57,7 +57,7 @@ function editSeries($vars, $message = '')
 	<input type=hidden name="empireID" value="<? echo $empire['id']; ?>">
 	<input type=hidden name="page" value="editSeries">
 	<input type=hidden name="section" value="admin"> <!--cjp-->
-<?
+<?php
 	// page titles
 	echo "<div class=pageTitle>\n".$empire['name']." : Edit a series\n";
 	echo   ($vars['editSeriesID'] ? ': '.$series['name'] : ''); //show series if available
@@ -339,7 +339,7 @@ function editSeries($vars, $message = '')
 <input type=submit value="Update">
 <input type=submit name="action" value="Cancel">
 </div>
-<?
+<?php
 	footer();
 	} // end of edit series
 } //end of page

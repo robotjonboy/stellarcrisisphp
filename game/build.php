@@ -1,4 +1,4 @@
-<?
+<?php
 function buildScreen($vars)
 {
 	global $server;
@@ -73,24 +73,24 @@ function buildScreen($vars)
 		<th class=white style="padding-bottom: 5pt;">Battlerank</th>
 		<th class=white style="padding-bottom: 5pt;">Location</th>
 	</tr>
-<?
+<?php
 	foreach (explode(' ', $player['techs']) as $tech)
 		{
 ?>
 	<tr>
-		<td><? echo $tech; ?></td>
-		<th><select name="builds[<? echo $tech; ?>][count]"><? echo implode('', $build_counts); ?></select></th>
-		<th><input name="builds[<? echo $tech; ?>][name]" size=15 maxlength=20></th>
-		<th><select name="builds[<? echo $tech; ?>][br]"><? echo implode('', $br_list); ?></select></th>
-		<th><select name="builds[<? echo $tech; ?>][location]"><? echo implode('', $build_at); ?></select></th>
+		<td><?php echo $tech; ?></td>
+		<th><select name="builds[<?php echo $tech; ?>][count]"><?php echo implode('', $build_counts); ?></select></th>
+		<th><input name="builds[<?php echo $tech; ?>][name]" size=15 maxlength=20></th>
+		<th><select name="builds[<?php echo $tech; ?>][br]"><?php echo implode('', $br_list); ?></select></th>
+		<th><select name="builds[<?php echo $tech; ?>][location]"><?php echo implode('', $build_at); ?></select></th>
 	</tr>
-<?
+<?php
 		}
 ?>
 	<tr><th colspan=5 style="padding-top: 10pt;"><input type=submit name="build" value="Build"><input type=reset value="Reset"></th></tr>
 </table>
 </div>
-<?
+<?php
 	footer();
 }
 

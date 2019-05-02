@@ -5,11 +5,11 @@ function resumeSeries($vars)
 ?>
 <div class=pageTitle>Resume a Series</div>
 
-<input type=hidden name="name" value="<? echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<? echo $vars['pass']; ?>">
+<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
+<input type=hidden name="pass" value="<?php echo $vars['pass']; ?>">
 <input type=hidden name="section" value="admin">
 <input type=hidden name="page" value="resumeSeries">
-<?
+<?php
 	echo drawButtons($vars['empire_data']).serverTime().onlinePlayers().empireMissive($vars['empire_data']);
 
 	$select = sc_mysql_query('SELECT id, name FROM series WHERE halted = "1" ORDER BY name ASC');
@@ -19,7 +19,7 @@ function resumeSeries($vars)
 <div style="text-align: center; margin-left: auto; margin-right: auto;">
 <select name="seriesToResume" onChange="document.forms[0].resume.disabled = (document.forms[0].seriesToResume.value == 0)">
 	<option value="">Resume series...
-<?
+<?php
 	while ($series = mysql_fetch_array($select))
 		echo '<option value="'.$series['id'].'">'.$series['name'];	
 ?>
@@ -29,7 +29,7 @@ function resumeSeries($vars)
 	<input type=submit name=resume value="Resume" disabled>
 	<input type=submit name=cancel value="Cancel">
 </div>
-<?
+<?php
 	footer();
 }
 

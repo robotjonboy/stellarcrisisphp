@@ -56,11 +56,11 @@ require('server.php');
 require('debug.php');
 require('sql.php');
 require('admin/admin.php');
-//require('ship_types.php');  //contains global $ship_types array
-//require('history.php');
-//require('main/main.php');
-//require('game/game.php');
-//require('update.php');
+require('ship_types.php');  //contains global $ship_types array
+require('history.php');
+require('main/main.php');
+require('game/game.php');
+require('update.php');
 #----------------------------------------------------------------------------------------------------------------------#
 # Set $debug to true to see what was sent to us.
 # Think before doing this, people are possibly playing on the server.
@@ -82,42 +82,42 @@ require('admin/admin.php');
 
 #----------------------------------------------------------------------------------------------------------------------#
 
-//ini_set('memory_limit', '128M');
+ini_set('memory_limit', '128M');
 
 // Report all errors except E_NOTICE, with our own error handler.
-//error_reporting(E_ALL ^ E_NOTICE);
-//set_error_handler('sc_errorHandler');
+error_reporting(E_ALL ^ E_NOTICE);
+set_error_handler('sc_errorHandler');
 
 // Seed the pseudo-random number generator.
-//srand((double)microtime()*1000000);
+srand((double)microtime()*1000000);
 
 // Prevent people from crapping up the database (and their games) by interrupting form processing.
-//ignore_user_abort(true);
+ignore_user_abort(true);
 
 // Start timing the execution of the user's request. This ends up in the footer (see footer()).
-//$start_time = utime();
+$start_time = microtime();
 
 // Get our current memory usage so we can determine how much we consumed during execution.
 // This is actually the usage for Apache and all loaded modules; treat accordingly.
 // memory_get_usage() will only be defined if your PHP is compiled with the --enable-memory-limit configuration option.
-/*if ($server['show_memory_usage']) //local setting
+if ($server['show_memory_usage']) //local setting
 {
    if( function_exists('memory_get_usage') ) // but don't blow up
    {
      $start_memory = memory_get_usage();
    }
-}*/
+}
 
 // Always check to see if games need updating, since this script does not run continuously and 
 // thus cannot "know" when to update a game.
 // We only do this upon form submissions, and when we're not in the administration screens to alleviate the load a bit.
-/*if (count($_POST) and $_POST['page'] != 'admin') {
+if (count($_POST) and $_POST['page'] != 'admin') {
 	checkForUpdates();
 	checkForTournamentUpdates();
-}*/
+}
 
 // Check to see how the submitter can be authenticated.
-/*$authenticated = false;
+$authenticated = false;
 $authenticated_as_admin = false;
 if (isset($_POST['name']) and isset($_POST['pass']))
 {
@@ -134,10 +134,10 @@ if (isset($_POST['name']) and isset($_POST['pass']))
 		// by taking the value from the database.
 		$_POST['name'] = mysql_result($select, 0, 0);
 	}
-}*/
+}
 
 #----------------------------------------------------------------------------------------------------------------------#
-/*if (isset($_GET['seriesParameters']))
+if (isset($_GET['seriesParameters']))
 	//pop-up window - sc window untouched. - so do nothing else - just wait for next post.
 	seriesParameters($_GET['seriesParameters']); 
 else 
@@ -168,21 +168,21 @@ else
 
 function standardHeader($title, $empire = array())
 {
-	global $server;/**
+	global $server;?>
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"> 
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-	<title>SC <? echo $server['version'].' @ '.$server['servername'].': '.$title; ?></title>
+	<title>SC <?php echo $server['version'].' @ '.$server['servername'].': '.$title; ?></title>
 	<script type="text/javascript">
-		var scServerName = '<? echo $server['servername']; ?>';
-		var scServerVersion = '<? echo $server['version']; ?>';
+		var scServerName = '<?php echo $server['servername']; ?>';
+		var scServerVersion = '<?php echo $server['version']; ?>';
 	</script>
 	<script src="sc.js" type="text/javascript"></script>
 	<link rel="stylesheet" href="styles.css" type="text/css">
 	<link rel="shortcut icon" href="/sc/favicon.ico" type="image/x-icon" />
-**//*
+<?php
 //2008-04-05 added shortcut icon above
 	if ($empire)
 		{			
@@ -200,7 +200,7 @@ function standardHeader($title, $empire = array())
 </head>
 <body>
 <form method=post action="sc.php">
-<?
+<?php
 	echo $server['standard_header_text'];
 }
 
@@ -208,7 +208,7 @@ function standardHeader($title, $empire = array())
 # Navigation buttons present on non-game pages. The empire record SHOULD be passed.
 #
 
-/*function drawButtons($empire = array())
+function drawButtons($empire = array())
 {
 	global $server;
 	
@@ -222,20 +222,20 @@ function standardHeader($title, $empire = array())
 		 '<input type=submit name=action value="Game History">'.
 		 ($empire['is_admin'] ? '<input type=submit name=action value="Administration">' : '').
 		 '<input type=submit name=action value="Logout"></div>';
-}*/
+}
 
 #----------------------------------------------------------------------------------------------------------------------#
 # Calls to this function should be changed to require('footer.php') instead.
 #
 
-/*function footer()
+function footer()
 {
 	require('footer.php');
-}*/
+}
 
 #----------------------------------------------------------------------------------------------------------------------#
 
-/*function mainPage()
+function mainPage()
 {
 	global $server;
 
@@ -262,7 +262,7 @@ function standardHeader($title, $empire = array())
 	<input type=hidden name="section" value="login">
 
 	<div class=pageTitle>
-	   Stellar Crisis v<? echo $server['version'].' @ '.$server['servername']; ?>
+	   Stellar Crisis v<?php echo $server['version'].' @ '.$server['servername']; ?>
 	</div>
 
 <div>
@@ -280,7 +280,7 @@ function standardHeader($title, $empire = array())
 							name="name" 
 							size=20 
 							maxlength=20 
-							value="<? echo $_COOKIE['sc_login']; ?>"
+							value="<?php echo $_COOKIE['sc_login']; ?>"
 					>
 				</tr>
 				<tr>
@@ -308,7 +308,7 @@ function standardHeader($title, $empire = array())
 		systems. It is free, absolutely and positively.
 		It also comes with ABSOLUTELY NO WARRANTY. 
 		For more information, please visit the 
-		<a href="<? echo $server['sc_wiki_url']; ?>">
+		<a href="<?php echo $server['sc_wiki_url']; ?>">
 		   Stellar Crisis Wiki
 		</a>.
 		</th>
@@ -333,18 +333,18 @@ function standardHeader($title, $empire = array())
 	</tr>
 </table>
 </div>
-<?
+<?php
 	echo stripslashes(urldecode($motd['text']));
 ?>
 <div class=quickStats>
-   <? echo mysql_result($select_quickStats, 0, 0).
+   <?php echo mysql_result($select_quickStats, 0, 0).
       ' players are currently in '.
       mysql_result($select_quickStats, 0, 1).
       ' games'; 
    ?> 
    
 </div>
-<?	
+<?php	
 	footer();
 }
 
@@ -439,7 +439,7 @@ function newEmpireLogin($vars)
 <div class=pageTitle>New Empire Login</div>
 <div class=message>
 An email message containing your temporary password has been sent to 
-<? echo $vars['email']; ?>.<br>
+<?php echo $vars['email']; ?>.<br>
 Please log in using this password to complete the creation of your empire.
 </div>
 
@@ -454,7 +454,7 @@ Please log in using this password to complete the creation of your empire.
 				name="name" 
 				size=20 
 				maxlength=20 
-				value="<? echo $cookie_name; ?>">
+				value="<?php echo $cookie_name; ?>">
 		</td>
 	</tr>
 	<tr>
@@ -471,7 +471,7 @@ Please log in using this password to complete the creation of your empire.
 		</td>
 </table>
 </div>
-<?
+<?php
 	footer();
 }
 
@@ -487,7 +487,7 @@ function loginFailed($message)
 
 <div class=pageTitle>Login Failed</div>
 <div class=message>
-<? echo $message; ?><br>Please try again.
+<?php echo $message; ?><br>Please try again.
 </div>
 
 <img class=spacerule src="images/spacerule.jpg" alt="spacerule.jpg">
@@ -501,7 +501,7 @@ function loginFailed($message)
 				size=20 
 				name="user" 
 				maxlength=20 
-				value="<? echo ($_COOKIE['sc_login'] ? 
+				value="<?php echo ($_COOKIE['sc_login'] ? 
 								$_COOKIE['sc_login'] : '');?>">
 		</td>
 	</tr>
@@ -519,7 +519,7 @@ function loginFailed($message)
 		</td>
 </table>
 </div>
-<?
+<?php
 	footer();
 }
 
@@ -536,9 +536,9 @@ function sqlError($rollback_status)
 	$rollback = (($rollback_status or $rollback_status == '') ? '<span class=green>rollback successful</span>' : '<span class=red>rollback failed!</span>');
 ?>
 <div class=pageTitle>MySQL Error</div>
-<div style="text-align: center;">An error occured while processing your request (<b><? echo $rollback; ?></b>).
-<br>Please <a href="mailto:<? echo $server['admin_email']; ?>">contact the administrator</a> about this event.</div>
-<?	
+<div style="text-align: center;">An error occured while processing your request (<b><?php echo $rollback; ?></b>).
+<br>Please <a href="mailto:<?php echo $server['admin_email']; ?>">contact the administrator</a> about this event.</div>
+<?php	
 	die();
 }
 
@@ -554,14 +554,14 @@ function iconUploadPage($vars)
 ?>
 </form>
 <form enctype="multipart/form-data" action="sc.php" method=post>
-<input type=hidden name=name value="<? echo $vars['name']; ?>">
-<input type=hidden name=pass value="<? echo $vars['pass']; ?>">
+<input type=hidden name=name value="<?php echo $vars['name']; ?>">
+<input type=hidden name=pass value="<?php echo $vars['pass']; ?>">
 <input type=hidden name=section value="main">
 <input type=hidden name=page value="iconUpload">
 <div class=pageTitle>
-	<? echo $vars['name']; ?>: Upload Custom Icon
+	<?php echo $vars['name']; ?>: Upload Custom Icon
 </div>
-<?
+<?php
 	echo drawButtons($empire).
 		'<div class=message style="margin-top: 10pt;">
 		   Local time and date: '.date('l, F j H:i:s T Y', time()).
@@ -580,7 +580,7 @@ function iconUploadPage($vars)
 	<input type="submit" value="Upload">
 </div>
 </form>
-<?
+<?php
 	footer();
 }
 
@@ -594,23 +594,23 @@ function chooseIconPage($vars)
 	
 	standardHeader('Choose Icon', $empire);
 ?>
-<div class=pageTitle><? echo $vars['name']; ?>: Choose Icon</div>
+<div class=pageTitle><?php echo $vars['name']; ?>: Choose Icon</div>
 <div>
 <input type=hidden name=iconChoice value=yes>
-<input type=hidden name=fromEmpireCreation value="<? echo (strlen($vars['createEmpire']) ? 1 : 0); ?>">
-<input type=hidden name=name value="<? echo $vars['name']; ?>">
-<input type=hidden name=pass value="<? echo $vars['pass']; ?>">
+<input type=hidden name=fromEmpireCreation value="<?php echo (strlen($vars['createEmpire']) ? 1 : 0); ?>">
+<input type=hidden name=name value="<?php echo $vars['name']; ?>">
+<input type=hidden name=pass value="<?php echo $vars['pass']; ?>">
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="editProfile">
 
-<? echo drawButtons($empire).serverTime().onlinePlayers().empireMissive($empire); ?>
+<?php echo drawButtons($empire).serverTime().onlinePlayers().empireMissive($empire); ?>
 
 <img class=spacerule src="images/spacerule.jpg" width="100%">
 </div>
 <div style="text-align: center;">
    Click on the icon you wish to use to represent your empire.
 </div>
-<?
+<?php
 	iconList($empire['icon']);
 	footer();
 }
@@ -1465,64 +1465,64 @@ function seriesParameters($series_id)
 ?>
 <style type="text/css">th { vertical-align: top; text-align: right; color: white; }</style>
 
-<div style="color: red; font-size: 14pt;"><? echo $series['name']; ?></div>
-<? echo ($series['custom'] == 'yes' ? '<div style="color: white; font-size: 8pt;">Created by '.$series['creator'].'</div>' : ''); ?>
+<div style="color: red; font-size: 14pt;"><?php echo $series['name']; ?></div>
+<?php echo ($series['custom'] == 'yes' ? '<div style="color: white; font-size: 8pt;">Created by '.$series['creator'].'</div>' : ''); ?>
 
 <table cellspacing=10 style="margin-top: 10pt;">
 	<tr>
 		<th>Updates:</th>
-		<td>Every <? echo $update_time.(!$series['weekend_updates'] ? ', no weekend updates' : ''); ?></td>
+		<td>Every <?php echo $update_time.(!$series['weekend_updates'] ? ', no weekend updates' : ''); ?></td>
 	</tr>
 	<tr>
 		<th>Maximum players:</th>
-		<td><? echo $series['max_players'].' players'; ?></td>
+		<td><?php echo $series['max_players'].' players'; ?></td>
 	</tr>
 	<tr valign=top>
 		<th>Systems per player:</th>
-		<td><? echo $series['systems_per_player']; ?></td>
+		<td><?php echo $series['systems_per_player']; ?></td>
 	</tr>
 	<tr>
 		<th>Tech development:</th>
-		<td><? echo number_format($series['tech_multiple'], 2, '.', ''); ?></td>
+		<td><?php echo number_format($series['tech_multiple'], 2, '.', ''); ?></td>
 	</tr>
 	<tr>
 		<th>Map type:</th>
-		<td><? echo $map.(!$series['map_visible'] ? ', hidden until game starts' : '' ); ?></td>
+		<td><?php echo $map.(!$series['map_visible'] ? ', hidden until game starts' : '' ); ?></td>
 	</tr>
 	<tr>
 		<th>Diplomacy:</th>
-		<td><? echo $diplomacy; ?></td>
+		<td><?php echo $diplomacy; ?></td>
 	</tr>
 	<tr>
 		<th>Alliance limit:</th>
-		<td><? echo ($series['max_allies'] ? $series['max_allies'].' allies' : 'none'); ?></td>
+		<td><?php echo ($series['max_allies'] ? $series['max_allies'].' allies' : 'none'); ?></td>
 	</tr>
 	<tr>
 		<th>Win restrictions:</th>
-		<td><? echo $wins; ?></td>
+		<td><?php echo $wins; ?></td>
 	</tr>
 	<tr>
 		<th>Team game:</th>
-		<td><? echo ($series['team_game'] ? '<span class=green><b>Yes</b></span>' : 'No'); ?></td>
+		<td><?php echo ($series['team_game'] ? '<span class=green><b>Yes</b></span>' : 'No'); ?></td>
 	</tr>
 	<tr>
 		<th>Shared HQ:</th>
-		<td><? echo ($series['diplomacy'] == 6 ? '<span class=blue><b>Yes</b></span>' : 'No'); ?></td></tr>
+		<td><?php echo ($series['diplomacy'] == 6 ? '<span class=blue><b>Yes</b></span>' : 'No'); ?></td></tr>
 	<tr>
 		<th>Average resources:</th>
-		<td><? echo $average_resources; ?></td>
+		<td><?php echo $average_resources; ?></td>
 	</tr>
 	<tr>
 		<th>Cloakers:</th>
-		<td><? echo ($series['build_cloakers_cloaked'] ? 'Built cloaked. '.($series['cloakers_as_attacks'] ? 'Appear as attacks.' : '') : 'Built uncloaked'); ?></td>
+		<td><?php echo ($series['build_cloakers_cloaked'] ? 'Built cloaked. '.($series['cloakers_as_attacks'] ? 'Appear as attacks.' : '') : 'Built uncloaked'); ?></td>
 	</tr>
 </table>
-<?
+<?php
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
 
-/*function sendEmpireMessage($empire, $message)
+function sendEmpireMessage($empire, $message)
 {
 	$values = array();
 	$values[] = 'time = '.time();
@@ -1530,11 +1530,11 @@ function seriesParameters($series_id)
 	$values[] = 'text = "'.addslashes($message).'"';
 
 	sc_mysql_query('INSERT INTO messages SET '.implode(',', $values));
-}*/
+}
 
 #----------------------------------------------------------------------------------------------------------------------#
 
-/*function serverTime()
+function serverTime()
 {
 	return '<div class=message style="margin-top: 10pt;">Local time and date: '.date('Y l, F j ,  H:i:s T ', time()).'</div>';
 }
@@ -1554,14 +1554,14 @@ function utime()
 	list($microseconds, $seconds) = explode(' ', microtime());
 
 	return number_format($microseconds+(double)$seconds, 6, '', '');
-}*/
+}
 
 #=--------------------------------------------------------------------------------------=#
 //cjp added function
 # Compares versions of software
 # versions must must use the correct format ' x.y.z... ' where (x, y, z) are numbers in [0-9]
 
-/*function check_version($currentversion, $requiredversion)
+function check_version($currentversion, $requiredversion)
 {
    list($majorC, $minorC, $editC) = split('[/.-]', $currentversion);
 #  echo "current: " . $majorC . " -- " . $minorC . " -- " . $editC . "<p>";
@@ -1576,5 +1576,5 @@ function utime()
    //and same minor
    if ($editC  >= $editR)  return true;
    return false;
-}*/
+}
 ?>

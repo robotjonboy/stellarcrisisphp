@@ -1,4 +1,4 @@
-<?
+<?php
 function diplomacyScreen($vars)
 {
 	global $server;
@@ -155,12 +155,12 @@ function diplomacyScreen($vars)
 		<th>Economic</th>
 		<th>Military</th>
 		<th colspan=3></th>
-		<th rowspan=4><span class=<? echo ($player['ended_turn'] ? 'green>Ready' : 'red>Not ready'); ?></span></th>
+		<th rowspan=4><span class=<?php echo ($player['ended_turn'] ? 'green>Ready' : 'red>Not ready'); ?></span></th>
 	</tr>
 	<tr style="text-align: center;">
-		<td><img src="images/aliens/<? echo $empire['icon']; ?>" height=40 width=40></td>
-		<td class=center><? echo $player['economic_power']; ?></td>
-		<td class=center><? echo $player['military_power']; ?></td>
+		<td><img src="images/aliens/<?php echo $empire['icon']; ?>" height=40 width=40></td>
+		<td class=center><?php echo $player['economic_power']; ?></td>
+		<td class=center><?php echo $player['military_power']; ?></td>
 		<td colspan=3></td>
 	</tr>
 	<tr>
@@ -172,32 +172,32 @@ function diplomacyScreen($vars)
 		<th>Max Mil</th>
 	</tr>
 	<tr>
-		<td class=center><? echo $empire['wins']; ?></td>
-		<td class=center><? echo $empire['nukes']; ?></td>
-		<td class=center><? echo $empire['nuked']; ?></td>
-		<td class=center><? echo $empire['ruined']; ?></td>
-		<td class=center><? echo $empire['max_economic_power']; ?></td>
-		<td class=center><? echo $empire['max_military_power']; ?></td>
+		<td class=center><?php echo $empire['wins']; ?></td>
+		<td class=center><?php echo $empire['nukes']; ?></td>
+		<td class=center><?php echo $empire['nuked']; ?></td>
+		<td class=center><?php echo $empire['ruined']; ?></td>
+		<td class=center><?php echo $empire['max_economic_power']; ?></td>
+		<td class=center><?php echo $empire['max_military_power']; ?></td>
 	</tr>
-<?
+<?php
 	if ($series['team_game'])		
 		{
 		$other_team = ($player['team'] == 1 ? 2 : 1);
 ?>
 	<tr style="background-color: #000066; text-align: center;">
 		<td colspan=3><span style="color: white; font-size: 13pt;">Your Team</span></td>
-		<td colspan=3>Team offers: <? echo diplomacyString($team_offer[$other_team]); ?></td>
-		<td colspan=2>You offer: <? echo $offer_to_team; ?></td>
+		<td colspan=3>Team offers: <?php echo diplomacyString($team_offer[$other_team]); ?></td>
+		<td colspan=2>You offer: <?php echo $offer_to_team; ?></td>
 	</tr>
-<?
+<?php
 		echo $diplomacy_list[$player['team']];
 ?>
 	<tr style="background-color: #660000; text-align: center;">
 		<td colspan=3><span style="color: white; font-size: 13pt;">Opposing Team</span></td>
-		<td colspan=3>They offer: <? echo diplomacyString($team_offer[$player['team']]); ?></td>
+		<td colspan=3>They offer: <?php echo diplomacyString($team_offer[$player['team']]); ?></td>
 		<td colspan=2></td>
 	</tr>
-<?
+<?php
 		echo $diplomacy_list[$other_team];
 		}
 	else
@@ -213,14 +213,14 @@ function diplomacyScreen($vars)
 		<td rowspan=3><textarea name=missive rows=10 cols=50></textarea></td>
 	</tr>
 	<tr>
-		<th><select multiple name="recipients[]" size=6><? echo $recipient_list; ?></select></th>
+		<th><select multiple name="recipients[]" size=6><?php echo $recipient_list; ?></select></th>
 	</tr>
 	<tr>
 		<th><input type=submit name="send_message" value="Send message"></th>
 	</tr>
 </table>
 </div>
-<?
+<?php
 	footer();
 }
 

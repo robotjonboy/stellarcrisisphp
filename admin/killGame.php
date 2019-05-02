@@ -6,18 +6,18 @@ function killGame($vars)
 	standardHeader('Kill Game', $empire);
 ?>
 <div class=pageTitle>Kill a Game</div>
-<input type=hidden name="name" value="<? echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<? echo $vars['pass']; ?>">
+<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
+<input type=hidden name="pass" value="<?php echo $vars['pass']; ?>">
 <input type=hidden name="section" value="admin">
 <input type=hidden name="page" value="killGame">
-<?
+<?php
 	echo drawButtons($empire).serverTime().onlinePlayers().empireMissive($empire);
 ?>
 <img class=spacerule src="images/spacerule.jpg">
 <div style="text-align: center;">
 	<select name="gameToKill">
 		<option value=0>Kill game...
-<?
+<?php
 	$fields = array();
 	$fields[] = 'series.name as name';
 	$fields[] = 'series.update_time AS update_time';
@@ -39,7 +39,7 @@ function killGame($vars)
 	<input type=submit name="killGame" value="Kill">
 	<input type=submit name="cancel" value="Cancel">
 </div>
-<?
+<?php
 	footer();
 }
 

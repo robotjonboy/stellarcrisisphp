@@ -1,4 +1,4 @@
-<?
+<?php
 function systemsScreen($vars)
 {
 	global $server;
@@ -220,34 +220,34 @@ function systemsScreen($vars)
 	<tr valign=top>
 		<td style="text-align: center; 
 					vertical-align: middle;" 
-					<? echo $rowspan; ?>
+					<?php echo $rowspan; ?>
 		>
-			<? echo $scout_report_checkbox; ?>
+			<?php echo $scout_report_checkbox; ?>
 		</td>
 		<td style="text-align: center;" 
-			<? echo $rowspan; ?>
+			<?php echo $rowspan; ?>
 			>
-			<? echo $system_icon_and_name; ?>
+			<?php echo $system_icon_and_name; ?>
 		</td>
 		<td style="text-align: left;">
 			<span class=white>Minerals:</span> 
-				<? echo $system['mineral'].' '; ?>
+				<?php echo $system['mineral'].' '; ?>
 			<span class=white>Fuel:</span> 
-				<? echo $system['fuel'].' '; ?>
+				<?php echo $system['fuel'].' '; ?>
 			<span class=white>Agriculture:</span> 
-				<? echo $system['agriculture'].' '; ?>
+				<?php echo $system['agriculture'].' '; ?>
 			<span class=white>Population:</span> 
-				<? echo $population.$system_max_pop.$new_origin; ?>
+				<?php echo $population.$system_max_pop.$new_origin; ?>
 		</td>
-		<td<? echo $rowspan; ?>>
+		<td<?php echo $rowspan; ?>>
 			<span class=white>
 				Jumps:
 			</span>
 			<br>
-			<? echo $jump_list; ?>
+			<?php echo $jump_list; ?>
 		</td>
 	</tr>
-<?
+<?php
 		if (isset($ship_inventory[$system['coordinates']]))
 		{
 			echo '<tr><td>';
@@ -336,25 +336,25 @@ function systemsScreen_fromScoutingReport($vars)
 <div>
 <table width="100%" border=0>
 	<tr valign=middle>
-		<td rowspan=7 style="text-align: center; vertical-align: top;"><? echo $icon; ?>
-			<div class=smallText><? echo $system['name']; ?></div>
-			<? echo ($system['owner'] ? 
+		<td rowspan=7 style="text-align: center; vertical-align: top;"><?php echo $icon; ?>
+			<div class=smallText><?php echo $system['name']; ?></div>
+			<?php echo ($system['owner'] ? 
 				'<div class=smallText>Owner: '.$system['owner'].'</div>' :
 				''); ?>
 			<div class=smallText>
 				Location: 
-				<? echo xlateToLocal($system['coordinates']); ?>
+				<?php echo xlateToLocal($system['coordinates']); ?>
 			</div>
 		</td>
 		<td style="padding-bottom: 10pt; vertical-align: top;">
 			<span class=white>Minerals:</span> 
-				<? echo $system['mineral']; ?>
+				<?php echo $system['mineral']; ?>
 			<span class=white>Fuel:</span> 
-				<? echo $system['fuel']; ?>
+				<?php echo $system['fuel']; ?>
 			<span class=white>Agriculture:</span> 
-				<? echo $system['agriculture']; ?>
+				<?php echo $system['agriculture']; ?>
 			<span class=white>Population:</span> 
-				<? echo $system['population']; ?>
+				<?php echo $system['population']; ?>
 		</td>
 	</tr>
 	<tr>
@@ -363,12 +363,12 @@ function systemsScreen_fromScoutingReport($vars)
 				Jumps:
 			</span>
 			&nbsp;
-			<? echo ($system['jumps'] ? 
+			<?php echo ($system['jumps'] ? 
 						'('.str_replace(' ',') (', localizeJumps($system['jumps'])).')' :
 						'(none)'); ?>
 		</td>
 	</tr>
-<?
+<?php
 	if ($system['ships'])
 		{
 ?>
@@ -379,10 +379,10 @@ function systemsScreen_fromScoutingReport($vars)
 					vertical-align: top; 
 					border-top: 1pt dashed white;">
 			<div class=white>Ships:</div>
-			<? echo stripslashes(urldecode($system['ships'])); ?>
+			<?php echo stripslashes(urldecode($system['ships'])); ?>
 		</td>
 	</tr>
-<?
+<?php
 		}
 
 	if ($system['comment'])
@@ -393,15 +393,15 @@ function systemsScreen_fromScoutingReport($vars)
 					vertical-align: top; 
 					border-top: 1pt dashed white;">
 			<div class=white>Comments:</div>
-			<? echo stripslashes(urldecode($system['comment'])); ?>
+			<?php echo stripslashes(urldecode($system['comment'])); ?>
 		</td>
 	</tr>
-<?
+<?php
 		}
 ?>
 </table>
 </div>
-<?
+<?php
 	footer();
 }
 

@@ -1,4 +1,4 @@
-<?
+<?php
 function passwordScreen($vars)
 {
 	$series = $vars['series_data'];
@@ -16,13 +16,13 @@ function passwordScreen($vars)
 		<th style="background-color: #600; color: white;">Other Team's Password</th>
 	</tr>
 	<tr>
-		<th style="background-color: #006;"><input type=text name=password1 size=10 maxlength=10 value="<? echo $game['password1']; ?>"></th>
-		<th style="background-color: #600;"><input type=text name=password2 size=10 maxlength=10 value="<? echo $game['password2']; ?>"></th>
+		<th style="background-color: #006;"><input type=text name=password1 size=10 maxlength=10 value="<?php echo $game['password1']; ?>"></th>
+		<th style="background-color: #600;"><input type=text name=password2 size=10 maxlength=10 value="<?php echo $game['password2']; ?>"></th>
 	</tr>
 </table>
 <input type=submit name=set value=Set>&nbsp;<input type=submit name=cancel value=Cancel>
 </div>
-<?
+<?php
 		}
 	else
 		{
@@ -33,12 +33,12 @@ function passwordScreen($vars)
 		<th>Game Password</th>
 	</tr>
 	<tr>
-		<th><input type=text name=password1 size=10 maxlength=10 value="<? echo $game['password1']; ?>"></th>
+		<th><input type=text name=password1 size=10 maxlength=10 value="<?php echo $game['password1']; ?>"></th>
 	</tr>
 </table>
 <input type=submit name=set value=Set>&nbsp;<input type=submit name=cancel value=Cancel>
 </div>
-<?
+<?php
 		}
 	
 	footer();

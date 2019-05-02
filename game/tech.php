@@ -1,4 +1,4 @@
-<?
+<?php
 function techScreen($vars)
 {
 	global $ship_types;
@@ -10,19 +10,19 @@ function techScreen($vars)
 	gameHeader($vars, 'Tech');
 ?>
 <div class=messageBold>
-	You have <? echo $techs_waiting; ?> developments waiting. Tech Level <? echo $tech_level; ?> (BR <? echo $current_br; ?>)
+	You have <?php echo $techs_waiting; ?> developments waiting. Tech Level <?php echo $tech_level; ?> (BR <?php echo $current_br; ?>)
 </div>
 
 <div style="margin-top: 10pt;">
 <table style="margin-left: auto; margin-right: auto;">
 	<tr>
 		<th style="vertical-align: top; text-align: right;">Developed:</th>
-		<td><? echo $vars['player_data']['techs']; ?></td>
+		<td><?php echo $vars['player_data']['techs']; ?></td>
 	</tr>
 	<tr>
 		<th style="vertical-align: top; text-align: right;">Undeveloped:</th>
 		<td>
-<?
+<?php
 	$x = 1;
 	foreach (array_keys($ship_types) as $type)
 		{
@@ -40,7 +40,7 @@ function techScreen($vars)
 	</tr>
 </table>
 </div>
-<?
+<?php
 	footer();
 }
 
