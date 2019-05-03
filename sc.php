@@ -95,7 +95,7 @@ srand((double)microtime()*1000000);
 ignore_user_abort(true);
 
 // Start timing the execution of the user's request. This ends up in the footer (see footer()).
-$start_time = microtime();
+$start_time = utime();
 
 // Get our current memory usage so we can determine how much we consumed during execution.
 // This is actually the usage for Apache and all loaded modules; treat accordingly.
@@ -128,11 +128,11 @@ if (isset($_POST['name']) and isset($_POST['pass']))
 
 	if ($authenticated = mysql_num_rows($select))
 	{
-		$authenticated_as_admin = mysql_result($select, 0, 1);
+		$authenticated_as_admin = sc_result($select, 0, 1);
 		
 		// Make sure the name is capitalized correctly in the $_POST array from now on 
 		// by taking the value from the database.
-		$_POST['name'] = mysql_result($select, 0, 0);
+		$_POST['name'] = sc_result($select, 0, 0);
 	}
 }
 
@@ -159,7 +159,7 @@ else
 		mainPage(); // User accessed the URL directly.
 	}
 	// Processing ends here. Commit whatever we've done.
-	mysql_query('COMMIT');  //cjp stop commit on pop-up - adjust nesting
+	sc_mysql_query('COMMIT');  //cjp stop commit on pop-up - adjust nesting
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -257,7 +257,7 @@ function mainPage()
 		WHERE type = "motd" 
 		LIMIT 1'
 	);
-	$motd = mysql_fetch_array($select_motd);
+	$motd = sc_fetch_assoc($select_motd);
 ?>
 	<input type=hidden name="section" value="login">
 
@@ -337,9 +337,9 @@ function mainPage()
 	echo stripslashes(urldecode($motd['text']));
 ?>
 <div class=quickStats>
-   <?php echo mysql_result($select_quickStats, 0, 0).
+   <?php echo sc_result($select_quickStats, 0, 0).
       ' players are currently in '.
-      mysql_result($select_quickStats, 0, 1).
+      sc_result($select_quickStats, 0, 1).
       ' games'; 
    ?> 
    
@@ -732,9 +732,9 @@ function recalculateRatios($vars)
 
 	$select = sc_mysql_query($query, __FILE__.'*'.__LINE__);
 
-  	$build = (mysql_result($select, 0, 0) ? mysql_result($select, 0, 0) : 0);
-	$maintenance = (mysql_result($select, 0, 1) ? mysql_result($select, 0, 1) : 0);
-	$fuel_use = (mysql_result($select, 0, 2) ? mysql_result($select, 0, 2) : 0);
+  	$build = (sc_result($select, 0, 0) ? sc_result($select, 0, 0) : 0);
+	$maintenance = (sc_result($select, 0, 1) ? sc_result($select, 0, 1) : 0);
+	$fuel_use = (sc_result($select, 0, 2) ? sc_result($select, 0, 2) : 0);
 
 	#########################
 	# Resources counts.
@@ -751,11 +751,11 @@ function recalculateRatios($vars)
 
 	$select = sc_mysql_query('SELECT '.implode(',', $fields).' FROM systems WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 
-	$mineral = (mysql_result($select, 0, 0) ? mysql_result($select, 0, 0) : 0);
-  	$fuel = (mysql_result($select, 0, 1) ? mysql_result($select, 0, 1) : 0);
-  	$agriculture = (mysql_result($select, 0, 2) ? mysql_result($select, 0, 2) : 0);
-	$population = (mysql_result($select, 0, 3) ? mysql_result($select, 0, 3) : 0);
-	$max_population = (mysql_result($select, 0, 4) ? mysql_result($select, 0, 4) : 0);
+	$mineral = (sc_result($select, 0, 0) ? sc_result($select, 0, 0) : 0);
+  	$fuel = (sc_result($select, 0, 1) ? sc_result($select, 0, 1) : 0);
+  	$agriculture = (sc_result($select, 0, 2) ? sc_result($select, 0, 2) : 0);
+	$population = (sc_result($select, 0, 3) ? sc_result($select, 0, 3) : 0);
+	$max_population = (sc_result($select, 0, 4) ? sc_result($select, 0, 4) : 0);
 
 	#########################
 	# Trade agreements give a 10% increase per empire.
@@ -830,7 +830,7 @@ function getMilitaryPower($player)
 
 	$select = sc_mysql_query('SELECT SUM(br*br) FROM ships WHERE '.implode(' AND ', $conditions));
 
-	return floor( mysql_result($select, 0, 0)/50 );
+	return floor( sc_result($select, 0, 0)/50 );
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -893,9 +893,9 @@ function checkForUpdates()
 		while (mysql_num_rows($select)) // while we still have one more
 			{
 			// Get the game we need to update and lock that one record FOR UPDATE.
-			$row = mysql_fetch_array($select);
+			$row = sc_fetch_assoc($select);
 			$select_next_game = sc_mysql_query('SELECT * FROM games WHERE id = '.$row['id'].' FOR UPDATE');
-			$game = mysql_fetch_array($select_next_game);
+			$game = sc_fetch_assoc($select_next_game);
 
 			// Maybe cache this?
 			$series = getSeries($game['series_id']);
@@ -1102,7 +1102,7 @@ function checkForOldPasswordedGames()
     $conditions[] = '(series.team_game = "1" AND password1 <> "" AND closed = "0" AND (UNIX_TIMESTAMP()-created_at) > 5*games.update_time)';
 
     $select_staleGames = sc_mysql_query('SELECT '.implode(',', $fields).' FROM '.$tables.' WHERE '.implode(' OR ', $conditions));
-  	while ($row = mysql_fetch_array($select_staleGames))
+  	while ($row = sc_fetch_assoc($select_staleGames))
 		{
 		$message = '<span class=red>'.$row['series_name'].' '.$row['game_number'].'</span> was cancelled because ';
 
@@ -1112,7 +1112,7 @@ function checkForOldPasswordedGames()
 		$tables = 'empires INNER JOIN players ON empires.name = players.name';
 
 		$select_empires = sc_mysql_query('SELECT empires.* FROM '.$tables.' WHERE game_id = '.$row['game_id'].' AND team >= 0');
-		while ($empire = mysql_fetch_array($select_empires)) sendEmpireMessage($empire, $message);
+		while ($empire = sc_fetch_assoc($select_empires)) sendEmpireMessage($empire, $message);
 		
 		// Remove pending Bridier result for cancelled Bridier games.
 		if ($row['bridier']) sc_mysql_query('DELETE FROM bridier WHERE game_id = '.$row['game_id']);
@@ -1207,7 +1207,7 @@ function importExplored($ignorant_player, $other_player)
 	$select = sc_mysql_query(   'SELECT * FROM explored '.
 								'WHERE player_id = '.$other_player['id'].' '.
 								'AND from_shared_hq = 0');
-	while ($explored = mysql_fetch_array($select))
+	while ($explored = sc_fetch_assoc($select))
 		{
 		// First, delete any scouting reports for this planet, or they'll overwrite the explored record on the map.
 		sc_mysql_query( 'DELETE FROM scouting_reports '.
@@ -1242,7 +1242,7 @@ function addExploredToFriends($player, $explored_id)
 								'WHERE game_id = '.$player['game_id'].' '.
 								'AND empire = "'.$player['name'].'" '.
 								'AND status = "6"');
-	while ($row = mysql_fetch_array($select))
+	while ($row = sc_fetch_assoc($select))
 		{
 		$recipient = getPlayer($player['game_id'], $row['opponent']);
 
@@ -1295,7 +1295,7 @@ function convertSharedHQToScoutingReports($series, $update, $player_1, $player_2
 	$conditions[] = 'explored.from_shared_hq = '.$player_2['id'];
 
 	$select = sc_mysql_query('SELECT '.implode(',', $fields).' FROM '.$from.' WHERE '.implode(' AND ', $conditions));
-	while ($system = mysql_fetch_array($select))
+	while ($system = sc_fetch_assoc($select))
 		{
 		$values = array();
 		$values[] = 'player_id = '.$player_1['id'];
@@ -1320,7 +1320,7 @@ function convertSharedHQToScoutingReports($series, $update, $player_1, $player_2
 		$conditions[] = 'location = "'.$system['coordinates'].'"';
 		$ship_select = sc_mysql_query('SELECT * FROM ships WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__  );
 	
-		while ($ship = mysql_fetch_array($ship_select))
+		while ($ship = sc_fetch_assoc($ship_select))
 			{
 			// Skip this ship if it's building
 			if (!$series['visible_builds'] and $ship['orders'] == 'build')
@@ -1377,7 +1377,7 @@ function getTeamDiplomacy($game)
 		$team_offer[$team] = 0;	// start at surrender-- we'll end up using the *highest* value found
 		
 		$select = sc_mysql_query('SELECT offer FROM diplomacies WHERE game_id = '.$game['id'].' AND opponent = "=Team'.$team.'="');
-		while ($diplomacy = mysql_fetch_array($select))
+		while ($diplomacy = sc_fetch_assoc($select))
 			if ($diplomacy['offer'] > $team_offer[$team]) $team_offer[$team] = $diplomacy['offer'];
 		}
 	

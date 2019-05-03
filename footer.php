@@ -1,4 +1,4 @@
-<?
+<?php
 global $server, $start_time, $start_memory;
 
 # Page footer; appended to pages sent back to the user.
@@ -8,14 +8,14 @@ global $server, $start_time, $start_memory;
 <div style="text-align: center;">
 	<div><img class=spacerule src="images/spacerule.jpg" alt="spacerule.jpg"></div>
  	<div style="font-weight: bold;"><a href="<? echo $server['sc_wiki_url']; ?>">Help</a> is available.</div>
-<?
+<?php
 if ($server['discussion_board'])
 	echo '<div style="margin: 5pt;">Ideas, questions, talk? We have a <a href="'.$server['discussion_board'].'">discussion board</a>.</div>';
 ?>
 	<div><img src="images/sclogo_neo.gif" alt="sclogo_neo.gif"></div>
 </div>
 
-<?
+<?php
 # The following is acknowledeges the OS we are running.
 # Originally running on Mac OS X. :)
 # Now running on Debian Linux. 
@@ -30,7 +30,7 @@ if ($server['discussion_board'])
 </div>*/?>
 
 <div class=requestStats>
-<?
+<?php
 // Show how much time has elapsed for the entire processing of the user's request.
 // $start_memory and $start_time are global variables that are defined in sc.php.
 if ($server['show_memory_usage']) //local setting

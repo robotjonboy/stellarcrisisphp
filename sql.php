@@ -44,6 +44,16 @@ function sc_mysql_query($query, $fileinfo = 'unknown*unknown', $ignored_errors =
 		}
 }
 
+function sc_fetch_assoc($result) {
+	return $result->fetch_assoc();
+}
+
+function sc_result($result, $number, $field=0) {
+	mysqli_data_seek($result, $number);
+	$row = mysqli_fetch_array($result);
+	return $row[$field];
+}
+
 #--------------------------------------------------------------------------------------------------------------------#
 # Returns whether or not the player has explored a planet.
 #

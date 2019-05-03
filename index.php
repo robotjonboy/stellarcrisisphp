@@ -1124,19 +1124,19 @@ function seriesParameters($series_id)
 	</tr>
 	<tr>
 		<th>Maximum players:</th>
-		<td><? echo $series['max_players'].' players'; ?></td>
+		<td><?php echo $series['max_players'].' players'; ?></td>
 	</tr>
 	<tr valign=top>
 		<th>Systems per player:</th>
-		<td><? echo $series['systems_per_player']; ?></td>
+		<td><?php echo $series['systems_per_player']; ?></td>
 	</tr>
 	<tr>
 		<th>Tech development:</th>
-		<td><? echo number_format($series['tech_multiple'], 2, '.', ''); ?></td>
+		<td><?php echo number_format($series['tech_multiple'], 2, '.', ''); ?></td>
 	</tr>
 	<tr>
 		<th>Map type:</th>
-		<td><? echo $map.(!$series['map_visible'] ? ', hidden until game starts' : '' ); ?></td>
+		<td><?php echo $map.(!$series['map_visible'] ? ', hidden until game starts' : '' ); ?></td>
 	</tr>
 	<tr>
 		<th>Diplomacy:</th>

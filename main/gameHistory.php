@@ -87,7 +87,7 @@ function gameHistory($vars)
 ?>
 	<tr class=top>
 		<td style="font-size: 8pt;">
-			<? echo '<a href="'.$server['history_read_URL'].strtr($oldgame['name'], " ?'", "___").'.html">'.str_replace(' ', '&nbsp;', $oldgame['name']).'</a>'; ?>
+			<?php echo '<a href="'.$server['history_read_URL'].strtr($oldgame['name'], " ?'", "___").'.html">'.str_replace(' ', '&nbsp;', $oldgame['name']).'</a>'; ?>
 		</td>
 		<td style="font-size: 8pt;"><? echo $result.$emps_left; ?></td>
 		<td style="font-size: 8pt;"><? echo $emps_nuked; ?></td>
