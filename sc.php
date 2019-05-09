@@ -122,11 +122,11 @@ $authenticated_as_admin = false;
 if (isset($_POST['name']) and isset($_POST['pass']))
 {
 	$sql  = 'SELECT name, is_admin FROM empires ';
-	$sql .= 'WHERE name = "'.mysql_real_escape_string($_POST['name']).'" ';
-	$sql .= 'AND password = "'.mysql_real_escape_string($_POST['pass']).'"';
+	$sql .= 'WHERE name = "'.$mysqli->real_escape_string($_POST['name']).'" ';
+	$sql .= 'AND password = "'.$mysqli->real_escape_string($_POST['pass']).'"';
 	$select = sc_mysql_query($sql);
 
-	if ($authenticated = mysql_num_rows($select))
+	if ($authenticated = $select->num_rows)
 	{
 		$authenticated_as_admin = sc_result($select, 0, 1);
 		
@@ -358,7 +358,7 @@ function login($vars)
 		return loginFailed('You must enter a name and a password.');
 
 	// Prevent people from faking empire names with extra spaces.
-	$vars['name'] = ereg_replace('[[:space:]]+', ' ', trim($vars['name']) );
+	$vars['name'] = preg_replace('[[:space:]]+', ' ', trim($vars['name']) );
 
 	// Filter out bad characters.
 	if (ereg('[\*\\\"\'<>%=,\$'.chr(173).']', $vars['name'].$vars['pass']))
@@ -764,7 +764,7 @@ function recalculateRatios($vars)
 	$conditions[] = 'empire = "'.$empire['name'].'"';
 	$conditions[] = 'status > "3"';
 	$select = sc_mysql_query('SELECT id FROM diplomacies WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
-  	$trade = mysql_num_rows($select);
+  	$trade = $select->num_rows;
 
 	// Ok, so do trade agreements give a 10% bonus on base resource totals, or effective totals?
 	// Additive or multiplicative?
@@ -849,7 +849,7 @@ function checkForUpdates()
     	sc_mysql_query('UPDATE games SET last_update = UNIX_TIMESTAMP() WHERE update_time > 600');
     
 	// Fix update times for non-weekend-updating games, if we are in the weekend.
-	if (ereg('Sat|Sun', date('D', time())))
+	if (preg_match('/Sat|Sun/i', date('D', time())))
 		sc_mysql_query('UPDATE games SET last_update = UNIX_TIMESTAMP() WHERE weekend_updates = "0"');
 	
 	// Fix update times for paused games. This feature is DISABLED for now.
@@ -886,12 +886,10 @@ function checkForUpdates()
 	$next_updateable_game .= 'LIMIT 1';
 	$select = sc_mysql_query($next_updateable_game);
 
-	if (mysql_num_rows($select)) // if have one row of data then we might get more
-		{
+	if ($select->num_rows) { // if have one row of data then we might get more
 		sc_mysql_query('BEGIN'); // start transaction
 
-		while (mysql_num_rows($select)) // while we still have one more
-			{
+		while ($select->num_rows) { // while we still have one more
 			// Get the game we need to update and lock that one record FOR UPDATE.
 			$row = sc_fetch_assoc($select);
 			$select_next_game = sc_mysql_query('SELECT * FROM games WHERE id = '.$row['id'].' FOR UPDATE');
@@ -931,7 +929,7 @@ function checkForTournamentUpdates()
 	$sql = 'select * from tournament where starttime < ' . time() . ' AND completed = false';
 	$select = sc_mysql_query($sql);
 	
-	while ($tourney = mysql_fetch_assoc($select)) {
+	while ($tourney = $select->fetch_assoc()) {
 		//are there any games?
 		$sql = 'select count(*) as numberofgames from tournamentgame where tournament = ' . $tourney['id'];
 		$result2 = sc_mysql_query($sql);
@@ -1563,9 +1561,9 @@ function utime()
 
 function check_version($currentversion, $requiredversion)
 {
-   list($majorC, $minorC, $editC) = split('[/.-]', $currentversion);
+   list($majorC, $minorC, $editC) = preg_split('[/.-]', $currentversion);
 #  echo "current: " . $majorC . " -- " . $minorC . " -- " . $editC . "<p>";
-   list($majorR, $minorR, $editR) = split('[/.-]', $requiredversion);
+   list($majorR, $minorR, $editR) = preg_split('[/.-]', $requiredversion);
 #  echo "required: " . $majorR . " -- " . $minorR . " -- " . $editR . "<p>";
 
    if ($majorC > $majorR) return true;
