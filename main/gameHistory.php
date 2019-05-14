@@ -1,4 +1,4 @@
-<?
+<?php
 function gameHistory($vars)
 {
 	global $server;
@@ -31,21 +31,21 @@ function gameHistory($vars)
 	$select = sc_mysql_query('SELECT * FROM gamelog'.$conditions.' ORDER BY id DESC LIMIT '.$limit);
 ?>
 <div>
-<input type=hidden name=name value="<? echo $vars['name']; ?>">
-<input type=hidden name=pass value="<? echo $vars['pass']; ?>">
+<input type=hidden name=name value="<?php echo $vars['name']; ?>">
+<input type=hidden name=pass value="<?php echo $vars['pass']; ?>">
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="gameHistory">
-<input type=hidden name="first_record" value="<? echo $vars['first_record']; ?>">
-<input type=hidden name="record_count" value="<? echo $recorded_games; ?>">
+<input type=hidden name="first_record" value="<?php echo $vars['first_record']; ?>">
+<input type=hidden name="record_count" value="<?php echo $recorded_games; ?>">
 
 <div class=pageTitle>Game History</div>
-<?	
+<?php	
 	echo drawButtons($empire).'<div class=message style="margin-top: 10pt;">Local time and date: '.date('l, F j H:i:s T Y', time()).'</div>'.
 		 onlinePlayers().empireMissive($empire);
 ?>
 <img class=spacerule src="images/spacerule.jpg" width="100%" height=10 alt="spacerule.jpg">
-<div class=messageBold>There are <? echo ($recorded_games ? $recorded_games : 'no').' recorded game'.($recorded_games != 1 ? 's' : ''); ?>.</div>
-<?
+<div class=messageBold>There are <?php echo ($recorded_games ? $recorded_games : 'no').' recorded game'.($recorded_games != 1 ? 's' : ''); ?>.</div>
+<?php
 	if ($recorded_games)
 		{
 ?>
@@ -65,7 +65,7 @@ function gameHistory($vars)
 		<th style="color: white; font-size: 10pt;">End time</th>
 		<th></th>
 	</tr>
-<?
+<?php
 		$n = 0;
 		while ($oldgame = mysql_fetch_array($select))
 			{
@@ -87,27 +87,27 @@ function gameHistory($vars)
 ?>
 	<tr class=top>
 		<td style="font-size: 8pt;">
-			<?php echo '<a href="'.$server['history_read_URL'].strtr($oldgame['name'], " ?'", "___").'.html">'.str_replace(' ', '&nbsp;', $oldgame['name']).'</a>'; ?>
+			<?phpphp echo '<a href="'.$server['history_read_URL'].strtr($oldgame['name'], " ?'", "___").'.html">'.str_replace(' ', '&nbsp;', $oldgame['name']).'</a>'; ?>
 		</td>
-		<td style="font-size: 8pt;"><? echo $result.$emps_left; ?></td>
-		<td style="font-size: 8pt;"><? echo $emps_nuked; ?></td>
-		<td class=center><? echo date('H:i, M j Y', strtotime($oldgame['end_date'])); ?></td>
-		<td class=center><? echo ($oldgame['bridier'] == 'yes' ? 'Bridier game' : ''); ?></td>
+		<td style="font-size: 8pt;"><?php echo $result.$emps_left; ?></td>
+		<td style="font-size: 8pt;"><?php echo $emps_nuked; ?></td>
+		<td class=center><?php echo date('H:i, M j Y', strtotime($oldgame['end_date'])); ?></td>
+		<td class=center><?php echo ($oldgame['bridier'] == 'yes' ? 'Bridier game' : ''); ?></td>
 	</tr>
-<?
+<?php
 				}
 			}
 ?>
 	<tr>
 		<td colspan=2 style="padding-bottom: 10pt; border-bottom: 1pt dashed white;">
-<?
+<?php
 		if ($vars['first_record'] != 0)
 			echo '<input type=submit name=action value="First Page"><input type=submit name=action value="Previous Page">';
 		else
 			echo '&nbsp;';
 ?>
 		<td colspan=3 style="padding-bottom: 10pt; text-align: right; border-bottom: 1pt dashed white;">
-<?
+<?php
 		if ($n > $server['histories_per_page'])
 			echo '<input type=submit name=action value="Next Page"><input type=submit name=action value="Last Page">';
 		else
@@ -125,23 +125,23 @@ function gameHistory($vars)
 		<td colspan=2>Empire Name:</td>
 	</tr>
 	<tr>
-		<td><input type=text name=gamename value="<? echo stripslashes($vars['gamename']); ?>" size=25 maxlength=30></td>
-		<td colspan=2><input type=text name=empirename value="<? echo stripslashes($vars['empirename']); ?>" size=20 maxlength=20></td>
+		<td><input type=text name=gamename value="<?php echo stripslashes($vars['gamename']); ?>" size=25 maxlength=30></td>
+		<td colspan=2><input type=text name=empirename value="<?php echo stripslashes($vars['empirename']); ?>" size=20 maxlength=20></td>
 	</tr>
 	<tr>
-		<td><input type=checkbox name=bridier_only <? echo ($vars['bridier_only'] ? 'checked' : ''); ?>>Bridier games only</td>
+		<td><input type=checkbox name=bridier_only <?php echo ($vars['bridier_only'] ? 'checked' : ''); ?>>Bridier games only</td>
 		<td>
-			<input type=radio name=result value="Win"<? echo ($vars['result'] == 'Win' ? ' checked' : ''); ?>>Games won
-			<input type=radio name=result value="Lose"<? echo ($vars['result'] == 'Lose' ? ' checked' : ''); ?>>Games lost
-			<input type=radio name=result value="Draw"<? echo ($vars['result'] == 'Draw' ? ' checked' : ''); ?>>Draws
-			<!-- <input type=radio name=result value='Abandon'<? echo ($vars['result'] == 'Abandon' ? ' checked' : ''); ?>>Games abandoned -->
-			<input type=radio name=result value="All"<? echo ($vars['result'] == 'All' ? ' checked' : ''); ?>>All games
+			<input type=radio name=result value="Win"<?php echo ($vars['result'] == 'Win' ? ' checked' : ''); ?>>Games won
+			<input type=radio name=result value="Lose"<?php echo ($vars['result'] == 'Lose' ? ' checked' : ''); ?>>Games lost
+			<input type=radio name=result value="Draw"<?php echo ($vars['result'] == 'Draw' ? ' checked' : ''); ?>>Draws
+			<!-- <input type=radio name=result value='Abandon'<?php echo ($vars['result'] == 'Abandon' ? ' checked' : ''); ?>>Games abandoned -->
+			<input type=radio name=result value="All"<?php echo ($vars['result'] == 'All' ? ' checked' : ''); ?>>All games
 		</td>
 		<td><input type=submit name=action value="Search"></td>
 	</tr>
 </table>
 </div>
-<?
+<?php
 		}
 
 	footer();

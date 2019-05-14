@@ -1,10 +1,10 @@
-<?
+<?php
 function createEmpire($vars, $message = '')
 {
 	standardHeader('New Empire');
 ?>
-<input type=hidden name=name value="<? echo $vars['name']; ?>">
-<input type=hidden name=pass value="<? echo $vars['pass']; ?>">
+<input type=hidden name=name value="<?php echo $vars['name']; ?>">
+<input type=hidden name=pass value="<?php echo $vars['pass']; ?>">
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="createEmpire">
 
@@ -14,7 +14,7 @@ function createEmpire($vars, $message = '')
 
 <img class=spacerule src="images/spacerule.jpg" width="100%" height=10>
 
-<div class=messageBold>Info for <? echo $vars['name']; ?></div>
+<div class=messageBold>Info for <?php echo $vars['name']; ?></div>
 
 <div style="text-align: center;">
 <table style="margin-left: auto; margin-right: auto;">
@@ -43,7 +43,7 @@ function createEmpire($vars, $message = '')
 	</tr>
 </table>
 </div>
-<?
+<?php
 	footer();
 }
 

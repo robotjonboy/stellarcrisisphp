@@ -678,16 +678,18 @@ function playerLeftTeamGame($series, &$game, $player, $empire)
 
 function sendPlayerMissive($player, $recipient_id, $recipients, $type, $message)
 {
+	global $mysqli;
+	
 	$values = array();
 	$values[] = 'time = '.time();
-	$values[] = 'sender = "'.mysql_real_escape_string($player['name']).'"';
+	$values[] = 'sender = "'.$mysqli->real_escape_string($player['name']).'"';
 	
 	if ($recipients)
 		$values[] = 'recipient = "'.$recipients.'"';
 
 	$values[] = 'player_id = '.((int)$recipient_id);
 	$values[] = 'text = "'.addslashes($message).'"';
-	$values[] = 'type = "'.mysql_real_escape_string($type).'"';
+	$values[] = 'type = "'.$mysqli->real_escape_string($type).'"';
 	
 	sc_mysql_query('INSERT INTO messages SET '.implode(',', $values));
 

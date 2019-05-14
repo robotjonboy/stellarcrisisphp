@@ -358,10 +358,10 @@ function login($vars)
 		return loginFailed('You must enter a name and a password.');
 
 	// Prevent people from faking empire names with extra spaces.
-	$vars['name'] = preg_replace('[[:space:]]+', ' ', trim($vars['name']) );
+	$vars['name'] = preg_replace('/[[:space:]]+/', ' ', trim($vars['name']) );
 
 	// Filter out bad characters.
-	if (ereg('[\*\\\"\'<>%=,\$'.chr(173).']', $vars['name'].$vars['pass']))
+	if (preg_match('[\*\\\"\'<>%=,\$'.chr(173).']', $vars['name'].$vars['pass']))
 		return loginFailed('Your name and/or password contains illegal characters.');# (*\\"\'&lt;&gt;%=,$).');
 
 	if ($empire = getEmpire($vars['name']))
@@ -377,7 +377,7 @@ function login($vars)
 			setcookie('sc_login', $vars['name'], (time()+86400), '/');
 
 			// Check to see if this is the completion of an empire creation
-			if (ereg('^C', $empire['validation_info']))
+			if (preg_match('^C', $empire['validation_info']))
 			{
 				list($code, $newpass) = explode('/', $empire['validation_info']);
 				sc_mysql_query
@@ -658,7 +658,7 @@ function handleIconUpload($vars, $file)
 
 function spawnGame($series_name)
 {
-	global $server;
+	global $server,$mysqli;
 	
 	$series = getSeriesByName($series_name);
 
@@ -682,7 +682,7 @@ function spawnGame($series_name)
 
   		sc_mysql_query('INSERT INTO games SET '.implode(', ', $values), __FILE__.'*'.__LINE__);
   		
-  		return mysql_insert_id();
+  		return $mysqli->insert_id;
 		}
 }
 

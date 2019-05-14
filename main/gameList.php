@@ -1,4 +1,4 @@
-<?
+<?php
 function gameList($vars)
 {
 	$empire = getEmpire($vars['name']);
@@ -28,7 +28,7 @@ function gameList($vars)
 							' FROM '.$tables.
 							' WHERE '.$conditions.' '.
 							$order);
-	while ($row = mysql_fetch_array($select))
+	while ($row = $select->fetch_assoc())
 		{
 		$game = getGameByID($row['game_id']);
 
@@ -84,18 +84,18 @@ function gameList($vars)
 			}
 ?>
 	<tr>
-		<th style="text-align: left; vertical-align: top; color: red;"><? echo ($row['id'] != $last_series_id ? $series_description_link : ''); ?></th>
-		<th style="text-align: left; color: white; vertical-align: top;">Game <? echo $game['game_number']; ?></th>
-		<td style="vertical-align: top;"><? echo $players.'&nbsp;'.$player_listing; ?></td>
-		<td style="text-align: center; vertical-align: top;"><? echo $bridier_estimate.$game['update_count']; ?> updates</td>
-		<td style="text-align: center; vertical-align: top;"><input type=submit name="login[<? echo $game['id']; ?>]" value="Login"></td>
+		<th style="text-align: left; vertical-align: top; color: red;"><?php echo ($row['id'] != $last_series_id ? $series_description_link : ''); ?></th>
+		<th style="text-align: left; color: white; vertical-align: top;">Game <?php echo $game['game_number']; ?></th>
+		<td style="vertical-align: top;"><?php echo $players.'&nbsp;'.$player_listing; ?></td>
+		<td style="text-align: center; vertical-align: top;"><?php echo $bridier_estimate.$game['update_count']; ?> updates</td>
+		<td style="text-align: center; vertical-align: top;"><input type=submit name="login[<?php echo $game['id']; ?>]" value="Login"></td>
 		<td>
-			<? echo nextUpdate($row, $game); ?>
-			<div>You are <? echo $update_readiness; ?> for an update.</div>
-			<? echo $messages; ?>
+			<?php echo nextUpdate($row, $game); ?>
+			<div>You are <?php echo $update_readiness; ?> for an update.</div>
+			<?php echo $messages; ?>
 		</td>
 	</tr>
-<?
+<?php
 		$last_series_id = $row['id'];
 
 		// This game will not be listed in open games.
@@ -123,7 +123,7 @@ function gameList($vars)
 		$conditions[] = 'status = "None"';
 
 		$select = sc_mysql_query('SELECT * FROM '.$tables.' WHERE '.implode(' AND ', $conditions).' ORDER BY invitations.id');
-		while ($row = mysql_fetch_array($select))
+		while ($row = $select->fetch_assoc())
 			{
 			if ($excluded_games[$row['game_id']]) continue;
 
@@ -145,33 +145,33 @@ function gameList($vars)
 ?>
 	<tr>
 		<td></td>
-		<td colspan=6 class=yellow><? echo $game['created_by'].($series['max_players'] > 2 ? ' invites' : ' challenges'); ?> you to join:</td>
+		<td colspan=6 class=yellow><?php echo $game['created_by'].($series['max_players'] > 2 ? ' invites' : ' challenges'); ?> you to join:</td>
 	</tr>
 	<tr>
 		<td></td>
-		<th style="text-align: left; vertical-align: top; color: white;">Game <? echo $game['game_number']; ?></th>
-		<td style="vertical-align: top;"><? echo $players.$player_listing; ?></td>
+		<th style="text-align: left; vertical-align: top; color: white;">Game <?php echo $game['game_number']; ?></th>
+		<td style="vertical-align: top;"><?php echo $players.$player_listing; ?></td>
 		<td style="text-align: center; vertical-align: top;">
-			<? echo ($series['bridier_allowed'] ? bridierEstimate($series, $game, $empire) : $game['update_count'].' updates'); ?>
+			<?php echo ($series['bridier_allowed'] ? bridierEstimate($series, $game, $empire) : $game['update_count'].' updates'); ?>
 		</td>
 		<td style="text-align: center; vertical-align: top;">
-			<input type=submit name="accept[<? echo $game['id']; ?>]" value="Accept"><input type=submit name="decline[<? echo $game['id']; ?>]" value="Decline">
+			<input type=submit name="accept[<?php echo $game['id']; ?>]" value="Accept"><input type=submit name="decline[<?php echo $game['id']; ?>]" value="Decline">
 		</td>
-		<td><? echo nextUpdate($series, $game); ?></td>
+		<td><?php echo nextUpdate($series, $game); ?></td>
 	</tr>
-<?
+<?php
 			if ($row['message'])
 				{
 ?>
 	<tr valign=top>
 		<td colspan=2></td>
-		<th class=white>Message from <? echo $game['created_by']; ?>:</td>
-		<td colspan=2 class=white><? echo stripslashes($row['message']); ?></td>
+		<th class=white>Message from <?php echo $game['created_by']; ?>:</td>
+		<td colspan=2 class=white><?php echo stripslashes($row['message']); ?></td>
 		<td class=center>
-			<a class=smallText href="javascript:blabReply('<? echo $game['created_by']; ?>')">Send Message to <? echo $game['created_by']; ?></a>
+			<a class=smallText href="javascript:blabReply('<?php echo $game['created_by']; ?>')">Send Message to <?php echo $game['created_by']; ?></a>
 		</td>
 	</tr>
-<?
+<?php
 				}
 				
 			$last_series_id = $series['id'];
@@ -203,7 +203,7 @@ function gameList($vars)
 		$order = 'ORDER BY series.update_time, series.name, games.game_number ASC';
 
 		$select = sc_mysql_query('SELECT DISTINCT games.* FROM '.$tables.' WHERE '.implode(' AND ', $conditions).' '.$order);
-		while ($game = mysql_fetch_array($select))
+		while ($game = $select->fetch_assoc())
 			{
 			if ($excluded_games[$game['id']]) continue;
 			
@@ -231,13 +231,13 @@ function gameList($vars)
 ?>
 	<tr>
 		<td></td>
-		<th style="color: white; text-align: left; vertical-align: top;">Game <? echo $game['game_number']; ?></th>
-		<td><? echo $players.$player_listing; ?></td>
-		<td style="text-align: center;"><? echo ($series['bridier_allowed'] ? $bridier_text : $game['update_count'].' updates'); ?></td>
-		<td style="text-align: center;"><input type=submit name="join[<? echo $game['id']; ?>]" value="Join"></td>
-		<td><? echo nextUpdate($series, $game); ?></td>
+		<th style="color: white; text-align: left; vertical-align: top;">Game <?php echo $game['game_number']; ?></th>
+		<td><?php echo $players.$player_listing; ?></td>
+		<td style="text-align: center;"><?php echo ($series['bridier_allowed'] ? $bridier_text : $game['update_count'].' updates'); ?></td>
+		<td style="text-align: center;"><input type=submit name="join[<?php echo $game['id']; ?>]" value="Join"></td>
+		<td><?php echo nextUpdate($series, $game); ?></td>
 	</tr>
-<?
+<?php
 			}
 
 		$open_games = ob_get_contents();
@@ -257,7 +257,7 @@ function gameList($vars)
 		$conditions = 'series.custom = "0" AND games.player_count = 0';
 
 		$select = sc_mysql_query('SELECT '.$fields.' FROM '.$tables.' WHERE '.$conditions.' ORDER BY series.update_time, series.name, game_number');
-		while ($row = mysql_fetch_array($select))
+		while ($row = $select->fetch_assoc())
 			{				
 			#$series = getSeries($game['series_id']);
 
@@ -283,14 +283,14 @@ function gameList($vars)
 	
 	standardHeader('Game List', $empire);
 ?>
-<div class=pageTitle><? echo $vars['name']; ?>: Game List</div>
+<div class=pageTitle><?php echo $vars['name']; ?>: Game List</div>
 <div>
-<input type=hidden name="name" value="<? echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<? echo $vars['pass']; ?>">
-<input type=hidden name="empireID" value="<? echo $empire['id']; ?>">
+<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
+<input type=hidden name="pass" value="<?php echo $vars['pass']; ?>">
+<input type=hidden name="empireID" value="<?php echo $empire['id']; ?>">
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="gameList">
-<?
+<?php
 	echo drawButtons($empire).
 			serverTime().
 			'<div style="margin-top: 10pt; font-size: 8pt; text-align: center;">
@@ -355,7 +355,7 @@ function gameList($vars)
 				alt="spacerule.jpg">
 		</td>
 	</tr>
-<?
+<?php
 			echo $invitations;
 		}
 		if ($player_games)
@@ -369,7 +369,7 @@ function gameList($vars)
 			<img class=spaceruleThin src="images/spacerule.jpg" alt="spacerule.jpg">
 		</td>
 	</tr>
-<?
+<?php
 			echo $player_games;
 		}
 		if ($idle)
@@ -381,7 +381,7 @@ function gameList($vars)
 			<div style="font-size: 16pt">You may not join or start games while idle in another.</div>
 		</td>
 	</tr>
-<?
+<?php
 		}
 		else
 		{
@@ -396,7 +396,7 @@ function gameList($vars)
 			<img class=spaceruleThin src="images/spacerule.jpg" alt="spacerule.jpg">
 		</td>
 	</tr>
-<?
+<?php
 				echo $open_games;
 			}
 			if ($empty_games)
@@ -411,7 +411,7 @@ function gameList($vars)
 			<img class=spaceruleThin src="images/spacerule.jpg" alt="spacerule.jpg">
 		</td>
 	</tr>
-<?
+<?php
 				echo $empty_games;
 			}
 		}
@@ -447,7 +447,7 @@ function passwordGameList($vars)
 		$order = 'series.name, games.game_number';
 
 		$select = sc_mysql_query('SELECT DISTINCT games.* FROM '.$tables.' WHERE '.implode(' AND ', $conditions).' ORDER BY '.$order);
-		while ($game = mysql_fetch_array($select))
+		while ($game = $select->fetch_assoc())
 			{
 			$series = getSeries($game['series_id']);
 			
@@ -459,21 +459,21 @@ function passwordGameList($vars)
 ?>					
 	<tr>
 		<td></td>
-		<th style="text-align: left; color: white;">Game <? echo $game['game_number']; ?></th>
+		<th style="text-align: left; color: white;">Game <?php echo $game['game_number']; ?></th>
 		<td>
-			<? echo $game['player_count'].' of '.$series['max_players']; ?> players&nbsp;
+			<?php echo $game['player_count'].' of '.$series['max_players']; ?> players&nbsp;
 			<span class="playerListing">
-				<a href="javascript:void(0)">[&nbsp;list<span><? echo playerList($game['id'], $empire); ?></span>&nbsp;]</a>
+				<a href="javascript:void(0)">[&nbsp;list<span><?php echo playerList($game['id'], $empire); ?></span>&nbsp;]</a>
 			</span>
 		</td>
-		<td style="text-align: center;"><? echo ($series['bridier_allowed'] ? $bridier_text : $game['update_count'].' updates'); ?></td>
+		<td style="text-align: center;"><?php echo ($series['bridier_allowed'] ? $bridier_text : $game['update_count'].' updates'); ?></td>
 		<th>
-			Password:&nbsp;<input type=password name="gamePassword[<? echo $game['id']; ?>]" size=10 maxlength=10>
-			<input type=submit name="join[<? echo $game['id']; ?>]" value="Join">
+			Password:&nbsp;<input type=password name="gamePassword[<?php echo $game['id']; ?>]" size=10 maxlength=10>
+			<input type=submit name="join[<?php echo $game['id']; ?>]" value="Join">
 		</th>
-		<td><? echo nextUpdate($series, $game); ?></td>
+		<td><?php echo nextUpdate($series, $game); ?></td>
 	</tr>
-<?
+<?php
 			$last_series_id = $series['id'];
 			}
 
@@ -483,13 +483,13 @@ function passwordGameList($vars)
 	
 	standardHeader('Game List', $empire);
 ?>
-<div class=pageTitle><? echo $vars['name']; ?>: Game List</div>
+<div class=pageTitle><?php echo $vars['name']; ?>: Game List</div>
 
-<input type=hidden name=name value="<? echo $vars['name']; ?>">
-<input type=hidden name=pass value="<? echo $vars['pass']; ?>">
+<input type=hidden name=name value="<?php echo $vars['name']; ?>">
+<input type=hidden name=pass value="<?php echo $vars['pass']; ?>">
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="gameList">
-<?
+<?php
 	echo drawButtons($empire).
 			serverTime().
 			'<div style="margin-top: 10pt; font-size: 8pt; text-align: center;">
@@ -519,7 +519,7 @@ function passwordGameList($vars)
 ?>
 <img class=spacerule src="images/spacerule.jpg" width="100%" alt="spacerule.jpg">
 <div class=messageBold>There are no password games available at this time.</div>
-<?
+<?php
 		}
 	else
 		{
@@ -534,7 +534,7 @@ function passwordGameList($vars)
 			<div style="font-size: 16pt">You may not join or start games while idle in another.</div>
 		</td>
 	</tr>
-<?
+<?php
 			}
 		else
 			{
@@ -547,7 +547,7 @@ function passwordGameList($vars)
 			<img class=spaceruleThin src="images/spacerule.jpg" alt="spacerule.jpg">
 		</td>
 	</tr>
-<?
+<?php
 			echo $listing;
 			}
 			
@@ -595,23 +595,23 @@ function gameList_processing($vars)
 		return gameList($vars);
 		}
 
-	if (ereg('(create|createp)', $action) and $game['num_players'])
+	if (preg_match('/(create|createp)/', $action) and $game['num_players'])
 		{
 		// This will happen with out-of-date game lists.
 		sendEmpireMessage($empire, 'Sorry, that game was started by someone else.');
 		return gameList($vars);
 		}
 
-	if (ereg('(join|accept)', $action) and $game['closed'])
+	if (preg_match('/(join|accept)/', $action) and $game['closed'])
 		{
 		sendEmpireMessage($empire, 'Sorry, that game has filled up.');
 		return gameList($vars);
 		}
 
-	if (ereg('(create|createp|login|join|accept)', $action))
+	if (preg_match('/(create|createp|login|join|accept)/', $action))
 		{	
 		$select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.$game_id.' AND name = "'.$empire['name'].'" AND team >= 0');
-		$vars['player_data'] = $player = mysql_fetch_array($select);
+		$vars['player_data'] = $player = $select->fetch_assoc();
 		
 		// If the player is already in the game, we can skip everything else and just log in.
 		if ($player)
@@ -620,7 +620,7 @@ function gameList_processing($vars)
 		if ($action == 'accept')
 			{
 			$select = sc_mysql_query('SELECT * FROM invitations WHERE game_id = '.$game['id'].' AND empire = "'.$empire['name'].'"');
-			$invitation = mysql_fetch_array($select);
+			$invitation = $select->fetch_assoc();
 			
 			sc_mysql_query('UPDATE invitations SET status = "Accepted" WHERE id = '.$invitation['id']);
 
@@ -638,7 +638,7 @@ function gameList_processing($vars)
 			return gameList($vars);
 			}
 		
-		if (ereg('(create|createp|join)', $action))
+		if (preg_match('/(create|createp|join)/', $action))
 			{
 			if ($series['bridier_allowed'] and $action != 'join')
 				{
@@ -833,10 +833,10 @@ function empireMissive($empire)
 {
 	$select = sc_mysql_query('SELECT sender, text FROM messages WHERE empire_id = '.$empire['id'].' AND flag = "0" ORDER BY id ASC');
 	
-	if (mysql_num_rows($select))
+	if ($select->num_rows)
 		{		
 		$messages = array();
-		while ($row = mysql_fetch_array($select))
+		while ($row = $select->fetch_assoc())
 			{
 			$message = stripslashes(urldecode($row['text']));
 			
@@ -986,12 +986,12 @@ function playerList($gameID, $empire)
 	
 	$select = sc_mysql_query('SELECT '.implode(',', $fields).' FROM '.$from.' WHERE players.game_id = "'.$gameID.'" AND players.team >= 0 ORDER BY '.$order);
 
-	if (mysql_num_rows($select) > 10)
+	if ($select->num_rows > 10)
 		{
 		$x = 0;
-		$columns = ceil(mysql_num_rows($select)/5);
+		$columns = ceil($select->num_rows/5);
 
-		while ($row = mysql_fetch_array($select))
+		while ($row = $select->fetch_assoc())
 			{
 			#if ($x == 0) $player_list .= '<tr valign=top>';
 			#else if (($x % 5) == 0) $player_list .= '<tr valign=top>';
@@ -1011,7 +1011,7 @@ function playerList($gameID, $empire)
 	else
 		{
 		$current_team = 0;
-		while ($row = mysql_fetch_array($select))
+		while ($row = $select->fetch_assoc())
 			{
 			// Only show team affiliation if the map is visible or the game is closed to prevent team shopping.
 			// If we do show it, only do when we switch teams while going through the records. This will have the effect
@@ -1082,13 +1082,13 @@ function onlinePlayers()
 	$players = '(SELECT DISTINCT name FROM players WHERE UNIX_TIMESTAMP() - last_access < 30*60)';
 	
 	$select = sc_mysql_query($empires.' UNION '.$players.' ORDER BY name');
-	if ($count = mysql_num_rows($select))
+	if ($count = $select->num_rows)
 	{
 		$list = '<div style="text-align: center; margin-top: 10pt;">'.
 				'<select name=onlinePlayers onChange="blab()">'.
 				'<option value=1 selected>'.
 				$count.' player'.($count != 1 ? 's' : '').' currently online...';
-		while ($row = mysql_fetch_array($select))
+		while ($row = $select->fetch_assoc())
 		{
 				$list .= '<option value="'.$row['name'].'">'.$row['name'];
 		}
@@ -1104,7 +1104,7 @@ function onlinePlayers()
 
 function playerIsIdle($player_name)
 {
-	global $server;
+	global $server,$mysqli;
 	
 	$tables = 'players INNER JOIN games ON players.game_id = games.id';
 
@@ -1113,9 +1113,11 @@ function playerIsIdle($player_name)
 	$conditions[] = '(games.update_count - players.last_update) > '.$server['updates_to_idle'];
 	$conditions[] = 'team > 0';
 
-	$select = sc_mysql_query('SELECT COUNT(*) FROM '.$tables.' WHERE '.implode(' AND ', $conditions));
+	$select = sc_mysql_query('SELECT COUNT(*) as c FROM '.$tables.' WHERE '.implode(' AND ', $conditions));
 	
-	return mysql_result($select, 0, 0);
+	$line = $select->fetch_assoc();
+	
+	return $line['c'];
 }
 /* ---- edit history ---
 2007-12-14  changed .rss to .php to make rss work on normal server

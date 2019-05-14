@@ -1,4 +1,4 @@
-<?
+<?php
 #----------------------------------------------------------------------------------------------------------------------#
 
 function statViewer($vars, $message = '')
@@ -12,12 +12,12 @@ function statViewer($vars, $message = '')
 
 	standardHeader('Stat Viewer', $empire);
 ?>
-<input type=hidden name="name" value="<? echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<? echo $vars['pass']; ?>">
+<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
+<input type=hidden name="pass" value="<?php echo $vars['pass']; ?>">
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="statViewer">
 <div class=pageTitle>Stat Viewer</div>
-<?
+<?php
 	echo drawButtons($empire).
 		'<div class=message style="margin-top: 10pt;">Local time and date: '.
 			date('l, F j H:i:s T Y', time()).
@@ -31,12 +31,12 @@ function statViewer($vars, $message = '')
 	alt="spacerule.jpg">
 
 <div class=messageBold>
-	There are <? echo $empire_count; ?> registered players.
+	There are <?php echo $empire_count; ?> registered players.
 </div>
 
 <div style="margin-top: 10pt; text-align: center;">
   <table border=0 style="margin-left: auto; margin-right: auto;">
-<?
+<?php
 	if ($server['top_lists_enabled'])
 		{
 ?>
@@ -73,7 +73,7 @@ function statViewer($vars, $message = '')
 			<input type=submit name="bridier[active_established]" value="Go">
 		</td>
 	</tr>
-<?
+<?php
 		}
 ?>
   </table>
@@ -98,7 +98,7 @@ function statViewer($vars, $message = '')
 <div style="color: white; font-size: 7pt; text-align: center;">
 	Partial names allowed, use * as a wildcard.
 </div>
-<?
+<?php
 	footer();
 }
 
@@ -154,12 +154,12 @@ function topTen($vars)
 	standardHeader('Top Ten '.$label, $empire);
 ?>
 <div>
-<input type=hidden name="name" value="<? echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<? echo $vars['pass']; ?>">
+<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
+<input type=hidden name="pass" value="<?php echo $vars['pass']; ?>">
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="statViewer">
-<div class=pageTitle>Top Ten <? echo $label; ?></div>
-<?
+<div class=pageTitle>Top Ten <?php echo $label; ?></div>
+<?php
 	echo drawButtons($empire).serverTime().onlinePlayers().empireMissive($empire);
 ?>
 <img class=spacerule src="images/spacerule.jpg" width="100%" height=10 alt="spacerule.jpg">
@@ -175,33 +175,33 @@ function topTen($vars)
 		<th>Ruins</th>
 		<th>Score</th>
 	</tr>
-<?
+<?php
 	while ($row = mysql_fetch_array($select))
 		{
 ?>
 	<tr>
-		<td><? echo $row['name']; ?></td>
-		<td><? echo $row['real_name']; ?></td>
+		<td><?php echo $row['name']; ?></td>
+		<td><?php echo $row['real_name']; ?></td>
 		<td>
-		<?
+		<?php
 			if ($row['email_visible'])
 				echo '<a href="mailto:'.$row['email'].'">'.$row['email'].'</a></td>';
 			else
 				echo '<i>hidden</i>';
 		?>
 		</td>
-		<td style="text-align: center;"><? echo $row['wins']; ?></td>
-		<td style="text-align: center;"><? echo $row['nukes']; ?></td>
-		<td style="text-align: center;"><? echo $row['nuked']; ?></td>
-		<td style="text-align: center;"><? echo $row['ruined']; ?></td>
-		<td style="text-align: right;"><? echo $row['score']; ?></td>
+		<td style="text-align: center;"><?php echo $row['wins']; ?></td>
+		<td style="text-align: center;"><?php echo $row['nukes']; ?></td>
+		<td style="text-align: center;"><?php echo $row['nuked']; ?></td>
+		<td style="text-align: center;"><?php echo $row['ruined']; ?></td>
+		<td style="text-align: right;"><?php echo $row['score']; ?></td>
 	</tr>
-<?
+<?php
 		}
 ?>
 </table>
 </div>
-<?
+<?php
 	footer();
 }
 
@@ -242,20 +242,20 @@ function bridierScores($vars)
 	if ($vars['bridier']['all_established'])	$caption = "(All established players, no time limit.)";
 ?>
 <div>
-<input type=hidden name="name" value="<? echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<? echo $vars['pass']; ?>">
+<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
+<input type=hidden name="pass" value="<?php echo $vars['pass']; ?>">
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="statViewer">
 <div class=pageTitle>Bridier Scores</div>
-<?
+<?php
 	echo drawButtons($empire).'<div class=message style="margin-top: 10pt;">Local time and date: '.date('l, F j H:i:s T Y', time()).'</div>'.
 		 onlinePlayers().empireMissive($empire);
 ?>
 <img class=spacerule src="images/spacerule.jpg" width="100%" height=10 alt="spacerule.jpg">
 <div align=center class=messageBold>
-	<? echo $active_players.''.(ereg('All', $caption) ? ' ' : ' active ').'player'.($active_players != 1 ? 's' : '').'<br>'.$caption; ?>
+	<?php echo $active_players.''.(ereg('All', $caption) ? ' ' : ' active ').'player'.($active_players != 1 ? 's' : '').'<br>'.$caption; ?>
 </div>
-<?
+<?php
 	if ($active_players)
 		{
 ?>
@@ -267,7 +267,7 @@ function bridierScores($vars)
 		<th colspan=2>Last Change</th>
 		<th>Bridier Index</th>
 	</tr>
-<?
+<?php
 		while ($row = mysql_fetch_array($select))
 			{
 			$seconds = (time() - $row['bridier_update']);
@@ -284,18 +284,18 @@ function bridierScores($vars)
 			$class = ($row['bridier_delta'] < 0 ? 'red' : 'green');
 ?>
 	<tr>
-		<td style="text-align: left;"><? echo $row['name']; ?></td>
-		<td style="text-align: center;"><? echo $row['bridier_rank']; ?></td>
-		<td class=<? echo $class; ?>><? echo ($row['bridier_delta'] > 0 ? '+' : '').$row['bridier_delta']; ?></td>
-		<td style="text-align: right;">(<? echo $time_delta; ?>)</td>
-		<td style="text-align: center;"><? echo $row['bridier_index']; ?></td>
+		<td style="text-align: left;"><?php echo $row['name']; ?></td>
+		<td style="text-align: center;"><?php echo $row['bridier_rank']; ?></td>
+		<td class=<?php echo $class; ?>><?php echo ($row['bridier_delta'] > 0 ? '+' : '').$row['bridier_delta']; ?></td>
+		<td style="text-align: right;">(<?php echo $time_delta; ?>)</td>
+		<td style="text-align: center;"><?php echo $row['bridier_index']; ?></td>
 	</tr>
-<?
+<?php
 			}
 ?>
 </table>
 </div>
-<?
+<?php
 		}
 
 	echo '<div style="text-align: center; margin-top: 10pt;">';
@@ -320,16 +320,16 @@ function searchEmpire($vars)
 
 	standardHeader('Stat Viewer', $empire);
 ?>
-<input type=hidden name="name" value="<? echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<? echo $vars['pass']; ?>">
+<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
+<input type=hidden name="pass" value="<?php echo $vars['pass']; ?>">
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="statViewer">
 <div class=pageTitle>Stat Viewer</div>
-<?
+<?php
 	echo drawButtons($empire).serverTime().onlinePlayers().empireMissive($empire);
 ?>
 <img class=spacerule src="images/spacerule.jpg" alt="spacerule.jpg">
-<?
+<?php
 	// Try an exact match first.
 	$exact_search = sc_mysql_query('SELECT * FROM empires WHERE name = "'.$vars['search_name'].'"');
 	
@@ -348,63 +348,63 @@ function searchEmpire($vars)
 ?>
 <table border=0 cellpadding=5 style="margin-left: auto; margin-right: auto;">
 	<tr>
-		<td><img src="images/aliens/<? echo $empire['icon']; ?>" width=40 height=40 alt="<? echo $empire['icon']; ?>"></td>
-		<td colspan=3 class=smallTitleLeft><? echo $empire['name']; ?></td>
+		<td><img src="images/aliens/<?php echo $empire['icon']; ?>" width=40 height=40 alt="<?php echo $empire['icon']; ?>"></td>
+		<td colspan=3 class=smallTitleLeft><?php echo $empire['name']; ?></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Real Name:</th>
-		<td><? echo $empire['real_name']; ?></td>
+		<td><?php echo $empire['real_name']; ?></td>
 		<th style="text-align: right;">Wins:</th>
-		<td><? echo $empire['wins']; ?></td>
+		<td><?php echo $empire['wins']; ?></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">E-Mail:</th>
 		<td>
-		<?
+		<?php
 			if ($empire['email_visible'])
 				echo '<a href="mailto:'.$empire['email'].'">'.$empire['email'].'</a></td>';
 			else
 				echo '<i>hidden</i>';
 		?>
 		<th style="text-align: right;">Nukes:</th>
-		<td><? echo $empire['nukes']; ?></td>
+		<td><?php echo $empire['nukes']; ?></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Last Login:</th>
-		<td><? echo date('l, F j H:i:s T Y', $empire['last_login']); ?></td>
+		<td><?php echo date('l, F j H:i:s T Y', $empire['last_login']); ?></td>
 		<th style="text-align: right;">Been Nuked:</th>
-		<td><? echo $empire['nuked']; ?></td>
+		<td><?php echo $empire['nuked']; ?></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;" rowspan=4 valign=top>Joined on:</th>
 		<td rowspan=4 valign=top>
-<?								 
+<?php								 
 		// Special case for empires that joined before we started tracking join dates.
 		// This only applies to the Iceberg server; you can remove this check if you start from scratch.
 		echo ($empire['join_date'] == 1018409756 ? 'Before or on '.date('l, F j Y', 1018409756) : date('l, F j Y', $empire['join_date']));
 ?>
 		</td>
 		<th style="text-align: right;">Ruins:</th>
-		<td><? echo $empire['ruined']; ?></td>
+		<td><?php echo $empire['ruined']; ?></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Max Econ:</th>
-		<td><? echo $empire['max_economic_power']; ?></td>
+		<td><?php echo $empire['max_economic_power']; ?></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Max Mil:</th>
-		<td><? echo $empire['max_military_power']; ?></td>
+		<td><?php echo $empire['max_military_power']; ?></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Bridier (rank:index):</th>
-		<td><? echo $empire['bridier_rank'].'<b>:</b>'.$empire['bridier_index']; ?></td>
-<?
+		<td><?php echo $empire['bridier_rank'].'<b>:</b>'.$empire['bridier_index']; ?></td>
+<?php
 		if ($empire['comment'] != '')
 			{
 ?>
 	<tr><td colspan=4><img class=spaceruleThin src="images/spacerule.jpg" width="100%" height=10 alt="spacerule.jpg"></td></tr>
-	<tr><td colspan=4><pre><? echo stripslashes(urldecode($empire['comment'])); ?></pre></td></tr>
-<?					
+	<tr><td colspan=4><pre><?php echo stripslashes(urldecode($empire['comment'])); ?></pre></td></tr>
+<?php					
 			}
 		
 		echo '</table>';
@@ -418,14 +418,14 @@ function searchEmpire($vars)
 			{
 ?>
 <div class=messageBold>
-	There are <? echo $matches; ?> matching empire<? echo ($matches != 1 ? 's' : ''); ?>.
+	There are <?php echo $matches; ?> matching empire<?php echo ($matches != 1 ? 's' : ''); ?>.
 	<br>Click on the name of the empire you want to know more about.
 </div>
 <div style="text-align: center; margin-top: 10pt;">
 <table cellspacing=5 style="margin-left: auto; margin-right: auto;">
 	<tr>
 		<td>
-<?
+<?php
 			while ($empire = mysql_fetch_array($fuzzy_search))
 				echo  '<input type=submit name=search_name value="'.$empire['name'].'">';
 ?>
@@ -433,7 +433,7 @@ function searchEmpire($vars)
 	</tr>
 </table>
 </div>
-<?
+<?php
 			}
 		else
 			echo  '<div class=messageBold>There are no matching empires.</div>';

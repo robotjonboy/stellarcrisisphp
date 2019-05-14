@@ -216,7 +216,7 @@ CREATE TABLE messages (
   player_id int(11) NOT NULL default "0",
   empire_id int(11) NOT NULL default "0",
   text mediumtext NOT NULL,
-  type enum("instant","motd","private","broadcast","team","update","scout") default NULL,
+  type enum("instant","motd","private","broadcast","team","update","scout","game_message") default NULL,
   flag enum("1","0") NOT NULL default "0",
   UNIQUE KEY id (id),
   KEY player_id (player_id,flag,type),

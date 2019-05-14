@@ -5,6 +5,7 @@
 
 function joinGame($vars, $team = 0, $spawngame = true, $returninfoscreen = true)
 {
+	global $mysqli;
 	$series = $vars['series_data'];
 	$game = $vars['game_data'];
 
@@ -21,7 +22,7 @@ function joinGame($vars, $team = 0, $spawngame = true, $returninfoscreen = true)
 		$history_values[] = 'game_id = '.((int)$game['id']);
 		$history_values[] = 'update_no = '.$game['update_count'];
 		$history_values[] = 'coordinates = ""';
-		$history_values[] = 'empire = "'.mysql_real_escape_string($vars['name']).'"';
+		$history_values[] = 'empire = "'.$mysqli->real_escape_string($vars['name']).'"';
 		$history_values[] = 'event = "started"';
 		$history_values[] = 'info = '.time();
 
@@ -89,7 +90,7 @@ function joinGame($vars, $team = 0, $spawngame = true, $returninfoscreen = true)
 	// First, we need to get homeworld location so we can put it in the history record.
 	$select = sc_mysql_query('SELECT coordinates FROM systems WHERE game_id = '.((int)$game['id']).
 	                         ' AND homeworld = "'.mysql_real_escape_string($vars['name']).'"');
-	$homeworld = mysql_fetch_array($select);
+	$homeworld = $select->fetch_assoc();
 	
 	$values = array();
 	$values[] = 'game_id = '.((int)$game['id']);
@@ -241,7 +242,7 @@ function joinTeamGame($vars, $series, &$game, $team)
 	$team_openings = array(1 => array(), 2 => array());
 
 	$select = sc_mysql_query('SELECT owner, player_number FROM systems WHERE game_id = '.$game['id'].' AND owner <> ""');
-	while ($system = mysql_fetch_array($select))
+	while ($system = $select->fetch_assoc())
 		{
 		if (!in_array($system['owner'], $team_list[1]) and !in_array($system['owner'], $team_list[2]))
 			{
@@ -294,7 +295,7 @@ function joinPrebuiltGame($vars, $series, $game)
 	// Load the entire map for this game
 	$map = array();
 	$select = sc_mysql_query('SELECT * FROM systems WHERE game_id = '.((int)$game['id']), __FILE__.'*'.__LINE__);
-	while ($sys = mysql_fetch_array($select)) $map[$sys['coordinates']] = $sys;
+	while ($sys = $select->fetch_assoc()) $map[$sys['coordinates']] = $sys;
 
 	// Look for inactive planets next to currently active ones-- these are the player positions we can activate now.
 	$spots_open = array();
@@ -428,10 +429,10 @@ function initPlayer($vars, $series, $game, $team, $player_slot = '')
 
 	// The player's tech level is by default 1.0, unless there is someone in this game which has a higher tech level.
 	// If this is the case, set the player's tech level to the highest tech level of the other players.
-	$sql = 'SELECT GREATEST(1.0, MAX(tech_level)) FROM players WHERE game_id = '.$game['id'].' AND name <> "'.$vars['name'].'"';
+	$sql = 'SELECT GREATEST(1.0, MAX(tech_level)) as g FROM players WHERE game_id = '.$game['id'].' AND name <> "'.$vars['name'].'"';
 	$select = sc_mysql_query($sql);
-	
-	$tech_level = mysql_result($select, 0, 0);
+	$line = $select->fetch_assoc();
+	$tech_level = $line['g'];
 	
 	if (!isset($tech_level))
 	{
@@ -1284,7 +1285,7 @@ function generateMapForPlayer($name, $series, $game)
 	// Get the current map, if there is one.
 	$big_map = array();
 	$select = sc_mysql_query('SELECT * FROM systems WHERE series_id = '.$series['id'].' AND game_number = '.$game['game_number'], __FILE__.'*'.__LINE__);
-	while ($system = mysql_fetch_array($select))
+	while ($system = $select->fetch_assoc())
 		$big_map[$system['coordinates']] = $system;
 
 	$chain = buildPlayerChain( $series['systems_per_player'], $big_map, 1, 2*$series['max_players']*$series['systems_per_player'] );
@@ -1706,7 +1707,7 @@ function showMap($game)
 	
 	// load the active systems in the map
 	$select = sc_mysql_query('SELECT * FROM systems WHERE game_id = '.$game['id'].' AND system_active = "1"', __FILE__.'*'.__LINE__);
-	while ($system = mysql_fetch_array($select))
+	while ($system = $select->fetch_assoc())
 		$map[$system['coordinates']] = $system;
 	
 	drawMap($map);
@@ -1810,7 +1811,7 @@ function nameSystem(&$big_map)
 		$random_id = rand(1, mysql_result($word_count, 0, 0));
 		
 		$select = sc_mysql_query('SELECT word FROM '.$server['systemNameSource'].' WHERE id = '.$random_id, __FILE__.'*'.__LINE__);
-		$word = mysql_fetch_array($select);
+		$word = $select->fetch_assoc();
 		
 		return ucfirst($word['word']);
 		}

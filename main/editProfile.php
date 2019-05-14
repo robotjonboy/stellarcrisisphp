@@ -1,4 +1,4 @@
-<?
+<?php
 function editProfile($vars)
 {
 	global $server;
@@ -8,14 +8,14 @@ function editProfile($vars)
 	standardHeader('Edit Profile', $empire);
 ?>
 <div>
-<input type=hidden name="name" value="<? echo $empire['name']; ?>">
-<input type=hidden name="pass" value="<? echo $empire['password']; ?>">
+<input type=hidden name="name" value="<?php echo $empire['name']; ?>">
+<input type=hidden name="pass" value="<?php echo $empire['password']; ?>">
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="editProfile">
-<input type=hidden name="old_origin" value="<? echo $empire['map_origin']; ?>">
+<input type=hidden name="old_origin" value="<?php echo $empire['map_origin']; ?>">
 
-<div class=pageTitle><? echo $vars['name']; ?>: Edit Profile</div>
-<?
+<div class=pageTitle><?php echo $vars['name']; ?>: Edit Profile</div>
+<?php
 	echo drawButtons($empire).'<div class=message style="margin-top: 10pt;">Local time and date: '.date('l, F j H:i:s T Y', time()).'</div>'.
 		 empireMissive($empire);
 ?>
@@ -25,49 +25,49 @@ function editProfile($vars)
 <table style="margin-left: auto; margin-right: auto;">
 	<tr>
 		<th style="text-align: right;">Password:</th>
-		<td><input type=password name="pass_new" size=20 maxlength=20 value="<? echo $empire['password']; ?>"></td>
+		<td><input type=password name="pass_new" size=20 maxlength=20 value="<?php echo $empire['password']; ?>"></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Verify Password:</th>
-		<td><input type=password name="pass_check" size=20 maxlength=20 value="<? echo $empire['password']; ?>"></td>
+		<td><input type=password name="pass_check" size=20 maxlength=20 value="<?php echo $empire['password']; ?>"></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Real Name:</th>
-		<td><input type=text name="real_name" size=40 value="<? echo $empire['real_name']; ?>"></td>
+		<td><input type=text name="real_name" size=40 value="<?php echo $empire['real_name']; ?>"></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">E-mail:</th>
-		<td><input type=text name="email" size=40 value="<? echo $empire['email']; ?>"></td>
+		<td><input type=text name="email" size=40 value="<?php echo $empire['email']; ?>"></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;"></th>
-		<td><input type=checkbox name="show_email" <? echo ($empire['email_visible'] ? ' checked' : ''); ?>>Show email address in Stat viewer</td>
+		<td><input type=checkbox name="show_email" <?php echo ($empire['email_visible'] ? ' checked' : ''); ?>>Show email address in Stat viewer</td>
 	</tr>
 	<tr>
 		<th style="text-align: right;" valign=top>Comments:</th>
-		<td><textarea name="comment" rows=5 cols=40><? echo stripslashes($empire['comment']); ?></textarea></td>
+		<td><textarea name="comment" rows=5 cols=40><?php echo stripslashes($empire['comment']); ?></textarea></td>
 	</tr>
 	<tr>
 		<th style="text-align: right; vertical-align: top;">Miscellaneous preferences:</th>
 		<td>
-			<div><input type=checkbox name="auto_update"<? echo ($empire['auto_update'] ? ' checked' : ''); ?>>&nbsp;Auto-updates</div>
-			<div><input type=checkbox name="show_coordinates"<? echo ($empire['show_coordinates'] ? ' checked' : ''); ?>>&nbsp;Show coordinates on map screens</div>
-			<div><input type=checkbox name="show_icons"<? echo ($empire['show_icons'] ? ' checked' : ''); ?>>&nbsp;Show icons in player lists</div>
+			<div><input type=checkbox name="auto_update"<?php echo ($empire['auto_update'] ? ' checked' : ''); ?>>&nbsp;Auto-updates</div>
+			<div><input type=checkbox name="show_coordinates"<?php echo ($empire['show_coordinates'] ? ' checked' : ''); ?>>&nbsp;Show coordinates on map screens</div>
+			<div><input type=checkbox name="show_icons"<?php echo ($empire['show_icons'] ? ' checked' : ''); ?>>&nbsp;Show icons in player lists</div>
 			<div style="margin-top: 10pt;">
-				<input type=checkbox name="draw_background"<? echo ($empire['draw_background'] ? ' checked' : ''); ?>>&nbsp;Draw page background...
+				<input type=checkbox name="draw_background"<?php echo ($empire['draw_background'] ? ' checked' : ''); ?>>&nbsp;Draw page background...
 				<select name="background_attachment">
-					<option<? echo ($empire['background_attachment'] == 'scroll' ? ' selected' : ''); ?>>Scroll
-					<option<? echo ($empire['background_attachment'] == 'fixed' ? ' selected' : ''); ?>>Fixed
+					<option<?php echo ($empire['background_attachment'] == 'scroll' ? ' selected' : ''); ?>>Scroll
+					<option<?php echo ($empire['background_attachment'] == 'fixed' ? ' selected' : ''); ?>>Fixed
 				</select>
 			</div>
-			<div>Custom background image (URL):&nbsp;<input type=text size=30 maxlength=255 name="custom_bg_url" value="<? echo $empire['custom_bg_url']; ?>"></div>
+			<div>Custom background image (URL):&nbsp;<input type=text size=30 maxlength=255 name="custom_bg_url" value="<?php echo $empire['custom_bg_url']; ?>"></div>
 			<div style="margin-top: 10pt;">Order ships on ships screen by...
 				<select name="list_ships_by">
-					<option<? echo ($empire['list_ships_by_system']? '' : ' selected'); ?>>Ship type
-					<option<? echo ($empire['list_ships_by_system']? ' selected' : ''); ?>>Location
+					<option<?php echo ($empire['list_ships_by_system']? '' : ' selected'); ?>>Ship type
+					<option<?php echo ($empire['list_ships_by_system']? ' selected' : ''); ?>>Location
 				</select>
 			</div>
-			<div style="margin-top: 10pt;">Default map origin: <input type=text size=11 maxlength=11 name="map_origin" value="<? echo $empire['map_origin']; ?>"></div>
+			<div style="margin-top: 10pt;">Default map origin: <input type=text size=11 maxlength=11 name="map_origin" value="<?php echo $empire['map_origin']; ?>"></div>
 		</td>
 	</tr>
 </table>
@@ -76,14 +76,14 @@ function editProfile($vars)
 <div style="margin-top: 10pt;">
 <table style="margin-left: auto; margin-right: auto;">
 	<tr>
-		<td><img src="images/aliens/<? echo $empire['icon']; ?>" width=40 height=40 alt="<? echo $empire['icon']; ?>"></td>
+		<td><img src="images/aliens/<?php echo $empire['icon']; ?>" width=40 height=40 alt="<?php echo $empire['icon']; ?>"></td>
 		<td><input type=submit name="chooseIcon" value="Choose Icon..."></td>
-		<? echo ($server['icon_upload_allowed'] ? '<td><input type=submit name="iconUpload" value="Upload Custom Icon..."></td>' : ''); ?>
+		<?php echo ($server['icon_upload_allowed'] ? '<td><input type=submit name="iconUpload" value="Upload Custom Icon..."></td>' : ''); ?>
 		<td><input type=submit name="saveProfile" value="Save Changes"></td>
 	</tr>
 </table>
 </div>
-<?
+<?php
 	footer();
 }
 

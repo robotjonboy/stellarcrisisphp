@@ -1,4 +1,4 @@
-<?
+<?php
 function customSeries($vars)
 {
 	global $server;
@@ -8,24 +8,24 @@ function customSeries($vars)
 	standardHeader('Custom Series', $empire);
 ?>
 <div>
-<input type=hidden name=name value="<? echo $vars['name']; ?>">
-<input type=hidden name=pass value="<? echo $vars['pass']; ?>">
+<input type=hidden name=name value="<?php echo $vars['name']; ?>">
+<input type=hidden name=pass value="<?php echo $vars['pass']; ?>">
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="customSeries">
 
 <div class=pageTitle>Custom Series</div>
-<?
+<?php
 	echo drawButtons($empire).'<div class=message style="margin-top: 10pt;">Local time and date: '.date('l, F j H:i:s T Y', time()).'</div>'.
 		 onlinePlayers().empireMissive($empire);
 ?>
 <img class=spacerule src="images/spacerule.jpg" width="100%" height=10 alt="spacerule.jpg">
 
 <div style="text-align: left; font-size: 10pt; margin: 0pt;">
-This page allows you to create a series with parameters of your choosing (you need <? echo $server['custom_series_wins_chunk']; ?> or more wins to gain access to this feature). Once this is done, anyone can start a game from this screen. Open games will appear on the regular game lists, but the series themselves will only be listed here.
+This page allows you to create a series with parameters of your choosing (you need <?php echo $server['custom_series_wins_chunk']; ?> or more wins to gain access to this feature). Once this is done, anyone can start a game from this screen. Open games will appear on the regular game lists, but the series themselves will only be listed here.
 <p>
-Once a series has been created, the only control its creator has over it is to kill it if there are no active games. If there is a need to kill a specific game, you should <a href="mailto:<? echo $server['admin_email']; ?>">contact the administrator</a>. There is also a limit of how many one can create: <? echo $server['custom_series_per_wins_chunk'].' series per '.$server['custom_series_wins_chunk']; ?> wins.
+Once a series has been created, the only control its creator has over it is to kill it if there are no active games. If there is a need to kill a specific game, you should <a href="mailto:<?php echo $server['admin_email']; ?>">contact the administrator</a>. There is also a limit of how many one can create: <?php echo $server['custom_series_per_wins_chunk'].' series per '.$server['custom_series_wins_chunk']; ?> wins.
 </div>
-<?
+<?php
 	if (canCreateCustomSeries($empire) > 0)
 		echo '<div style="text-align: center; margin-top: 10pt;"><input type=submit name=action value="Create a custom series"></div>';
 
@@ -69,11 +69,11 @@ Once a series has been created, the only control its creator has over it is to k
 	<tr>
 		<td colspan=3 style="color: white; font-size: 13pt; text-align: center;">
 			<img class=spacerule src="images/spacerule.jpg" width="100%" height=10 alt="spacerule.jpg">
-			<? echo ($row['creator'] == $vars['name'] ? 'Your' : $row['creator'].'\'s'); ?> series
+			<?php echo ($row['creator'] == $vars['name'] ? 'Your' : $row['creator'].'\'s'); ?> series
 			<img class=spacerule_thin src="images/spacerule.jpg" width="100%" height=3 alt="spacerule.jpg">
 		</td>
 	</tr>
-<?
+<?php
 			}
 
 		echo seriesDescription($row).'</tr><tr><td></td><td style="text-align: right;">';
@@ -109,7 +109,7 @@ Once a series has been created, the only control its creator has over it is to k
 ?>
 <img class=spacerule src="images/spacerule.jpg" alt="spacerule.jpg">
 <div class=messageBold>Sorry, there are no custom series available.</div>
-<?
+<?php
 		}
 	else
 		{
@@ -124,7 +124,7 @@ Once a series has been created, the only control its creator has over it is to k
 			You may not join or start games while idle in another.
 		</td>
 	</tr>
-<?
+<?php
 			}
 		else
 			echo $custom_series;
@@ -196,13 +196,13 @@ function createCustomSeries($vars)
 	
 	standardHeader('Create a Custom Series', $empire);
 ?>
-<div class=pageTitle><? echo $vars['name']; ?>: Create a Custom Series</div>
+<div class=pageTitle><?php echo $vars['name']; ?>: Create a Custom Series</div>
 <div>
-<input type=hidden name=name value="<? echo $vars['name']; ?>">
-<input type=hidden name=pass value="<? echo $vars['pass']; ?>">
+<input type=hidden name=name value="<?php echo $vars['name']; ?>">
+<input type=hidden name=pass value="<?php echo $vars['pass']; ?>">
 <input type=hidden name=section value="main">
 <input type=hidden name=page value="createCustomSeries">
-<?
+<?php
 	drawButtons($empire);
 	
 	echo '<div class=message style="margin-top: 10pt;">Local time and date: '.date('l, F j H:i:s T Y', time()).'</div>'.onlinePlayers();
@@ -215,16 +215,16 @@ function createCustomSeries($vars)
 <table style="text-align: left; margin-left: auto; margin-right: auto;">
 	<tr>
 		<th style="text-align: right;">Series Name:</th>
-		<td><input type=text size=40 maxlength=40 name="series_name" value="<? echo $vars['series_name']; ?>"></td>
+		<td><input type=text size=40 maxlength=40 name="series_name" value="<?php echo $vars['series_name']; ?>"></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Update Time:</th>
 		<td>
-			<input type=text size=5 maxlength=5 name="update_time" value="<? echo $vars['update_time']; ?>">
+			<input type=text size=5 maxlength=5 name="update_time" value="<?php echo $vars['update_time']; ?>">
 			<select name="update_time_unit">
-				<option<? echo ($vars['update_time_unit'] == 'Minutes' ? ' selected' : ''); ?>>Minutes
-				<option<? echo ($vars['update_time_unit'] == 'Hours' ? ' selected' : ''); ?>>Hours
-				<option<? echo ($vars['update_time_unit'] == 'Days' ? ' selected' : ''); ?>>Days
+				<option<?php echo ($vars['update_time_unit'] == 'Minutes' ? ' selected' : ''); ?>>Minutes
+				<option<?php echo ($vars['update_time_unit'] == 'Hours' ? ' selected' : ''); ?>>Hours
+				<option<?php echo ($vars['update_time_unit'] == 'Days' ? ' selected' : ''); ?>>Days
 			</select>
 			<input type=checkbox name="weekend_updates" checked> Weekend Updates
 		</td>
@@ -233,40 +233,40 @@ function createCustomSeries($vars)
 		<th style="text-align: right;">Diplomatic states allowed:</th>
 		<td>
 			<select name="diplomacy">
-				<option value=5<? echo ($vars['diplomacy'] == 5 ? ' selected' : ''); ?>>Up to alliance
-				<option value=4<? echo ($vars['diplomacy'] == 4 ? ' selected' : ''); ?>>Up to trade
-				<option value=3<? echo ($vars['diplomacy'] == 3 ? ' selected' : ''); ?>>Up to truce
-				<option value=2<? echo ($vars['diplomacy'] == 2 ? ' selected' : ''); ?>>War
-				<option value=6<? echo ($vars['diplomacy'] == 6 ? ' selected' : ''); ?>>All (Shared HQ)
+				<option value=5<?php echo ($vars['diplomacy'] == 5 ? ' selected' : ''); ?>>Up to alliance
+				<option value=4<?php echo ($vars['diplomacy'] == 4 ? ' selected' : ''); ?>>Up to trade
+				<option value=3<?php echo ($vars['diplomacy'] == 3 ? ' selected' : ''); ?>>Up to truce
+				<option value=2<?php echo ($vars['diplomacy'] == 2 ? ' selected' : ''); ?>>War
+				<option value=6<?php echo ($vars['diplomacy'] == 6 ? ' selected' : ''); ?>>All (Shared HQ)
 			</select>
 		</td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Maximum players:</th>
-		<td><input type=text size=3 maxlength=3 name="max_players" value="<? echo $vars['max_players']; ?>"></td>
+		<td><input type=text size=3 maxlength=3 name="max_players" value="<?php echo $vars['max_players']; ?>"></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Team game:</th>
 		<td>
 			<select name="team_game">
-				<option value=0<? echo ($vars['team_game'] == 0 ? ' selected' : ''); ?>>No
-				<option value=1<? echo ($vars['team_game'] == 1 ? ' selected' : ''); ?>>Yes
+				<option value=0<?php echo ($vars['team_game'] == 0 ? ' selected' : ''); ?>>No
+				<option value=1<?php echo ($vars['team_game'] == 1 ? ' selected' : ''); ?>>Yes
 			</select>
 		</td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Systems per player:</th>
-		<td><input type=text size=3 maxlength=3 name="systems_per_player" value="<? echo $vars['systems_per_player']; ?>"></td>
+		<td><input type=text size=3 maxlength=3 name="systems_per_player" value="<?php echo $vars['systems_per_player']; ?>"></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Map type:</th>
 		<td>
 			<select name="map_type">
-				<option value=1<? echo ($vars['map_type'] == 1 ? ' selected' : ''); ?>>Classic
-				<option value=2<? echo ($vars['map_type'] == 2 ? ' selected' : ''); ?>>Pre-built (random placement)
-				<option value=3<? echo ($vars['map_type'] == 3 ? ' selected' : ''); ?>>Twisted (2-player or team game only)
-				<option value=4<? echo ($vars['map_type'] == 4 ? ' selected' : ''); ?>>Mirror (2-player game only)
-				<option value=5<? echo ($vars['map_type'] == 5 ? ' selected' : ''); ?>>Balanced (2-player game only)
+				<option value=1<?php echo ($vars['map_type'] == 1 ? ' selected' : ''); ?>>Classic
+				<option value=2<?php echo ($vars['map_type'] == 2 ? ' selected' : ''); ?>>Pre-built (random placement)
+				<option value=3<?php echo ($vars['map_type'] == 3 ? ' selected' : ''); ?>>Twisted (2-player or team game only)
+				<option value=4<?php echo ($vars['map_type'] == 4 ? ' selected' : ''); ?>>Mirror (2-player game only)
+				<option value=5<?php echo ($vars['map_type'] == 5 ? ' selected' : ''); ?>>Balanced (2-player game only)
 			</select>
 		</td>
 	</tr>
@@ -274,35 +274,35 @@ function createCustomSeries($vars)
 		<th style="text-align: right;">Map visible before game start:</th>
 		<td>
 			<select name="map_visible">
-				<option value=0<? echo ($vars['map_visible'] == 0 ? ' selected' : ''); ?>>No
-				<option value=1<? echo ($vars['map_visible'] == 1 ? ' selected' : ''); ?>>Yes
+				<option value=0<?php echo ($vars['map_visible'] == 0 ? ' selected' : ''); ?>>No
+				<option value=1<?php echo ($vars['map_visible'] == 1 ? ' selected' : ''); ?>>Yes
 			</select>
 		</td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Tech multiple:</th>
-		<td><input type=text size=5 maxlength=5 name="tech_multiple" value="<? echo $vars['tech_multiple']; ?>"></td>
+		<td><input type=text size=5 maxlength=5 name="tech_multiple" value="<?php echo $vars['tech_multiple']; ?>"></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Average minerals:</th>
-		<td><input type=text size=5 maxlength=4 name="avg_min" value="30" value="<? echo $vars['avg_min']; ?>"></td>
+		<td><input type=text size=5 maxlength=4 name="avg_min" value="30" value="<?php echo $vars['avg_min']; ?>"></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Average fuel:</th>
-		<td><input type=text size=5 maxlength=4 name="avg_fuel" value="30" value="<? echo $vars['avg_fuel']; ?>"></td>
+		<td><input type=text size=5 maxlength=4 name="avg_fuel" value="30" value="<?php echo $vars['avg_fuel']; ?>"></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Average agriculture:</th>
-		<td><input type=text size=5 maxlength=4 name="avg_ag" value="30" value="<? echo $vars['avg_ag']; ?>"></td>
+		<td><input type=text size=5 maxlength=4 name="avg_ag" value="30" value="<?php echo $vars['avg_ag']; ?>"></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Minimum wins:</th>
-		<td><input type=text size=5 name="min_wins" value="0" value="<? echo $vars['min_wins']; ?>"></td>
+		<td><input type=text size=5 name="min_wins" value="0" value="<?php echo $vars['min_wins']; ?>"></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Maximum wins:</th>
 		<td>
-			<input type=text size=5 maxlength=7 name="max_wins" value="<? echo $vars['max_wins']; ?>">
+			<input type=text size=5 maxlength=7 name="max_wins" value="<?php echo $vars['max_wins']; ?>">
 			<input type=checkbox name="no_max_wins" checked>No maximum
 		</td>
 	</tr>
@@ -310,8 +310,8 @@ function createCustomSeries($vars)
 		<th style="text-align: right;">Can draw (2-player games only):</th>
 		<td>
 			<select name="can_draw">
-				<option value=1<? echo ($vars['can_draw'] == 1 ? ' selected' : ''); ?>>Yes
-				<option value=0<? echo ($vars['can_draw'] == 0 ? ' selected' : ''); ?>>No
+				<option value=1<?php echo ($vars['can_draw'] == 1 ? ' selected' : ''); ?>>Yes
+				<option value=0<?php echo ($vars['can_draw'] == 0 ? ' selected' : ''); ?>>No
 			</select>
 		</td>
 	</tr>
@@ -319,8 +319,8 @@ function createCustomSeries($vars)
 		<th style="text-align: right;">Can surrender (2-player games only):</th>
 		<td>
 			<select name="can_surrender">
-				<option value=1<? echo ($vars['can_surrender'] == 0 ? ' selected' : ''); ?>>Yes
-				<option value=0<? echo ($vars['can_surrender'] == 0 ? ' selected' : ''); ?>>No
+				<option value=1<?php echo ($vars['can_surrender'] == 0 ? ' selected' : ''); ?>>Yes
+				<option value=0<?php echo ($vars['can_surrender'] == 0 ? ' selected' : ''); ?>>No
 			</select>
 		</td>
 	</tr>
@@ -328,8 +328,8 @@ function createCustomSeries($vars)
 		<th style="text-align: right;">Visible builds:</th>
 		<td>
 			<select name="visible_builds">
-				<option value=1<? echo ($vars['visible_builds'] == 0 ? ' selected' : ''); ?>>Yes
-				<option value=0<? echo ($vars['visible_builds'] == 0 ? ' selected' : ''); ?>>No
+				<option value=1<?php echo ($vars['visible_builds'] == 0 ? ' selected' : ''); ?>>Yes
+				<option value=0<?php echo ($vars['visible_builds'] == 0 ? ' selected' : ''); ?>>No
 			</select>
 		</td>
 	</tr>
@@ -337,8 +337,8 @@ function createCustomSeries($vars)
 		<th align=right>Cloakers built cloaked:</th>
 		<td align=left>
 			<select name="build_cloakers_cloaked">
-				<option value=1<? echo ($series['build_cloakers_cloaked'] == 1 ? ' selected' : ''); ?>>Yes
-				<option value=0<? echo ($series['build_cloakers_cloaked'] == 0 ? ' selected' : ''); ?>>No
+				<option value=1<?php echo ($series['build_cloakers_cloaked'] == 1 ? ' selected' : ''); ?>>Yes
+				<option value=0<?php echo ($series['build_cloakers_cloaked'] == 0 ? ' selected' : ''); ?>>No
 			</select>
 		</td>
 	</tr>
@@ -346,8 +346,8 @@ function createCustomSeries($vars)
 		<th align=right>Cloakers appear as attacks:</th>
 		<td align=left>
 			<select name="cloakers_as_attacks">
-				<option value=1<? echo ($series['cloakers_as_attacks'] == 1 ? ' selected' : ''); ?>>Yes
-				<option value=0<? echo ($series['cloakers_as_attacks'] == 0 ? ' selected' : ''); ?>>No
+				<option value=1<?php echo ($series['cloakers_as_attacks'] == 1 ? ' selected' : ''); ?>>Yes
+				<option value=0<?php echo ($series['cloakers_as_attacks'] == 0 ? ' selected' : ''); ?>>No
 			</select>
 		</td>
 	</tr>
@@ -355,8 +355,8 @@ function createCustomSeries($vars)
 		<th style="text-align: right;">Bridier allowed:</th>
 		<td>
 			<select name="bridier_allowed">
-				<option value=1<? echo ($vars['bridier_allowed'] == 0 ? ' selected' : ''); ?>>Yes
-				<option value=0<? echo ($vars['bridier_allowed'] == 0 ? ' selected' : ''); ?>>No
+				<option value=1<?php echo ($vars['bridier_allowed'] == 0 ? ' selected' : ''); ?>>Yes
+				<option value=0<?php echo ($vars['bridier_allowed'] == 0 ? ' selected' : ''); ?>>No
 			</select>
 		</td>
 	</tr>
@@ -365,7 +365,7 @@ function createCustomSeries($vars)
 <input type=submit name="confirmCreateCustomSeries" value="Create">
 <input type=submit name="confirmCreateCustomSeries" value="Cancel">
 </p>
-<?
+<?php
 	footer();
 }
 

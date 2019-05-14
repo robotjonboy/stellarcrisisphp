@@ -1,4 +1,4 @@
-<?
+<?php
 function tournaments($vars, $message = '')
 {
 	$empire = $vars['empire_data'];
@@ -24,13 +24,13 @@ function tournaments($vars, $message = '')
 
 	standardHeader('Tournaments', $empire);
 ?>
-<input type=hidden name=name value="<? echo $vars['name']; ?>">
-<input type=hidden name=pass value="<? echo $vars['pass']; ?>">
-<input type=hidden name="empireID" value="<? echo $empire['id']; ?>">
+<input type=hidden name=name value="<?php echo $vars['name']; ?>">
+<input type=hidden name=pass value="<?php echo $vars['pass']; ?>">
+<input type=hidden name="empireID" value="<?php echo $empire['id']; ?>">
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="tournaments">
 
-<?
+<?php
 	// show online players drop box
     	echo "<div class=pageTitle>Tournaments</div>";
 	echo drawButtons($empire); //EmpireName : create a series
@@ -43,7 +43,7 @@ function tournaments($vars, $message = '')
 ?>
 
 <table><tr><th>View</th><th>Name</th><th>Series</th><th>Description</th><th>Start Time</th><th>Status</th></tr>
-<?php
+<?phpphp
 
 for ($i = 0; $i < $numberOfTournaments; $i++)
 {
