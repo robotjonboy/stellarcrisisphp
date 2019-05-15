@@ -10,12 +10,12 @@ function infoScreen($vars)
 	$conditions[] = 'game_id = '.((int)$game['id']);
 	$conditions[] = 'ended_turn = "0"';
 	$conditions[] = 'team >= 0';
-	$select = sc_mysql_query('SELECT COUNT(*) FROM players WHERE '.implode(' AND ', $conditions));
-	
-	$not_ended_turn = mysql_result($select, 0, 0);
+	$select = sc_mysql_query('SELECT COUNT(*) as c FROM players WHERE '.implode(' AND ', $conditions));
+	$line = $select->fetch_assoc();
+	$not_ended_turn = $line['c'];
 	$ended_turn = $game['player_count']-$not_ended_turn;
 
-	$weekend = (ereg('Sat|Sun', date('D', time())));
+	$weekend = (preg_match('/Sat|Sun/', date('D', time())));
     
     // If there is only one player in the game (or not full in a team game), the next update won't happen until someone else
 	// joins. Otherwise, calculate when the next update will occur.

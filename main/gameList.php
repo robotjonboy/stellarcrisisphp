@@ -54,11 +54,12 @@ function gameList($vars)
 		$bridier_estimate = ($game['bridier'] >= 0 ? 
 			'<div>'.bridierEstimate($row, $game, $empire).'</div>' : '');
 		
-		$select_messages = sc_mysql_query('SELECT COUNT(*) 
+		$select_messages = sc_mysql_query('SELECT COUNT(*) as c
 									FROM messages 
 									WHERE player_id = '.$row['player_id'].' 
 										AND flag = "0"');
-		if ($unread_messages = mysql_result($select_messages, 0, 0))
+		$line = $select_messages->fetch_assoc();
+		if ($unread_messages = $line['c']) //yes, the single equals sign is intended; no, I didn't write this
 			$messages = '<div class=green>You have '.
 						$unread_messages.
 						' unread message'.
