@@ -58,7 +58,7 @@ function mapScreen($vars)
 	$scouted_query = 'SELECT '.implode(',', $fields).', "no" AS explored FROM scouting_reports WHERE scouting_reports.player_id = '.$player['id'];
 
 	$select = sc_mysql_query($explored_query.' UNION '.$scouted_query);
-	while ($row = mysql_fetch_array($select))
+	while ($row = $select->fetch_assoc())
 		{
 		$systems[ $row['coordinates'] ]['coordinates'] 	= $row['coordinates'];
 		$systems[ $row['coordinates'] ]['owner'] 		= $row['owner'];
@@ -112,7 +112,7 @@ function mapScreen($vars)
 	$conditions[] = 'ships.game_id = '.$game['id'];
 
 	$select = sc_mysql_query('SELECT '.implode(', ', $fields).' FROM '.$from.' WHERE '.implode(' AND ', $conditions).' GROUP BY location');
-	while ($row = mysql_fetch_array($select))
+	while ($row = $select->fetch_assoc())
 		{
 		$ship_counts[$row['location']]['friendly'] = $row['friendly'];
 		$ship_counts[$row['location']]['enemy'] = $row['enemy'];
@@ -292,7 +292,7 @@ function miniMapScreen($vars)
 	$query = 'SELECT * FROM '.$from.' WHERE explored.game_id = '.$game['id'].' AND explored.empire = "'.$vars['name'].'"';
 	$select = sc_mysql_query($query, __FILE__.'*'.__LINE__);
 
-	while ($row = mysql_fetch_array($select))
+	while ($row = $select->fetch_assoc())
 		{
 		$minimap_data[$row['coordinates']]['explored'] = true;
 		$minimap_data[$row['coordinates']]['owner'] = $row['owner'];
@@ -309,7 +309,7 @@ function miniMapScreen($vars)
 	// Add scouting report planets.
 	$query = 'SELECT * FROM scouting_reports WHERE player_id = '.$player['id'];
 	$select = sc_mysql_query($query, __FILE__.'*'.__LINE__);
-	while ($row = mysql_fetch_array($select))
+	while ($row = $select->fetch_assoc())
 		{
 		if ($minimap_data[$row['coordinates']]) continue;
 		

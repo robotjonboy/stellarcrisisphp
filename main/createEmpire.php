@@ -62,11 +62,11 @@ function createEmpire_processing($vars)
 		return loginFailed('You must enter a name and a password.');
 
 	// Prevent people from faking empire names with extra spaces.
-	$vars['name'] = ereg_replace('[[:space:]]+', ' ', $vars['name']);
+	$vars['name'] = preg_replace('/[[:space:]]+/', ' ', $vars['name']);
 	$vars['name'] = trim($vars['name']);
 
 	// Filter out bad charactres.
-	if (ereg('[\*\\\"\'<>%=]', $vars['name'].$vars['pass']))
+	if (preg_match('/[\*\\\"\'<>%=]/', $vars['name'].$vars['pass']))
 		return loginFailed('Your name and/or password contains illegal characters (*, \\, \', \", &lt;, &gt;, %, =).');
 	
 	if ($server['require_valid_email'])

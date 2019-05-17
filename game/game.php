@@ -73,7 +73,7 @@ function localizeJumps($jumps)
 
 function gameAction($vars)
 {
-	global $server, $ship_types, $authenticated, $hwX, $hwY;
+	global $server, $ship_types, $authenticated, $hwX, $hwY, $mysqli;
 
 	if (!$authenticated)
 		return loginFailed('Identity check failed.');
@@ -111,8 +111,8 @@ function gameAction($vars)
 
 	// Find this player's homeworld to initialize his local coordinate system.
   	$select = sc_mysql_query('SELECT coordinates FROM systems WHERE game_id = "'.((int)$game['id']).
-  	                         '" AND homeworld = "'.mysql_real_escape_string($vars['name']).'"');
-	$homeworld = mysql_fetch_array($select);
+  	                         '" AND homeworld = "'.$mysqli->real_escape_string($vars['name']).'"');
+	$homeworld = $select->fetch_assoc();
 	
 	// Here we set the global $hwX and $hwY variables. They are used on many game screens
 	// whenever we need to convert to local coordinate space and back.
@@ -341,11 +341,11 @@ function gameHeader($vars, $title)
 		
 		$select = sc_mysql_query('SELECT * FROM messages WHERE '.implode(' AND ', $conditions).' ORDER BY type, id');
 	
-		if (mysql_num_rows($select))
+		if ($select->num_rows)
 			{
 			$missives = array();
 
-			while ($row = mysql_fetch_array($select))
+			while ($row = $select->fetch_assoc())
 				{
 				// The message header is handled in messageHeader(), but first we 
 				// adjust the sender and recipient if the player's name is in them.
@@ -370,7 +370,7 @@ function gameHeader($vars, $title)
 			}
 		}
 
-	$weekend = (ereg('(Sat|Sun)', date('D', time())));
+	$weekend = (preg_match('/(Sat|Sun)/', date('D', time())));
 	$time_to_update = $game['last_update']+$game['update_time']-time();
 
 	$map_buttons = '<input type=submit name=gameAction value=Systems><input type=submit name=gameAction value=Map>';
@@ -631,15 +631,16 @@ function techsWaiting($vars)
 
 function playerLeftTeamGame($series, &$game, $player, $empire)
 {
+	global $mysqli;
 	// Reset the player's explored HW to the pre-join values.
-	sc_mysql_query('UPDATE explored SET empire = "'.mysql_real_escape_string($player['team_spot']).
+	sc_mysql_query('UPDATE explored SET empire = "'.$mysqli->real_escape_string($player['team_spot']).
 	               '" WHERE game_id = '.((int)$game['id']).' AND empire = "'.
-	               mysql_real_escape_string($player['name']).'"');
+	               $mysqli->real_escape_string($player['name']).'"');
 
 	$values = array();
-	$values[] = 'name = "'.mysql_real_escape_string($player['team_spot']).'"';
-	$values[] = 'owner = "'.mysql_real_escape_string($player['team_spot']).'"';
-	$values[] = 'homeworld = "'.mysql_real_escape_string($player['team_spot']).'"';
+	$values[] = 'name = "'.$mysqli->real_escape_string($player['team_spot']).'"';
+	$values[] = 'owner = "'.$mysqli->real_escape_string($player['team_spot']).'"';
+	$values[] = 'homeworld = "'.$mysqli->real_escape_string($player['team_spot']).'"';
 
 	sc_mysql_query('UPDATE systems SET '.implode(',', $values).' WHERE game_id = '.$game['id'].' AND homeworld = "'.$player['name'].'"');
 	
@@ -660,13 +661,13 @@ function playerLeftTeamGame($series, &$game, $player, $empire)
 
 	// Remove joining record from history.
 	// We wipe everything for this player since there can't be anything else (the game hasn't started).
-	sc_mysql_query('DELETE FROM history WHERE empire = "'.mysql_real_escape_string($player['name']).'"');
+	sc_mysql_query('DELETE FROM history WHERE empire = "'.$mysqli->real_escape_string($player['name']).'"');
 	
 	sc_mysql_query('DELETE FROM players WHERE id = '.((int)$player['id']));
 	sc_mysql_query('DELETE FROM ships WHERE player_id = '.((int)$player['id']));
 	sc_mysql_query('DELETE FROM fleets WHERE player_id = '.((int)$player['id']));
 	sc_mysql_query('DELETE FROM diplomacies WHERE game_id = '.((int)$game['id']).' AND empire = "'.
-	               mysql_real_escape_string($player['name']).'"');
+			$mysqli->real_escape_string($player['name']).'"');
 
 	// Decrement the number of players; this player is leaving the game.
 	sc_mysql_query('UPDATE games SET player_count = (player_count-1) WHERE id = '.((int)$game['id']));

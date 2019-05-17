@@ -1807,8 +1807,9 @@ function nameSystem(&$big_map)
 		// We could to an "ORDER BY RAND() LIMIT 1", but with the table on Iceberg being over 85 thousand records, that would
 		// incur a *massive* performance penalty, since we're sorting the entire table for each query. For big maps, this
 		// adds up to a very long wait. Hence, we find a random id (COUNT(*) is very fast) and pick out the word.
-		$word_count = sc_mysql_query('SELECT COUNT(*) FROM '.$server['systemNameSource'], __FILE__.'*'.__LINE__);
-		$random_id = rand(1, mysql_result($word_count, 0, 0));
+		$word_count = sc_mysql_query('SELECT COUNT(*) as c FROM '.$server['systemNameSource'], __FILE__.'*'.__LINE__);
+		$line = $word_count->fetch_assoc();
+		$random_id = rand(1, $line['c']);
 		
 		$select = sc_mysql_query('SELECT word FROM '.$server['systemNameSource'].' WHERE id = '.$random_id, __FILE__.'*'.__LINE__);
 		$word = $select->fetch_assoc();

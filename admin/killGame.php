@@ -30,7 +30,7 @@ function killGame($vars)
 	$order = 'ORDER BY series.name, games.game_number ASC';
 
 	$select = sc_mysql_query('SELECT '.implode(',', $fields).' FROM '.$join.' WHERE games.player_count > 0 '.$order, __FILE__.'*'.__LINE__);
-	while ($row = mysql_fetch_array($select))
+	while ($row = $select->fetch_assoc())
 		echo '<option value="'.$row['id'].'">'.$row['name'].' '.$row['game_number'].' ('.$row['player_count'].' players) - '.($row['update_time']/3600).' hours';	
 ?>
 	</select>
@@ -55,6 +55,7 @@ function killGame_processing($vars)
 		
 	if ($vars['killGame'])
 		{
+		error_log('gameToKill: ' . $vars['gameToKill']);
 		$game = getGameByID($vars['gameToKill']);
 		$series = getSeries($game['series_id']);
 
@@ -64,7 +65,7 @@ function killGame_processing($vars)
 		// Not in 2.8 code, but how will one start a new game if it doesn't appear on the game list screen?
 		// This will spawn a new game if no other is open, the assumption being that we only wanted to kill a current game.
 		$select = sc_mysql_query('SELECT id FROM games WHERE series_id = '.$game['series_id'].' AND closed = "0"');
-		if (!mysql_num_rows($select)) spawnGame($series['name']);
+		if (!$select->num_rows) spawnGame($series['name']);
 			
 		sendEmpireMessage($vars['empire_data'], 'Game <span class=red>'.$game['game_number'].'</span> of series <span class=red>'.$series['name'].'</span> killed.');
 		return mainPage_admin($vars);

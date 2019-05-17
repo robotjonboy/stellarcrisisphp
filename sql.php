@@ -86,6 +86,7 @@ function shipExists($ship_id)
 
 function getPlayer($game_id, $name)
 {
+	global $mysqli;
 	$select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.((int)$game_id).' AND name = "'.
 	          $mysqli->real_escape_string($name).'" and team >= 0');
 	return $select->fetch_assoc();

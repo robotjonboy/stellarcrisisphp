@@ -94,7 +94,7 @@ function update_game($series, &$game, $update_time)
 			
 			// Send a messages to the players, and record the event.
 			$select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
-			while ($player = mysql_fetch_array($select))
+			while ($player = $select->fetch_assoc())
 			{
 				$history[] = array('', $player['name'], 'draw', 'Team '.$player['team']);
 				
@@ -117,7 +117,7 @@ function update_game($series, &$game, $update_time)
 			if ($team_offer[$team] == '0')
 			{				
 				$select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND ABS(team) = '.$offering_team, __FILE__.'*'.__LINE__);
-				while ($player = mysql_fetch_array($select))
+				while ($player = $select->fetch_assoc())
 				{
 					// Only players still left are actually surrendering
 					if ( $player['team'] > 0 )
@@ -149,7 +149,7 @@ function update_game($series, &$game, $update_time)
 				}
 
 				$select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND team = '.$team, __FILE__.'*'.__LINE__);
-				while ($player = mysql_fetch_array($select))
+				while ($player = $select->fetch_assoc())
 				{
 					$empire = getEmpire($player['name']);
 					sendEmpireMessage($empire, 'The opposing team has surrendered in <span class=red>'.$series['name'].' '.$game['game_number'].'</span>.');
@@ -180,7 +180,7 @@ function update_game($series, &$game, $update_time)
 
 	// Here we loop through each player for this game to see what's up with him, or her.
 	$select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND team >= 0', __FILE__.'*'.__LINE__);
-	while ($player = mysql_fetch_array($select))
+	while ($player = $select->fetch_assoc())
     	{
     		// Put the players homeworld coordinates in the homeworld array for localizing missives.
 		// Note: If we need another coordinate space in this initial loop, we'll have to preload ALL the homeworld coordinates
@@ -695,7 +695,7 @@ function update_game($series, &$game, $update_time)
 			
 			$select = sc_mysql_query('SELECT * FROM ships WHERE '.implode(' AND ', $conditions).' ORDER BY RAND()', __FILE__.'*'.__LINE__);
 
-			while ( $ship = mysql_fetch_array($select) )
+			while ( $ship = $select->fetch_assoc() )
 				{
 				if ( (pow((float)$ship['br'], 2)*$fuel_ratio) <= $dest )
 					{
@@ -731,7 +731,7 @@ function update_game($series, &$game, $update_time)
 				if ($damage_ratio <= 0)
 					{
 					$select = sc_mysql_query('SELECT * FROM ships WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
-					while ($ship = mysql_fetch_array($select))
+					while ($ship = $select->fetch_assoc())
 						{
 						$missive[$system['coordinates']]['dest'][$ship_owner][] = $ship['name'];
 						$destroyed[$system['coordinates']][$ship_owner][$ship['type']] += 1;
@@ -746,7 +746,7 @@ function update_game($series, &$game, $update_time)
 					{
 					$select = sc_mysql_query('SELECT * FROM ships WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 						
-					while ( $ship = mysql_fetch_array($select) )
+					while ( $ship = $select->fetch_assoc() )
 						{
 						$missive[$system['coordinates']]['sight'][$ship_owner][] = $ship['name'];
 						#$sighted[$system['coordinates']][$ship_owner][$ship['type']] += 1;
@@ -771,7 +771,7 @@ function update_game($series, &$game, $update_time)
 
 			// All the ships in this system are toast. Collect their names for posterity.
 			$select = sc_mysql_query('SELECT * FROM ships WHERE game_id = '.$game['id'].' AND location = "'.$location.'"');
-            while ($ship = mysql_fetch_array($select))
+            while ($ship = $select->fetch_assoc())
 				{
             	$missive[$location]['dest'][ $ship['owner'] ][ $ship['id'] ] = $ship['name'];
 				$destroyed[$system['coordinates']][$ship['owner']][$ship['type']] += 1;
@@ -1333,7 +1333,7 @@ function update_game($series, &$game, $update_time)
 
 	// Check for empires that are falling into ruins and send the relevant missive to players.
     $select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND team >= 0', __FILE__.'*'.__LINE__);
-    while ($player = mysql_fetch_array($select))
+    while ($player = $select->fetch_assoc())
         {
 		if ( ($game['update_count']-$player['last_update']) > $server['updates_to_ruin'] )
             {
@@ -1618,7 +1618,7 @@ function update_game($series, &$game, $update_time)
 
 		// The game is closed and both players chose to draw.
 		$select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
-		while ($player = mysql_fetch_array($select))
+		while ($player = $select->fetch_assoc())
 			{
 			$empire = getEmpire($player['name']);
 			sendEmpireMessage($empire, '<span class=red>'.$series['name'].' '.$game['game_number'].'</span> has ended in a draw.');
@@ -1639,7 +1639,7 @@ function update_game($series, &$game, $update_time)
 
         $winning_team = 0;
 		$select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND team >= 0', __FILE__.'*'.__LINE__);
-		while ($player = mysql_fetch_array($select))
+		while ($player = $select->fetch_assoc())
 			{
 			$empire = getEmpire($player['name']);
 		
@@ -1723,7 +1723,7 @@ function update_game($series, &$game, $update_time)
 		if ($winning_team > 0)
 			{
 			$select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND team = (-'.$winning_team.')');
-			while ($player = mysql_fetch_array($select))
+			while ($player = $select->fetch_assoc())
 				{
 				$empire = getEmpire($player['name']);
 		
@@ -1737,7 +1737,7 @@ function update_game($series, &$game, $update_time)
 			$losing_team = ($winning_team == 1 ? 2 : 1);
 			
 			$select = sc_mysql_query('SELECT * FROM players WHERE team = (-'.$losing_team.') AND game_id = '.$game['id']);
-			while ($player = mysql_fetch_array($select))
+			while ($player = $select->fetch_assoc())
 				{
 				$empire = getEmpire($player['name']);				
 				sendEmpireMessage($empire, 'Your team has lost <span class=red>'.$series['name'].' '.$game['game_number'].'</span>.');
