@@ -51,7 +51,7 @@ function createEmpire($vars, $message = '')
 
 function createEmpire_processing($vars)
 {
-	global $server, $authenticated, $HTTP_SERVER_VARS;
+	global $server, $authenticated, $HTTP_SERVER_VARS, $mysqli;
 
 	// If the person reloads the screen resulting from empire creation, go to the game list instead of triggering
 	// a duplicate insert error.
@@ -97,9 +97,9 @@ function createEmpire_processing($vars)
 	if ($vars['pass'] == $vars['pass_check'])
 		{
 		$values = array();
-		$values[] = 'name = "'.$vars['name'].'"';
-		$values[] = 'real_name = "'.$vars['real_name'].'"';
-		$values[] = 'email = "'.$vars['email'].'"';
+		$values[] = 'name = "'.$mysqli->real_escape_string($vars['name']).'"';
+		$values[] = 'real_name = "'.$mysqli->real_escape_string($vars['real_name']).'"';
+		$values[] = 'email = "'.$mysqli->real_escape_string($vars['email']).'"';
 		$values[] = 'email_visible = "0"';
 		$values[] = 'icon = "alien1.gif"';
 		$values[] = 'wins = 0';
@@ -112,6 +112,7 @@ function createEmpire_processing($vars)
 		$values[] = 'last_ip = "'.$HTTP_SERVER_VARS['REMOTE_ADDR'].'"';
 		$values[] = 'join_date = "'.time().'"';
 		$values[] = 'tos_accepted = "'.($vars['accept_tos'] ? 1 : 0).'"';
+		$values[] = 'comment = "'.$mysqli->real_escape_string($vars['comment']).'"';
 		
 		if ($server['require_valid_email'])
 			{

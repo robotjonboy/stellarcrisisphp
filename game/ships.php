@@ -27,7 +27,7 @@ function shipsScreen($vars)
 	$fleets = '';
 	$table = '';
 
-	while ($ship = mysql_fetch_array($select_ships))
+	while ($ship = $select_ships->fetch_assoc())
 		{
 		$valid_orders = getValidOrders($series, $game, $ship, $player);
 		$orders = implode('', fixOrders($valid_orders, $series, $game, $player, $ship));
@@ -143,7 +143,7 @@ function shipsScreen($vars)
 		// Ship inventory.
 		$ship_inventory = array();
 		$select_ships = sc_mysql_query('SELECT type, COUNT(*) as count FROM ships WHERE fleet_id = '.$fleet['id'].' GROUP BY type');
-		while ($row = mysql_fetch_array($select_ships)) $ship_inventory[$row['type']] = $row['count'];
+		while ($row = $select_ships->fetch_assoc()) $ship_inventory[$row['type']] = $row['count'];
 		
 		$fleets .= '<tr class=center>'.
 				   '<td><input type=text name="fleet_name['.$fleet['id'].']" value="'.stripslashes($fleet['name']).'" size=15 maxlength=20></td>'.
@@ -214,7 +214,7 @@ function shipsScreen_processing($vars)
 		$conditions[] = 'type = "Colony"';
 
 		$select = sc_mysql_query('SELECT location, COUNT(id) AS pop_delta FROM ships WHERE '.implode(' AND ', $conditions).' GROUP BY location');
-		while ($row = mysql_fetch_array($select))
+		while ($row = $select->fetch_assoc())
 			{
 			$conditions = array();
 			$conditions[] = 'game_id = "'.$game['id'].'"';
@@ -358,7 +358,7 @@ function fleetsScreen($vars)
 	$ship_ids = array();
 
 	$select = sc_mysql_query('SELECT * FROM fleets WHERE player_id = '.$player['id']);
-	while ($fleet = mysql_fetch_array($select))
+	while ($fleet = $select->fetch_assoc())
 		{
 		$valid_fleet_orders = getFleetOrders($player, $fleet);
 		
@@ -431,7 +431,7 @@ function fleetsScreen($vars)
 							 '<img class=spaceruleThin style="margin-bottom: 5pt; margin-top: 5pt;" src="images/spacerule.jpg"></th></tr>'.
 							 '<tr><th>Ship Name</th><th>Current BR</th><th>Next BR</th><th>Max BR</th><th>Orders</th><th colspan=2>Type</th></tr>';
 				 
-			while ($ship = mysql_fetch_array($select_ships))
+			while ($ship = $select_ships->fetch_assoc())
 				{
 				$valid_orders = getValidOrders($series, $game, $ship, $player);
 
@@ -465,7 +465,7 @@ function fleetsScreen($vars)
 			$ship_count = 0;
 			$ship_inventory = array();
 			$select_ships = sc_mysql_query('SELECT type, COUNT(id) as count FROM ships WHERE fleet_id = '.$fleet['id'].' GROUP BY type');
-			while ($row = mysql_fetch_array($select_ships))
+			while ($row = $select_ships->fetch_assoc())
 				{
 				$ship_count += $row['count'];
 				$ship_inventory[$row['type']] = $row['count'];
@@ -477,10 +477,10 @@ function fleetsScreen($vars)
 			$fields[] = 'SUM(POW(max_br, 2)) as fleetMaxStrength';
 
 			$select_ships = sc_mysql_query('SELECT '.implode(',', $fields).' FROM ships WHERE fleet_id = '.$fleet['id']);
-			
-			$fleetStrength = mysql_result($select_ships, 0, 0);
-			$fleetNextStrength = mysql_result($select_ships, 0, 1);
-			$fleetMaxStrength = mysql_result($select_ships, 0, 2);
+			$line = $select_ships->fetch_assoc();
+			$fleetStrength = $line['fleetStrength'];
+			$fleetNextStrength = $line['fleetNextStrength'];
+			$fleetMaxStrength = $line['fleetMaxStrength'];
 
 			$ship_list .= '<tr class=center><td colspan=7><span class=whiteBold>'.$ship_count.' ship'.($ship_count != 1 ? 's' : '').'</span> - ';
 
@@ -567,7 +567,7 @@ function fleetsScreen($vars)
 	
 	$select = sc_mysql_query('SELECT '.implode(',', $fields).' FROM '.$from.' WHERE '.implode(' AND ', $conditions).' GROUP BY location ORDER BY name ASC');	
 	
-	if (mysql_num_rows($select))
+	if ($select->num_rows)
 		{
 ?>
 <div>
@@ -582,7 +582,7 @@ function fleetsScreen($vars)
 		<td>
 			<select name="new_fleet_location">
 <?php
-		while ($row = mysql_fetch_array($select))
+		while ($row = $select->fetch_assoc())
 			echo '<option value="'.xlateToLocal($row['location']).'">'.
 				 ($row['annihilated'] ? 'Remains of ' : '').
 				 $row['name'].' ('.xlateToLocal($row['location']).') - '.$row['ships'].' ship'.($row['ships'] > 1 ? 's' : '');
@@ -864,7 +864,7 @@ function getFleetOrders($player, $fleet)
 		$conditions[] = '(coordinates = "'.implode('" OR coordinates = "', explode(' ', $system['jumps'])).'")';
 		
 		$select = sc_mysql_query('SELECT coordinates FROM explored WHERE '.implode(' AND ', $conditions));
-		while ($row = mysql_fetch_array($select)) $orders[] = 'move:'.xlateToLocal($row['coordinates']);
+		while ($row = $select->fetch_assoc()) $orders[] = 'move:'.xlateToLocal($row['coordinates']);
 		}
 
 	// What this basically does is determine if a given ship type is present in the fleet, thus allowing a "global" order to be given to all ships.
@@ -875,7 +875,7 @@ function getFleetOrders($player, $fleet)
 	$fields[] = 'SUM(IF(type = "Terraformer" AND owner = "'.$system['owner'].'" AND '.$system['agriculture'].' < '.max($system['mineral'], $system['fuel']).', 1, 0)) AS can_terraform';
 
 	$select = sc_mysql_query('SELECT '.implode(',', $fields).' FROM ships WHERE fleet_id = '.$fleet['id']);
-	$fleet_ships = mysql_fetch_array($select);
+	$fleet_ships = $select->fetch_assoc();
 
     if ($fleet_ships['can_nuke']) $orders[] = 'nuke';
 	if ($fleet_ships['can_invade']) $orders[] = 'invade';
@@ -921,7 +921,7 @@ function getValidOrders($series, $game, $ship, $player)
 		$conditions[] = 'population >= '.$server['builder_population'];
 		
 		$select = sc_mysql_query('SELECT coordinates FROM systems WHERE '.implode(' AND ', $conditions).' ORDER BY name, coordinates ASC');
-		while ($system = mysql_fetch_array($select))
+		while ($system = $select->fetch_assoc())
 			$build_at[] = array('build_at', xlateToLocal($system['coordinates']));
 
 		// Cache this list for later use.
@@ -940,7 +940,7 @@ function getValidOrders($series, $game, $ship, $player)
 		$conditions[] = 'status = "6"';
 		
 		$select = sc_mysql_query('SELECT opponent FROM diplomacies WHERE '.implode(' AND ', $conditions));
-		while ($row = mysql_fetch_array($select)) $friends[] = $row['opponent'];
+		while ($row = $select->fetch_assoc()) $friends[] = $row['opponent'];
 		}
 		
 	// If we already cached the order list of this ship type at this location, don't bother recreating it.
@@ -958,7 +958,7 @@ function getValidOrders($series, $game, $ship, $player)
 			 'WHERE systems.game_id = '.$game['id'].' AND systems.coordinates = "'.$ship['location'].'"';
 
 	$select = sc_mysql_query($query);
-	$system = mysql_fetch_array($select);
+	$system = $select->fetch_assoc();
 
 	$jumps = ($system['jumps'] ? explode(' ', $system['jumps']) : array());
 
@@ -974,7 +974,7 @@ function getValidOrders($series, $game, $ship, $player)
 		$conditions[] = 'location = "'.$ship['location'].'"';
 
 		$select = sc_mysql_query('SELECT id FROM fleets WHERE '.implode(' AND ', $conditions));
-		while ($fleet = mysql_fetch_array($select)) $orders[] = array('fleet', $fleet['id']);
+		while ($fleet = $select->fetch_assoc()) $orders[] = array('fleet', $fleet['id']);
 
 		// Here we determine where the ship may move to. Skip if there are no jumps.
 		if ($system['jumps'])
@@ -990,7 +990,7 @@ function getValidOrders($series, $game, $ship, $player)
 			$conditions[] = '(coordinates = "'.implode('" OR coordinates = "', $jumps).'")';
 				
 			$select = sc_mysql_query('SELECT coordinates FROM explored WHERE '.implode(' AND ', $conditions).' LIMIT 4');
-			while ($row = mysql_fetch_array($select))
+			while ($row = $select->fetch_assoc())
 				{
 				$orders[] = array('move', xlateToLocal($row['coordinates']));
 				$explored[$row['coordinates']] = true; // So we fail the test below: we see the planet!
@@ -1082,7 +1082,7 @@ function getValidOrders($series, $game, $ship, $player)
 				$conditions[] = '(coordinates = "'.implode('" OR coordinates = "', $potential_jumps).'")';
 
 				$select = sc_mysql_query('SELECT coordinates FROM systems WHERE '.implode(' AND ', $conditions).' LIMIT 4');
-				while ($row = mysql_fetch_array($select)) $orders[] = array('open', xlateToLocal($row['coordinates']));
+				while ($row = $select->fetch_assoc()) $orders[] = array('open', xlateToLocal($row['coordinates']));
 				}
 			break;
 		case 'Stargate':
@@ -1110,7 +1110,7 @@ function getValidOrders($series, $game, $ship, $player)
 				$query = $query_for_owner.' ORDER BY name, coordinates ASC';
 
 			$select = sc_mysql_query($query);
-			while ($system = mysql_fetch_array($select))
+			while ($system = $select->fetch_assoc())
 				$orders[] = array('send', xlateToLocal($system['coordinates']));
 			break;
 		case 'Jumpgate':
@@ -1138,7 +1138,7 @@ function getValidOrders($series, $game, $ship, $player)
 
 			$select = sc_mysql_query($query);
 
-			while ($system = mysql_fetch_array($select))
+			while ($system = $select->fetch_assoc())
 				{
 				list($x,$y) = explode(',', $system['coordinates']);
 				
@@ -1279,7 +1279,7 @@ function nameFleet()
 		$random_id = rand(1, mysql_result($select_word_count, 0, 0));
 		
 		$select = sc_mysql_query('SELECT word FROM '.$server['fleetNameSource'].' WHERE id = '.$random_id);
-		$word = mysql_fetch_array($select);
+		$word = $select->fetch_assoc();
 		
 		return ucfirst($word['word']);
 		}

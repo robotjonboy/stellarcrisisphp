@@ -594,8 +594,9 @@ function endTurnUpdate($series, $game)
 	if (!$game['closed']) return 2;
 
 	// If it's closed, we update only if everyone ended their turn.
-	$select = sc_mysql_query('SELECT COUNT(*) FROM players WHERE game_id = '.$game['id'].' AND ended_turn = "0" AND team >= 0');
-	if (mysql_result($select, 0, 0)) return 2;
+	$select = sc_mysql_query('SELECT COUNT(*) as c FROM players WHERE game_id = '.$game['id'].' AND ended_turn = "0" AND team >= 0');
+	$line = $select->fetch_assoc();
+	if ($line['c']) return 2;
 	
 	// Ok then.
 	return update_game($series, $game, time());

@@ -23,7 +23,7 @@ function localize($galacticCoord, $player, $homeworlds)
 
 function update_game($series, &$game, $update_time)
 {
-	global $missive, $history, $server, $ship_types, $moving_ships;
+	global $missive, $history, $server, $ship_types, $moving_ships, $mysqli;
 	
 	//ysql_query('BEGIN');
 	
@@ -190,7 +190,7 @@ function update_game($series, &$game, $update_time)
 		
 		$system_query = sc_mysql_query('SELECT coordinates FROM systems WHERE '.implode(' AND ', $conditions).' LIMIT 1', __FILE__.'*'.__LINE__);
 
-		$system = mysql_fetch_array($system_query);
+		$system = $system_query->fetch_assoc();
 		
 		list($x, $y) = explode(',', $system['coordinates']);
 		$homeworlds[$player['name']]['x'] = $x;
@@ -218,7 +218,7 @@ function update_game($series, &$game, $update_time)
 												'ORDER BY status ASC',
 												__FILE__.'*'.__LINE__);
 
-		while ($diplomacy = mysql_fetch_array($diplomacy_select))
+		while ($diplomacy = $diplomacy_select->fetch_assoc)
 		{
 			if ( strncmp('=Team', $diplomacy['opponent'], 5) ) // Ignore the team diplomacy settings
 			{
@@ -312,7 +312,7 @@ function update_game($series, &$game, $update_time)
 						implode(' AND ', $conditions).
 						' ORDER BY RAND()');
 	
-		while ($ship = mysql_fetch_array($ship_query))
+		while ($ship = $ship_query->fetch_assoc())
         	{
         		// Instead of refetching system data for every ship yet another time when we process
 			// their orders, we'll fetch it once here and cache it for later use. System data
@@ -502,7 +502,7 @@ function update_game($series, &$game, $update_time)
 				$values[] = 'location = "'.$ship['location'].'"';
 				$values[] = 'br = "'.$ship['br'].'"';
 				$values[] = 'orders = "'.$ship['orders'].'"';
-				$values[] = 'order_arguments = '.($ship['order_arguments'] ? '"'.$ship['order_arguments'].'"' : 'NULL');
+				$values[] = 'order_arguments = '.($ship['order_arguments'] ? '"'.$ship['order_arguments'].'"' : '\'NULL\'');
 
 				sc_mysql_query('UPDATE ships SET '.implode(',', $values).' WHERE id = '.$ship['id']);
 			}
@@ -1600,7 +1600,7 @@ function update_game($series, &$game, $update_time)
 
 			// Is everyone still at war? For grudge games, this will always fail. The players must nuke each other.
 			// In games where you have to ally, the only way to end the game is for the last players to be allied.
-			while ($diplomacy = mysql_fetch_array($diplomacy_select))
+			while ($diplomacy = $diplomacy_select->fetch_assoc())
 				{
 				if ($diplomacy['status'] != 1) $draw = 0;
 				if ($diplomacy['status'] < 5) $game_over = 0;
@@ -1656,7 +1656,7 @@ function update_game($series, &$game, $update_time)
 			if ( $game['bridier'] >= 0 )
 				{
 				$bridier_query = sc_mysql_query('SELECT * FROM bridier WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
-				$bdata = mysql_fetch_array($bridier_query);
+				$bdata = $bridier_query->fetch_assoc();
 				if ( $player['name'] == $bdata['empire1'] )
 					{
 					$opponent = getEmpire( $bdata['empire2'] );

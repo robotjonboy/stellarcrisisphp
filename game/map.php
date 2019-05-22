@@ -74,7 +74,7 @@ function mapScreen($vars)
     	// Don't do this if we're zooming in: the range was set from the clicked-on system.
     	if ($zoomed_planet == '')
     		{
-			list($x,$y) = split(',', $row['coordinates']);
+			list($x,$y) = preg_split('/,/', $row['coordinates']);
 
     		$x_min = min($x, $x_min);
     		$x_max = max($x, $x_max);

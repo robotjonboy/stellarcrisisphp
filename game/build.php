@@ -1,7 +1,7 @@
 <?php
 function buildScreen($vars)
 {
-	global $server;
+	global $server,$mysqli;
 
 	$series = $vars['series_data'];
 	$game = $vars['game_data'];
@@ -21,18 +21,18 @@ function buildScreen($vars)
 	// Get all the locations where the player can build.
 	$conditions = array();
 	$conditions[] = 'game_id = '.$game['id'];
-	$conditions[] = 'owner = "'.mysql_real_escape_string($vars['name']).'"';
+	$conditions[] = 'owner = "'.$mysqli->real_escape_string($vars['name']).'"';
 	$conditions[] = 'population >= '.$server['builder_population'];
 	$select = sc_mysql_query('SELECT name, coordinates, homeworld FROM systems WHERE '.implode(' AND ', $conditions).' ORDER BY name, coordinates ASC');
 
-  	if (!mysql_num_rows($select))
+  	if (!$select->num_rows)
     	{
     	echo '<div class=messageBold>You have no planets with enough population for building.</div>';
 	    return footer();
 	   	}
 	
 	$build_at = array();
-	while ($planet = mysql_fetch_array($select))
+	while ($planet = $select->fetch_assoc())
 		$build_at[] = '<option value="'.xlateToLocal($planet['coordinates']).'"'.($planet['homeworld'] ? ' selected' : '').'>'.
 				 	  $planet['name'].' ('.xlateToLocal($planet['coordinates']).')';
 
@@ -46,15 +46,15 @@ function buildScreen($vars)
 	  	
 	$conditions = array();
 	$conditions[] = 'game_id = '.$game['id'];
-	$conditions[] = 'owner = "'.mysql_real_escape_string($vars['name']).'"';
+	$conditions[] = 'owner = "'.$mysqli->real_escape_string($vars['name']).'"';
 	$conditions[] = 'orders = "build"';
 	$current_builds = sc_mysql_query('SELECT type, COUNT(id) AS ship_count FROM ships WHERE '.implode(' AND ', $conditions).' GROUP BY type');
 	
-	if (mysql_num_rows($current_builds))
+	if ($current_builds->num_rows)
 		{
 		echo '<div style="text-align: center;">Current builds:<div style="margin-bottom: 10pt;">';
 		
-		while ($row = mysql_fetch_array($current_builds))
+		while ($row = $current_builds->fetch_assoc())
 			echo $row['type'].' (<span class=whiteBold>'.$row['ship_count'].'</span>) ';
 
 		echo '</div></div>';

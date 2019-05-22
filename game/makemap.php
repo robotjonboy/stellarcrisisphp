@@ -89,14 +89,14 @@ function joinGame($vars, $team = 0, $spawngame = true, $returninfoscreen = true)
 	// Add player join to history.
 	// First, we need to get homeworld location so we can put it in the history record.
 	$select = sc_mysql_query('SELECT coordinates FROM systems WHERE game_id = '.((int)$game['id']).
-	                         ' AND homeworld = "'.mysql_real_escape_string($vars['name']).'"');
+	                         ' AND homeworld = "'.$mysqli->real_escape_string($vars['name']).'"');
 	$homeworld = $select->fetch_assoc();
 	
 	$values = array();
 	$values[] = 'game_id = '.((int)$game['id']);
 	$values[] = 'update_no = '.((int)$game['update_count']);
-	$values[] = 'coordinates = "'.mysql_real_escape_string($homeworld['coordinates']).'"';
-	$values[] = 'empire = "'.mysql_real_escape_string($vars['name']).'"';
+	$values[] = 'coordinates = "'.$mysqli->real_escape_string($homeworld['coordinates']).'"';
+	$values[] = 'empire = "'.$mysqli->real_escape_string($vars['name']).'"';
 	$values[] = 'event = "joined"';
 	
 	if ($player['team'])
@@ -118,6 +118,7 @@ function joinGame($vars, $team = 0, $spawngame = true, $returninfoscreen = true)
 
 function joinRegularGame($vars, $series, &$game)
 {
+	global $mysqli;
 	// If this is the second player to join in, set the appropriate update time fields.
 	if ($game['player_count'] == 2)
 		{
@@ -194,7 +195,7 @@ function joinRegularGame($vars, $series, &$game)
 
 			$conditions = array();
 			$conditions[] = 'game_id = '.((int)$game['id']);
-			$conditions[] = 'empire = "'.mysql_real_escape_string($vars['name']).'"';
+			$conditions[] = 'empire = "'.$mysqli->real_escape_string($vars['name']).'"';
 			sc_mysql_query('UPDATE explored SET player_id = '.((int)$player['id']).' WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 			break;
 		}
@@ -206,6 +207,8 @@ function joinRegularGame($vars, $series, &$game)
 
 function joinTeamGame($vars, $series, &$game, $team)
 {
+	global $mysqli;
+	
 	$empire = $vars['empire_data'];
 	
 	// Figure out which team player should be on.
@@ -268,7 +271,7 @@ function joinTeamGame($vars, $series, &$game, $team)
 	$values[] = 'series_id = '.((int)$series['id']);
 	$values[] = 'game_number = '.((int)$game['game_number']);
 	$values[] = 'game_id = '.((int)$game['id']);
-	$values[] = 'empire = "'.mysql_real_escape_string($vars['name']).'"';
+	$values[] = 'empire = "'.$mysqli->real_escape_string($vars['name']).'"';
 	$values[] = 'opponent = "=Team'.($team == 1 ? 2 : 1).'="';
 	$values[] = 'offer = "2"';
 	$values[] = 'status = "2"';
@@ -335,12 +338,14 @@ function joinPrebuiltGame($vars, $series, $game)
 
 function fillPlayerPosition($player_slot, $vars, $series, $game, $team = 0)
 {
+	global $mysqli;
+	
 	// Retrieve the player record to get the id...
 	$player = getPlayer($game['id'], $vars['name']);
 
 	// ...and update the new player's explored and systems.
 	$values = array();
-	$values[] = 'empire = "'.mysql_real_escape_string($vars['name']).'"';
+	$values[] = 'empire = "'.$mysqli->real_escape_string($vars['name']).'"';
 	$values[] = 'player_id = '.((int)$player['id']);
 
 	$conditions = array();
@@ -350,9 +355,9 @@ function fillPlayerPosition($player_slot, $vars, $series, $game, $team = 0)
 	sc_mysql_query('UPDATE explored SET '.implode(',', $values).' WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 
 	$values = array();
-	$values[] = 'name = "'.mysql_real_escape_string($vars['name']).'"';
-	$values[] = 'owner = "'.mysql_real_escape_string($vars['name']).'"';
-	$values[] = 'homeworld = "'.mysql_real_escape_string($vars['name']).'"';
+	$values[] = 'name = "'.$mysqli->real_escape_string($vars['name']).'"';
+	$values[] = 'owner = "'.$mysqli->real_escape_string($vars['name']).'"';
+	$values[] = 'homeworld = "'.$mysqli->real_escape_string($vars['name']).'"';
 
 	$conditions = array();
 	$conditions[] = 'game_id = '.((int)$game['id']);
