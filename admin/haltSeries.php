@@ -12,7 +12,7 @@ function haltSeries($vars)
 <?php
 	echo drawButtons($vars['empire_data']).serverTime().onlinePlayers().empireMissive($vars['empire_data']);
 
-	$select = sc_mysql_query('SELECT id, name FROM series WHERE halted = "0" ORDER BY name ASC');
+	$select = sc_query('SELECT id, name FROM series WHERE halted = "0" ORDER BY name ASC');
 ?>
 <img class=spacerule src="images/spacerule.jpg" width="100%">
 
@@ -47,14 +47,14 @@ function haltSeries_processing($vars)
 		$series = getSeries($vars['seriesToHalt']);
 
 		// First kill off any games that have no one in it...
-		$select = sc_mysql_query('SELECT * FROM games WHERE series_id = '.$series['id'].' AND player_count = 0');
+		$select = sc_query('SELECT * FROM games WHERE series_id = '.$series['id'].' AND player_count = 0');
 		while ($game = mysql_fetch_array($select)) eraseGame($game['id']);
 	
 		// ...and decrease the game count so that when we resume the series we start back where we were.
-		sc_mysql_query('UPDATE series SET game_count = (game_count-1) WHERE id = '.$series['id']);
+		sc_query('UPDATE series SET game_count = (game_count-1) WHERE id = '.$series['id']);
 
 		// Finally, halt the series.
-		sc_mysql_query('UPDATE series SET halted = "1" WHERE id = '.$series['id']);
+		sc_query('UPDATE series SET halted = "1" WHERE id = '.$series['id']);
 
 		sendEmpireMessage($vars['empire_data'], 'Series <span class=red>'.$series['name'].'</span> halted.');
 		return haltSeries($vars);

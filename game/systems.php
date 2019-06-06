@@ -59,7 +59,7 @@ function systemsScreen($vars)
 		$conditions[] = 'explored.coordinates = "'.xlateToGalactic($coordinates).'"';
 	}
 	
-	$select = sc_mysql_query('SELECT DISTINCT '.implode(',', $fields).
+	$select = sc_query('SELECT DISTINCT '.implode(',', $fields).
 							' FROM '.$from.
 							' WHERE '.implode(' AND ', $conditions).
 							' ORDER BY explored.id');	
@@ -268,7 +268,7 @@ function systemsScreen($vars)
 		}
 
 		// We insert a seperator line between each system but not at the end of the table.
-		if (++$x != mysql_num_rows($select))
+		if (++$x != $select->num_rows)
 		{
 			echo '<tr>'.
 					'<td colspan=4>'.
@@ -313,7 +313,7 @@ function systemsScreen_fromScoutingReport($vars)
 	$player = $vars['player_data'];
 	$coordinates = xlateToGalactic($vars['zoomed_planet']);
 	
-	$select = sc_mysql_query('SELECT * '.
+	$select = sc_query('SELECT * '.
 								'FROM scouting_reports '.
 								'WHERE player_id = '.$player['id'].
 								' AND coordinates = "'.$coordinates.'"');	
@@ -423,7 +423,7 @@ function systemsScreen_processing($vars)
 			{
 			if ($x > -9999 and $x < 9999 and $y > -9999 and $y < 9999)
 				{
-				sc_mysql_query('UPDATE players '.
+				sc_query('UPDATE players '.
 								'SET map_origin = "'.$x.','.$y.'" '.
 								'WHERE id = '.$player['id']);
 
@@ -454,7 +454,7 @@ function systemsScreen_processing($vars)
 		$values[] = 'name = "'.htmlspecialchars($vars['system_name:'.$id]).'"';
 		$values[] = 'max_population = "'.max(1, $vars['system_population:'.$id]).'"';
 
-		sc_mysql_query('UPDATE systems '.
+		sc_query('UPDATE systems '.
 						'SET '.implode(',', $values).
 						' WHERE id = '.$id.
 						' AND owner = "'.$player['name'].'"');
@@ -472,8 +472,8 @@ function systemsScreen_processing($vars)
 
 function recalculateTargetPopulation($player)
 {
-	$select = sc_mysql_query('SELECT SUM(max_population) FROM systems WHERE game_id = '.$player['game_id'].' AND owner = "'.$player['name'].'"');
-	sc_mysql_query('UPDATE players SET max_population = '.mysql_result($select, 0, 0).' WHERE id = '.$player['id']);
+	$select = sc_query('SELECT SUM(max_population) FROM systems WHERE game_id = '.$player['game_id'].' AND owner = "'.$player['name'].'"');
+	sc_query('UPDATE players SET max_population = '.mysql_result($select, 0, 0).' WHERE id = '.$player['id']);
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -510,7 +510,7 @@ function shipInventory($series, $player)
 			' WHERE '.implode(' AND ', $conditions).
 			' GROUP BY location, ships.owner, type';
 
-	$select = sc_mysql_query($query, __FILE__.'*'.__LINE__);
+	$select = sc_query($query, __FILE__.'*'.__LINE__);
 
 	while ($ship = mysql_fetch_array($select))
 		{
@@ -572,7 +572,7 @@ function populationAdjustment($player)
 			' WHERE '.implode(' AND ', $conditions).
 			' GROUP BY ships.location';
 
-	$select = sc_mysql_query($query, __FILE__.'*'.__LINE__);
+	$select = sc_query($query, __FILE__.'*'.__LINE__);
 	while ($row = mysql_fetch_array($select))
 	{
 		$population_adjustment[$row['location']] = $row['ship_count'];

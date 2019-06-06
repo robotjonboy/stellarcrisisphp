@@ -60,7 +60,7 @@ function techScreen_processing($vars)
 			return sendGameMessage($player, 'Invalid tech choice.');
 		else
 			{
-			sc_mysql_query('UPDATE players SET techs = CONCAT(techs, " '.$vars['newTech'].'") WHERE id = '.$player['id']);
+			sc_query('UPDATE players SET techs = CONCAT(techs, " '.$vars['newTech'].'") WHERE id = '.$player['id']);
 			return sendGameMessage($player, 'You have developed '.$vars['newTech'].'.');
 			}
 		}

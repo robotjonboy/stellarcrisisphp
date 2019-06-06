@@ -5,7 +5,7 @@ function statViewer($vars, $message = '')
 {
 	global $server;
 
-	$select = sc_mysql_query('SELECT COUNT(*) AS count from empires');
+	$select = sc_query('SELECT COUNT(*) AS count from empires');
 	$empire_count = mysql_result($select, 0, 0);
 
 	$empire = $vars['empire_data'];
@@ -132,7 +132,7 @@ function topTen($vars)
 		case 'win':
 			$label = 'Winners';
 			$formula = '(wins + nukes/2 - nuked/2 - ruined)';
-			$select = sc_mysql_query('SELECT '.$fields.', '.$formula.' AS score FROM empires '.
+			$select = sc_query('SELECT '.$fields.', '.$formula.' AS score FROM empires '.
 									 'WHERE wins ORDER BY score DESC, name ASC LIMIT 10');
 			break;
 		case 'avg':
@@ -140,13 +140,13 @@ function topTen($vars)
 			$label = 'Averages';
 			$formula = '(wins/(wins + nuked + ruined))';$secondary_formula;
 			$secondary_formula = '(wins + nukes/2 - nuked/2 - ruined)'; // actually, the 'winners' formula
-			$select = sc_mysql_query('SELECT '.$fields.', '.$formula.' AS score, '.$secondary_formula.' AS win_score FROM empires '.
+			$select = sc_query('SELECT '.$fields.', '.$formula.' AS score, '.$secondary_formula.' AS win_score FROM empires '.
 									 'WHERE (wins + nuked + ruined) ORDER BY score DESC, win_score DESC LIMIT 10');
 			break;
 		case 'wnr':
 			$label = 'Nuke/Win Ratios';
 			$formula = '(nukes/(wins + nuked + ruined))';
-			$select = sc_mysql_query('SELECT '.$fields.', '.$formula.' AS score FROM empires '.
+			$select = sc_query('SELECT '.$fields.', '.$formula.' AS score FROM empires '.
 									 'WHERE (wins + nuked + ruined) ORDER BY score DESC, name ASC LIMIT 10');
 			break;
 		}
@@ -233,8 +233,8 @@ function bridierScores($vars)
 	$query = 'SELECT * FROM empires WHERE '.implode(' AND ', $conditions).' '.
 			 'ORDER BY bridier_rank DESC, bridier_delta DESC, bridier_index ASC';
 	
-	$select = sc_mysql_query($query);	
-	$active_players = mysql_num_rows($select);	
+	$select = sc_query($query);	
+	$active_players = $select->num_rows;	
 		
 	if ($vars['bridier']['active'])				$caption = "(Game result within last 8 weeks.)";
 	if ($vars['bridier']['active_established'])	$caption = "(Established players, game result within last 8 weeks.)";
@@ -331,14 +331,14 @@ function searchEmpire($vars)
 <img class=spacerule src="images/spacerule.jpg" alt="spacerule.jpg">
 <?php
 	// Try an exact match first.
-	$exact_search = sc_mysql_query('SELECT * FROM empires WHERE name = "'.$vars['search_name'].'"');
+	$exact_search = sc_query('SELECT * FROM empires WHERE name = "'.$vars['search_name'].'"');
 	
 	// If the search string was empty, assume we want everything. Not that this will matter on a server with lots of players.
 	if ($vars['search_name'] == '') $vars['search_name'] = '%';
 	else $vars['search_name'] = str_replace('*', '%', $vars['search_name']);
 	
 	// Now try multiple matches.
-	$fuzzy_search = sc_mysql_query('SELECT * FROM empires WHERE name LIKE "%'.$vars['search_name'].'%" ORDER BY name ASC');
+	$fuzzy_search = sc_query('SELECT * FROM empires WHERE name LIKE "%'.$vars['search_name'].'%" ORDER BY name ASC');
 	
 	// If we get one match either way, show it.
 	if (mysql_num_rows($exact_search) == 1 or mysql_num_rows($fuzzy_search) == 1)

@@ -89,13 +89,13 @@ function clean_jumps($execute)
 {
 	$output = array();
 	
-	$select = sc_mysql_query('SELECT COUNT(*) FROM systems WHERE jumps REGEXP "^ +| +$"');
+	$select = sc_query('SELECT COUNT(*) FROM systems WHERE jumps REGEXP "^ +| +$"');
 	if ($count = mysql_result($select, 0, 0))
 		{
 		$output[] = $count.' systems found with trailing spaces in jump list.'.($execute ? ' Trimmed.' : ' Will trim.');
 
 		if ($execute)
-			sc_mysql_query('UPDATE systems SET jumps = TRIM(jumps)');
+			sc_query('UPDATE systems SET jumps = TRIM(jumps)');
 		}
 	else
 		$output[] = 'No trailing spaces found in system jumps.';
@@ -113,13 +113,13 @@ function clean_explored($execute)
 	// Purge explored records that shouldn't be there (erased games).
 
 	$tables = 'explored LEFT JOIN games ON explored.game_id = games.id';
-	$select = sc_mysql_query('SELECT COUNT(*) FROM '.$tables.' WHERE ISNULL(games.id)');
+	$select = sc_query('SELECT COUNT(*) FROM '.$tables.' WHERE ISNULL(games.id)');
 	if ($count = mysql_result($select, 0, 0))
 		{
 		$output[] = $count.' invalid explored record(s) found.'.($execute ? ' Deleted.' : ' Will delete them.');
 		
 		if ($execute)
-			sc_mysql_query('DELETE explored.* FROM '.$tables.' WHERE ISNULL(games.id)');
+			sc_query('DELETE explored.* FROM '.$tables.' WHERE ISNULL(games.id)');
 		}
 	else
 		$output[] = 'No invalid explored records found.';
@@ -130,13 +130,13 @@ function clean_explored($execute)
 	
 	$tables = 'explored INNER JOIN players ON explored.game_id = players.game_id AND explored.empire = players.name';
 
-	$select = sc_mysql_query('SELECT COUNT(*) FROM '.$tables.' WHERE player_id = 0 AND NOT empire REGEXP "^=.*=$"');
+	$select = sc_query('SELECT COUNT(*) FROM '.$tables.' WHERE player_id = 0 AND NOT empire REGEXP "^=.*=$"');
 	if ($count = mysql_result($select, 0, 0))
 		{
 		$output[] = $count.' explored record(s) with no player ID set.'.($execute ? ' Corrected.' : ' Will set player ID field.');
 				
 		if ($execute)
-			sc_mysql_query('UPDATE '.$tables.' SET explored.player_id = players.id WHERE explored.player_id = 0 AND NOT explored.empire REGEXP "^=.*=$"');
+			sc_query('UPDATE '.$tables.' SET explored.player_id = players.id WHERE explored.player_id = 0 AND NOT explored.empire REGEXP "^=.*=$"');
 		}
 	else
 		$output[] = 'No explored records without a player ID.';
@@ -145,8 +145,8 @@ function clean_explored($execute)
 	// Ensure that every homeworld is explored.
 	
 	$tables = 'systems s LEFT JOIN explored e ON s.game_id = e.game_id AND s.coordinates = e.coordinates AND s.homeworld = e.empire';
-	$select = sc_mysql_query('SELECT s.* FROM '.$tables.' WHERE s.homeworld <> "" AND ISNULL(e.id)');
-	if ($count = mysql_num_rows($select))
+	$select = sc_query('SELECT s.* FROM '.$tables.' WHERE s.homeworld <> "" AND ISNULL(e.id)');
+	if ($count = $select->num_rows)
 		{
 		$output[] = $count.' unexplored homeworld(s) found.'.($execute ? ' Corrected.' : ' Will create exploration records.');
 		
@@ -164,7 +164,7 @@ function clean_explored($execute)
 				$values[] = 'player_id = "'.$player['id'].'"';
 				$values[] = 'coordinates = "'.$row['coordinates'].'"';
 				
-				sc_mysql_query('INSERT INTO explored SET '.implode(',', $values));
+				sc_query('INSERT INTO explored SET '.implode(',', $values));
 				}
 			}
 		}
@@ -175,8 +175,8 @@ function clean_explored($execute)
 	// Ensure that all colonized planets are explored by their owner.
 
 	$tables = 'systems s LEFT JOIN explored e ON s.game_id = e.game_id AND s.coordinates = e.coordinates AND s.owner = e.empire';
-	$select = sc_mysql_query('SELECT s.*, e.player_id FROM '.$tables.' WHERE s.owner <> "" AND ISNULL(e.id)');
-	if ($count = mysql_num_rows($select))
+	$select = sc_query('SELECT s.*, e.player_id FROM '.$tables.' WHERE s.owner <> "" AND ISNULL(e.id)');
+	if ($count = $select->num_rows)
 		{
 		$output[] = $count.' unexplored colonized planet(s) found.'.($execute ? ' Corrected.' : ' Will create exploration records.');
 		
@@ -192,7 +192,7 @@ function clean_explored($execute)
 				$values[] = 'player_id = "'.$row['player_id'].'"';
 				$values[] = 'coordinates = "'.$row['coordinates'].'"';
 				
-				sc_mysql_query('INSERT INTO explored SET '.implode(',', $values));
+				sc_query('INSERT INTO explored SET '.implode(',', $values));
 				}
 			}
 		}
@@ -209,13 +209,13 @@ function clean_systems($execute)
 	$output = array();
 	
 	$tables = 'systems LEFT JOIN games ON systems.game_id = games.id';
-	$select = sc_mysql_query('SELECT COUNT(*) FROM '.$tables.' WHERE ISNULL(games.id)');
+	$select = sc_query('SELECT COUNT(*) FROM '.$tables.' WHERE ISNULL(games.id)');
 	if ($count = mysql_result($select, 0, 0))
 		{
 		$output[] = $count.' system(s) found to not be in any game.'.($execute ? ' Deleted.' : ' Will delete them.');
 		
 		if ($execute)
-			sc_mysql_query('DELETE systems.* FROM '.$tables.' WHERE ISNULL(games.id)');
+			sc_query('DELETE systems.* FROM '.$tables.' WHERE ISNULL(games.id)');
 		}
 	else
 		$output[] = 'No invalid systems found.';
@@ -233,13 +233,13 @@ function clean_messages($execute)
 	// Delete messages for players that don't exist anymore.
 
 	$tables = 'messages LEFT JOIN players ON messages.player_id = players.id';
-	$select = sc_mysql_query('SELECT COUNT(*) FROM '.$tables.' WHERE ISNULL(players.id) AND messages.player_id <> 0');
+	$select = sc_query('SELECT COUNT(*) FROM '.$tables.' WHERE ISNULL(players.id) AND messages.player_id <> 0');
 	if ($count = mysql_result($select, 0, 0))
 		{
 		$output[] = $count.' message(s) found for non-existant players.'.($execute ? ' Deleted.' : ' Will delete them.');
 		
 		if ($execute)
-			sc_mysql_query('DELETE messages.* FROM '.$tables.' WHERE ISNULL(players.id) AND messages.player_id <> 0');
+			sc_query('DELETE messages.* FROM '.$tables.' WHERE ISNULL(players.id) AND messages.player_id <> 0');
 		}
 	else
 		$output[] = 'No messages for non-existant players found.';
@@ -256,13 +256,13 @@ function clean_messages($execute)
 	$conditions[] = 'type <> "tos"';
 	$conditions[] = 'type <> "news"';
 
-	$select = sc_mysql_query('SELECT COUNT(*) FROM messages WHERE '.implode(' AND ', $conditions));
+	$select = sc_query('SELECT COUNT(*) FROM messages WHERE '.implode(' AND ', $conditions));
 	if ($count = mysql_result($select, 0, 0))
 		{
 		$output[] = $count.' message(s) found with no recipient.'.($execute ? ' Deleted.' : ' Will delete them.');
 		
 		if ($execute)
-			sc_mysql_query('DELETE FROM messages WHERE '.implode(' AND ', $conditions));
+			sc_query('DELETE FROM messages WHERE '.implode(' AND ', $conditions));
 		}
 	else
 		$output[] = 'No messages with no recipient found.';
@@ -279,13 +279,13 @@ function clean_messages($execute)
 	$conditions[] = 'type <> "tos"';
 	$conditions[] = 'type <> "news"';
 
-	$select = sc_mysql_query('SELECT COUNT(*) FROM messages WHERE '.implode(' AND ', $conditions));
+	$select = sc_query('SELECT COUNT(*) FROM messages WHERE '.implode(' AND ', $conditions));
 	if ($count = mysql_result($select, 0, 0))
 		{
 		$output[] = $count.' non-game message(s) found older than six months.'.($execute ? ' Deleted.' : ' Will delete them.');
 		
 		if ($execute)
-			sc_mysql_query('DELETE FROM messages WHERE '.implode(' AND ', $conditions));
+			sc_query('DELETE FROM messages WHERE '.implode(' AND ', $conditions));
 		}
 	else
 		$output[] = 'No old messages found.';
@@ -304,13 +304,13 @@ function clean_scoutingReports($execute)
 	//-------------------------------------------------------------------------------------------
 
 	$tables = 'scouting_reports s INNER JOIN explored e ON s.player_id = e.player_id AND s.coordinates = e.coordinates';
-	$select = sc_mysql_query('SELECT COUNT(*) FROM '.$tables);
+	$select = sc_query('SELECT COUNT(*) FROM '.$tables);
 	if ($count = mysql_result($select, 0, 0))
 		{
 		$output[] = $count.' redundant scouting report(s) found.'.($execute ? ' Deleted.' : ' Will delete them.');
 		
 		if ($execute)
-			sc_mysql_query('DELETE s.* FROM '.$tables);
+			sc_query('DELETE s.* FROM '.$tables);
 		}
 	else
 		$output[] = 'No redundant scouting reports found.';
@@ -318,13 +318,13 @@ function clean_scoutingReports($execute)
 	//-------------------------------------------------------------------------------------------
 
 	$tables = 'scouting_reports LEFT JOIN players ON scouting_reports.player_id = players.id ';
-	$select = sc_mysql_query('SELECT COUNT(*) FROM '.$tables.' WHERE ISNULL(players.id)');
+	$select = sc_query('SELECT COUNT(*) FROM '.$tables.' WHERE ISNULL(players.id)');
 	if ($count = mysql_result($select, 0, 0))
 		{
 		$output[] = $count.' invalid scouting reports found.'.($execute ? ' Deleted.' : ' Will delete them.');
 		
 		if ($execute)
-			sc_mysql_query('DELETE scouting_reports.* FROM '.$tables.' WHERE ISNULL(players.id)');
+			sc_query('DELETE scouting_reports.* FROM '.$tables.' WHERE ISNULL(players.id)');
 		}
 	else
 		$output[] = 'No invalid scouting reports found.';
@@ -341,13 +341,13 @@ function clean_players($execute)
 	$output = array();
 	
 	$tables = 'players LEFT JOIN games on players.game_id = games.id';
-	$select = sc_mysql_query('SELECT COUNT(*) FROM '.$tables.' WHERE ISNULL(games.id)');
+	$select = sc_query('SELECT COUNT(*) FROM '.$tables.' WHERE ISNULL(games.id)');
 	if ($count = mysql_result($select, 0, 0))
 		{
 		$output[] = $count.' non-existant player(s) found.'.($execute ? ' Deleted.' : ' Will delete them.');
 
 		if ($execute)
-			sc_mysql_query('DELETE players.* FROM '.$tables.' WHERE ISNULL(games.id)');
+			sc_query('DELETE players.* FROM '.$tables.' WHERE ISNULL(games.id)');
 		}
 	else
 		$output[] = 'No non-existant players found.';
@@ -362,13 +362,13 @@ function clean_games($execute)
 	$output = array();
 
 	$tables = 'games LEFT JOIN players ON games.id = players.game_id';
-	$select = sc_mysql_query('SELECT COUNT(*) FROM '.$tables.' WHERE ISNULL(players.game_id) AND games.update_count > 0');
+	$select = sc_query('SELECT COUNT(*) FROM '.$tables.' WHERE ISNULL(players.game_id) AND games.update_count > 0');
 	if ($count = mysql_result($select, 0, 0))
 		{
 		$output[] = $count.' started games found with no players.'.($execute ? ' Deleted.' : ' Will delete them.');
 
 		if ($execute)
-			sc_mysql_query('DELETE games.* FROM '.$tables.' WHERE ISNULL(players.game_id) AND games.update_count > 0');
+			sc_query('DELETE games.* FROM '.$tables.' WHERE ISNULL(players.game_id) AND games.update_count > 0');
 		}
 	else
 		$output[] = 'No bogus games found.';
@@ -383,13 +383,13 @@ function clean_history($execute)
 	$output = array();
 
 	$tables = 'history LEFT JOIN games ON history.game_id = games.id';
-	$select = sc_mysql_query('SELECT COUNT(*) FROM '.$tables.' WHERE ISNULL(games.id)');
+	$select = sc_query('SELECT COUNT(*) FROM '.$tables.' WHERE ISNULL(games.id)');
 	if ($count = mysql_result($select, 0, 0))
 		{
 		$output[] = $count.' history record(s) found for non-existant games.'.($execute ? ' Deleted.' : ' Will delete them.');
 
 		if ($execute)
-			sc_mysql_query('DELETE history.* FROM '.$tables.' WHERE ISNULL(games.id)');
+			sc_query('DELETE history.* FROM '.$tables.' WHERE ISNULL(games.id)');
 		}
 	else
 		$output[] = 'No bogus history records found.';
@@ -404,13 +404,13 @@ function clean_fleets($execute)
 	$output = array();
 
 	$tables = 'ships LEFT JOIN fleets ON ships.fleet_id = fleets.id';
-	$select = sc_mysql_query('SELECT COUNT(*) FROM '.$tables.' WHERE ships.fleet_id <> 0 AND ISNULL(fleets.id)');
+	$select = sc_query('SELECT COUNT(*) FROM '.$tables.' WHERE ships.fleet_id <> 0 AND ISNULL(fleets.id)');
 	if ($count = mysql_result($select, 0, 0))
 		{
 		$output[] = $count.' ship(s) found to be in a non-existant fleet.'.($execute ? ' Fleet IDs stripped.' : ' Will strip out fleet IDs.');
 
 		if ($execute)
-			sc_mysql_query('UPDATE '.$tables.' SET ships.fleet_id = 0 WHERE ships.fleet_id <> 0 AND ISNULL(fleets.id)');
+			sc_query('UPDATE '.$tables.' SET ships.fleet_id = 0 WHERE ships.fleet_id <> 0 AND ISNULL(fleets.id)');
 		}
 	else
 		$output[] = 'No non-existant fleets found.';
@@ -418,13 +418,13 @@ function clean_fleets($execute)
 	//-------------------------------------------------------------------------------------------
 
 	$tables = 'ships INNER JOIN fleets ON ships.fleet_id = fleets.id';
-	$select = sc_mysql_query('SELECT COUNT(*) FROM '.$tables.' WHERE fleets.location <> ships.location');
+	$select = sc_query('SELECT COUNT(*) FROM '.$tables.' WHERE fleets.location <> ships.location');
 	if ($count = mysql_result($select, 0, 0))
 		{
 		$output[] = $count.' errant ship(s) found.'.($execute ? ' Fleet IDs stripped.' : ' Will strip out fleet IDs.');
 
 		if ($execute)
-			sc_mysql_query('UPDATE '.$tables.' SET fleet_id = 0, orders = "standby" WHERE fleets.location <> ships.location');
+			sc_query('UPDATE '.$tables.' SET fleet_id = 0, orders = "standby" WHERE fleets.location <> ships.location');
 		}
 	else
 		$output[] = 'No errant ships found.';
@@ -432,13 +432,13 @@ function clean_fleets($execute)
 	//-------------------------------------------------------------------------------------------
 
 	$tables = 'fleets LEFT JOIN players ON fleets.player_id = players.id ';
-	$select = sc_mysql_query('SELECT COUNT(*) FROM '.$tables.' WHERE ISNULL(players.id)');
+	$select = sc_query('SELECT COUNT(*) FROM '.$tables.' WHERE ISNULL(players.id)');
 	if ($count = mysql_result($select, 0, 0))
 		{
 		$output[] = $count.' invalid fleet(s) found.'.($execute ? ' Deleted.' : ' Will delete them.');
 		
 		if ($execute)
-			sc_mysql_query('DELETE fleets.* FROM '.$tables.' WHERE ISNULL(players.id)');
+			sc_query('DELETE fleets.* FROM '.$tables.' WHERE ISNULL(players.id)');
 		}
 	else
 		$output[] = 'No invalid fleets found.';
@@ -452,7 +452,7 @@ function clean_ships($execute)
 {
 	$output = array();
 
-	$select = sc_mysql_query('SELECT COUNT(*) FROM ships WHERE player_id = 0');
+	$select = sc_query('SELECT COUNT(*) FROM ships WHERE player_id = 0');
 	if ($count = mysql_result($select, 0, 0))
 		{
 		$output[] = $count.' ship(s) found with no player ID.'.($execute ? ' Corrected.' : ' Will set player ID field.');
@@ -460,7 +460,7 @@ function clean_ships($execute)
 		if ($execute)
 			{
 			$tables = 'ships INNER JOIN players ON ships.game_id = players.game_id AND ships.owner = players.name';
-			sc_mysql_query('UPDATE '.$tables.' SET ships.player_id = players.id WHERE player_id = 0');
+			sc_query('UPDATE '.$tables.' SET ships.player_id = players.id WHERE player_id = 0');
 			}
 		}
 	else

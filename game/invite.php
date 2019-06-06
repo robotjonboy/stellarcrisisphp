@@ -18,14 +18,14 @@ function inviteScreen($vars)
 	
 	$emps_invited = array();
 	
-	$current_invitations = sc_mysql_query('SELECT * FROM invitations WHERE game_id = '.((int)$game['id']));
+	$current_invitations = sc_query('SELECT * FROM invitations WHERE game_id = '.((int)$game['id']));
 	
 	echo '<div style="text-align: center;"><table cellpadding=2 style="margin-left: auto; margin-right: auto;">';
 	
-	if (mysql_num_rows($current_invitations))
+	if ($current_invitations->num_rows)
 		echo '<tr><th>Empire</th>'.($series['team_game'] ? '<th>Team</th>' : '').'<th>Message</th><th colspan=2>Response</th></tr>';
 		
-	while ($invitation = mysql_fetch_array($current_invitations))
+	while ($invitation = $current_invitations->fetch_assoc())
 		{
 		// Count unresponded invitations-- we keep them around so that the inviter can watch the status.
 		if ($invitation['status'] == 'None')
@@ -43,9 +43,10 @@ function inviteScreen($vars)
 	if ($series['team_game'])
 		{
 		// Get count of players currently in game.
-		$select = sc_mysql_query('SELECT team, COUNT(*) as team_count FROM players WHERE game_id = '.
+		$select = sc_query('SELECT team, COUNT(*) as team_count FROM players WHERE game_id = '.
 		                         ((int)$game['id']).' GROUP BY team');
-		$team_count[ mysql_result($select, 0, 0) ] = mysql_result($select, 0, 1);
+		$line = $select->fetch_assoc();
+		$team_count[ $line['team'] ] = $line['team_count'];
 		$total_emps = $emps_invited[1] + $emps_invited[2];
 		}
 	else
@@ -53,7 +54,7 @@ function inviteScreen($vars)
 	
 	if ($total_emps + $game['player_count'] < $series['max_players'])
 		{
-		if (mysql_num_rows($current_invitations))
+		if ($current_invitations->num_rows)
 			echo '<tr><td colspan=5><hr></td></tr>';
 
 		echo '<tr><td class=center>'.onlineInvitablePlayers().' or <br><input type=text name=invite_name size=20 maxlength=20"></td>';
@@ -93,6 +94,8 @@ function inviteScreen($vars)
 
 function inviteScreen_processing(&$vars)
 {
+	global $mysqli;
+	
 	$series = $vars['series_data'];
 	$game = $vars['game_data'];
 	$player = $vars['player_data'];
@@ -100,8 +103,8 @@ function inviteScreen_processing(&$vars)
 	// Look for invitations to withdraw...
 	if (count($vars['uninvited']))
 		foreach ($vars['uninvited'] as $empire)
-			sc_mysql_query('DELETE FROM invitations WHERE game_id = '.((int)$game['id']).
-			               ' AND empire = "'.mysql_real_escape_string($empire).'"');
+			sc_query('DELETE FROM invitations WHERE game_id = '.((int)$game['id']).
+			               ' AND empire = "'.$mysqli->real_escape_string($empire).'"');
 
 	// ...and to add.
 	if ($vars['Add'] == 'Add')
@@ -115,9 +118,9 @@ function inviteScreen_processing(&$vars)
 		else if ($vars['onlinePlayers'] != '')
 			$player_to_invite = urldecode($vars['onlinePlayers']);
 
-		$select = sc_mysql_query('SELECT empire FROM invitations WHERE game_id = '.((int)$game['id']).
-		                         ' AND empire = "'.mysql_real_escape_string($player_to_invite).'"');
-		if (mysql_num_rows($select))
+		$select = sc_query('SELECT empire FROM invitations WHERE game_id = '.((int)$game['id']).
+		                         ' AND empire = "'.$mysqli->real_escape_string($player_to_invite).'"');
+		if ($select->num_rows)
 			return sendGameMessage($player, 'Empire '.$player_to_invite.' is already invited.');
 		else if ($player_to_invite != '' and $empire = getEmpire($player_to_invite))
 			{
@@ -131,7 +134,7 @@ function inviteScreen_processing(&$vars)
 			$values[] = 'series_id = '.((int)$series['id']);
 			$values[] = 'game_number = '.((int)$game['game_number']);
 			$values[] = 'game_id = '.((int)$game['id']);
-			$values[] = 'empire ="'.mysql_real_escape_string($empire['name']).'"';
+			$values[] = 'empire ="'.$mysqli->real_escape_string($empire['name']).'"';
 			
 			if ($vars['messageText'])
 				{
@@ -144,7 +147,7 @@ function inviteScreen_processing(&$vars)
 			if ($series['team_game'])
 				$values[] = 'team = '.$vars['invite_team'];
 
-			sc_mysql_query('INSERT INTO invitations SET '.implode(',', $values));
+			sc_query('INSERT INTO invitations SET '.implode(',', $values));
 			
 			// I think we should add a missive to the invited emp here, but I don't want to mess
 			// with it until the new missive code is merged in
@@ -168,15 +171,15 @@ function onlineInvitablePlayers()
 	$empires = '(SELECT name FROM empires WHERE UNIX_TIMESTAMP() - last_login < 30*60)';
 	$players = '(SELECT DISTINCT name FROM players WHERE UNIX_TIMESTAMP() - last_access < 30*60)';
 	
-	$select = sc_mysql_query($empires.' UNION '.$players.' ORDER BY name');
+	$select = sc_query($empires.' UNION '.$players.' ORDER BY name');
 	
-	if ($count = mysql_num_rows($select))
+	if ($count = $select->num_rows)
 		{
 		$list = '<div class=center><select name=onlinePlayers>'.
 				'<option value="" selected>'.$count.' player'.($count != 1 ? 's' : '').' currently online...'.
 				'<option value="">';
 
-		while ($row = mysql_fetch_array($select))
+		while ($row = $select->fetch_assoc())
 			$list .= '<option value="'.urlencode($row['name']).'">'.$row['name'];
 		
 		$list .= '</select></div>';

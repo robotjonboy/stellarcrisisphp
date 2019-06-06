@@ -8,7 +8,7 @@ require('../sql.php');
 
 // decode passed id into empire
 $player = $_GET['id'];
-$result = sc_mysql_query('SELECT * FROM empires');
+$result = sc_query('SELECT * FROM empires');
 while ($row = mysql_fetch_array($result))
 {
 	$code5=md5($row['id'].$row['name'].$row['join_date']);
@@ -40,7 +40,7 @@ $sql=	'SELECT '.implode(',', $fields).
 		' FROM '.$tables.
 		' WHERE '.$conditions.
 		' '.$order;
-$result = sc_mysql_query($sql);
+$result = sc_query($sql);
 
 header('Content-Type: application/xml'."\n\n");
 echo '<?xml version="1.0" encoding="ISO-8859-1" ?>';

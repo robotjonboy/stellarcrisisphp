@@ -6,7 +6,7 @@
 $ship_types = array();
 $moving_ships = array();
 
-$select = sc_mysql_query('SELECT * FROM ship_types WHERE version = "v2" ORDER BY type');
+$select = sc_query('SELECT * FROM ship_types WHERE version = "v2" ORDER BY type');
 while ($row = mysql_fetch_array($select))
 	{
 	$ship_types[$row['type']] = $row;

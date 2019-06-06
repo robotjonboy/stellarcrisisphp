@@ -12,15 +12,15 @@ function joinTournament($vars, $message = '')
 	
 	//is the empire an entrant?
 	$sql = 'select * from tournamententrant where tournamentid = ' . $tourney['id'] . ' AND empireid = ' . $empire['id'];
-	$select = sc_mysql_query($sql);
+	$select = sc_query($sql);
 	
-	if (mysql_num_rows($select) > 0) {
+	if ($select->num_rows > 0) {
 		sendEmpireMessage($empire, 'You have already entered this tournament.');
 		return tournaments($vars);
 	} else {
 		//join tournament
 		$sql = 'insert into tournamententrant (tournamentid, empireid) values (' . $tourney['id'] . ', ' . $empire['id'] . ')';
-		sc_mysql_query($sql);
+		sc_query($sql);
 	}
 	require_once('main/viewtournament.php');
 	return viewTournament($vars);

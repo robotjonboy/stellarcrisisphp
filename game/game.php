@@ -104,13 +104,13 @@ function gameAction($vars)
 	$vars['player_data'] = $player;
 
 	// COMMIT previous work and start a new transaction.
-	sc_mysql_query('BEGIN');
+	sc_query('BEGIN');
 	
 	// Get and lock this game's record.
-	$select = sc_mysql_query('SELECT * FROM games WHERE id = '.((int)$vars['game_id']).' FOR UPDATE');
+	$select = sc_query('SELECT * FROM games WHERE id = '.((int)$vars['game_id']).' FOR UPDATE');
 
 	// Find this player's homeworld to initialize his local coordinate system.
-  	$select = sc_mysql_query('SELECT coordinates FROM systems WHERE game_id = "'.((int)$game['id']).
+  	$select = sc_query('SELECT coordinates FROM systems WHERE game_id = "'.((int)$game['id']).
   	                         '" AND homeworld = "'.$mysqli->real_escape_string($vars['name']).'"');
 	$homeworld = $select->fetch_assoc();
 	
@@ -132,7 +132,7 @@ function gameAction($vars)
 	$values[] = 'ip = "'.$_SERVER['REMOTE_ADDR'].'"';
 	$values[] = 'last_access = '.time();
 	$values[] = 'last_update = '.$game['update_count'];
-	sc_mysql_query('UPDATE players SET '.implode(',', $values).' WHERE id = '.$player['id']);
+	sc_query('UPDATE players SET '.implode(',', $values).' WHERE id = '.$player['id']);
 
 	// This is where we process form data from various screens. What we return is determined later.
 	// If the processing functions return true, it means we want to stay on the screen we were on (the user needs to be
@@ -170,7 +170,7 @@ function gameAction($vars)
 
 	// COMMIT what we've done and begin a new transaction.
 	// No more modifications are needed to the database.
-	sc_mysql_query('BEGIN');
+	sc_query('BEGIN');
 	
 	// Refetch these; they may have changed somewhere above.
   	$vars['series_data'] = $series = getSeries($vars['series_id']); // Can this really change?
@@ -223,7 +223,7 @@ function gameAction($vars)
 	 	case 'End Turn':
 			$player['ended_turn'] = 1;
 			$vars['player_data'] = $player;
-		 	sc_mysql_query('UPDATE players SET ended_turn = "1" WHERE id = '.$player['id']);
+		 	sc_query('UPDATE players SET ended_turn = "1" WHERE id = '.$player['id']);
 		 	
 			// Check to see if an update is needed.
 			switch (endTurnUpdate($series, $game))
@@ -259,7 +259,7 @@ function gameAction($vars)
 
 			$player['ended_turn'] = 0;
 			$vars['player_data'] = $player;
-			sc_mysql_query('UPDATE players SET ended_turn = "0" WHERE id = '.((int)$player['id']));
+			sc_query('UPDATE players SET ended_turn = "0" WHERE id = '.((int)$player['id']));
 
 			return infoScreen($vars);
 
@@ -271,7 +271,7 @@ function gameAction($vars)
 				eraseGame($game['id']);
 
 				// Also remove the bridier record.
-				sc_mysql_query('DELETE FROM bridier WHERE game_id = '.$game['id']);
+				sc_query('DELETE FROM bridier WHERE game_id = '.$game['id']);
 
 				return gameList($vars);
 				}
@@ -339,7 +339,7 @@ function gameHeader($vars, $title)
 		if ($title == 'Message History')
 			$conditions[] = 'type = "game_message"';
 		
-		$select = sc_mysql_query('SELECT * FROM messages WHERE '.implode(' AND ', $conditions).' ORDER BY type, id');
+		$select = sc_query('SELECT * FROM messages WHERE '.implode(' AND ', $conditions).' ORDER BY type, id');
 	
 		if ($select->num_rows)
 			{
@@ -362,11 +362,11 @@ function gameHeader($vars, $title)
 					   '</table></div>';
 			
 			// We don't keep game messages and scouting reports after displaying them once.
-			sc_mysql_query('DELETE FROM messages WHERE (type = "scout" OR type = "game_message") AND player_id = '.
+			sc_query('DELETE FROM messages WHERE (type = "scout" OR type = "game_message") AND player_id = '.
 			               ((int)$player['id']));
 			
 			// The rest is marked as read.
-			sc_mysql_query('UPDATE messages SET flag = "1" WHERE player_id = '.((int)$player['id']));
+			sc_query('UPDATE messages SET flag = "1" WHERE player_id = '.((int)$player['id']));
 			}
 		}
 
@@ -384,7 +384,7 @@ function gameHeader($vars, $title)
 			$next_update = 'Waiting for other players.';
 		
 		// This is to make sure the game doesn't update itself as soon as a second player joins in.
-		sc_mysql_query('UPDATE games SET last_update = '.time().' WHERE id = '.((int)$game['id']));
+		sc_query('UPDATE games SET last_update = '.time().' WHERE id = '.((int)$game['id']));
 		
 		$time_to_update = $game['update_time'];
 
@@ -569,14 +569,14 @@ function getDirection($origin, $destination)
 
 function pauseGame($game)
 {
-	sc_mysql_query('UPDATE games SET on_hold = "1" WHERE id = '.((int)$game['id']));
+	sc_query('UPDATE games SET on_hold = "1" WHERE id = '.((int)$game['id']));
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
 
 function resumeGame($game)
 {
-	sc_mysql_query('UPDATE games SET on_hold = "0" WHERE id = '.((int)$game['id']));
+	sc_query('UPDATE games SET on_hold = "0" WHERE id = '.((int)$game['id']));
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -594,7 +594,7 @@ function endTurnUpdate($series, $game)
 	if (!$game['closed']) return 2;
 
 	// If it's closed, we update only if everyone ended their turn.
-	$select = sc_mysql_query('SELECT COUNT(*) as c FROM players WHERE game_id = '.$game['id'].' AND ended_turn = "0" AND team >= 0');
+	$select = sc_query('SELECT COUNT(*) as c FROM players WHERE game_id = '.$game['id'].' AND ended_turn = "0" AND team >= 0');
 	$line = $select->fetch_assoc();
 	if ($line['c']) return 2;
 	
@@ -634,7 +634,7 @@ function playerLeftTeamGame($series, &$game, $player, $empire)
 {
 	global $mysqli;
 	// Reset the player's explored HW to the pre-join values.
-	sc_mysql_query('UPDATE explored SET empire = "'.$mysqli->real_escape_string($player['team_spot']).
+	sc_query('UPDATE explored SET empire = "'.$mysqli->real_escape_string($player['team_spot']).
 	               '" WHERE game_id = '.((int)$game['id']).' AND empire = "'.
 	               $mysqli->real_escape_string($player['name']).'"');
 
@@ -643,7 +643,7 @@ function playerLeftTeamGame($series, &$game, $player, $empire)
 	$values[] = 'owner = "'.$mysqli->real_escape_string($player['team_spot']).'"';
 	$values[] = 'homeworld = "'.$mysqli->real_escape_string($player['team_spot']).'"';
 
-	sc_mysql_query('UPDATE systems SET '.implode(',', $values).' WHERE game_id = '.$game['id'].' AND homeworld = "'.$player['name'].'"');
+	sc_query('UPDATE systems SET '.implode(',', $values).' WHERE game_id = '.$game['id'].' AND homeworld = "'.$player['name'].'"');
 	
  //cjp 20070402 $empire was blank when sendempiremessage was called.
 	//$empire = getEmpire($vars['name']); //did not work
@@ -658,20 +658,20 @@ function playerLeftTeamGame($series, &$game, $player, $empire)
 					'like the coward you are!');
 		
 	// Delete the player's messages from this game, if any.
-	sc_mysql_query('DELETE FROM messages WHERE player_id = '.((int)$player['id']));
+	sc_query('DELETE FROM messages WHERE player_id = '.((int)$player['id']));
 
 	// Remove joining record from history.
 	// We wipe everything for this player since there can't be anything else (the game hasn't started).
-	sc_mysql_query('DELETE FROM history WHERE empire = "'.$mysqli->real_escape_string($player['name']).'"');
+	sc_query('DELETE FROM history WHERE empire = "'.$mysqli->real_escape_string($player['name']).'"');
 	
-	sc_mysql_query('DELETE FROM players WHERE id = '.((int)$player['id']));
-	sc_mysql_query('DELETE FROM ships WHERE player_id = '.((int)$player['id']));
-	sc_mysql_query('DELETE FROM fleets WHERE player_id = '.((int)$player['id']));
-	sc_mysql_query('DELETE FROM diplomacies WHERE game_id = '.((int)$game['id']).' AND empire = "'.
+	sc_query('DELETE FROM players WHERE id = '.((int)$player['id']));
+	sc_query('DELETE FROM ships WHERE player_id = '.((int)$player['id']));
+	sc_query('DELETE FROM fleets WHERE player_id = '.((int)$player['id']));
+	sc_query('DELETE FROM diplomacies WHERE game_id = '.((int)$game['id']).' AND empire = "'.
 			$mysqli->real_escape_string($player['name']).'"');
 
 	// Decrement the number of players; this player is leaving the game.
-	sc_mysql_query('UPDATE games SET player_count = (player_count-1) WHERE id = '.((int)$game['id']));
+	sc_query('UPDATE games SET player_count = (player_count-1) WHERE id = '.((int)$game['id']));
 
 	$game['player_count'] -= 1;
 }
@@ -693,7 +693,7 @@ function sendPlayerMissive($player, $recipient_id, $recipients, $type, $message)
 	$values[] = 'text = "'.addslashes($message).'"';
 	$values[] = 'type = "'.$mysqli->real_escape_string($type).'"';
 	
-	sc_mysql_query('INSERT INTO messages SET '.implode(',', $values));
+	sc_query('INSERT INTO messages SET '.implode(',', $values));
 
 	return true;
 }

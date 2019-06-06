@@ -164,7 +164,7 @@ function editProfile_processing($vars)
 	
 		if (count($values))
 			{
-			sc_mysql_query('UPDATE empires SET '.implode(', ', $values).' WHERE name = "'.$vars['name'].'"');
+			sc_query('UPDATE empires SET '.implode(', ', $values).' WHERE name = "'.$vars['name'].'"');
 			sendEmpireMessage($empire, 'Profile Updated.');
 			
 			$vars['empire_data'] = getEmpire($vars['name']);
@@ -200,7 +200,7 @@ function finishChangeEmail($empname, $vcode)
 		
 		if ($vcode == $valcode)
 			{
-			sc_mysql_query('UPDATE empires SET email="'.$email.'", validation_info="" WHERE name = "'.$empname.'"', __FILE__.'*'.__LINE__);
+			sc_query('UPDATE empires SET email="'.$email.'", validation_info="" WHERE name = "'.$empname.'"', __FILE__.'*'.__LINE__);
 			echo "Email address updated.";
 			}
 		else

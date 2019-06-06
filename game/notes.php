@@ -16,6 +16,6 @@ function notesScreen_processing($vars)
 {
 	$notes = ($vars['notes'] ? '"'.addslashes($vars['notes']).'"' : 'NULL');
 
-	sc_mysql_query('UPDATE players SET notes = '.$notes.' WHERE id = '.$vars['player_data']['id']);
+	sc_query('UPDATE players SET notes = '.$notes.' WHERE id = '.$vars['player_data']['id']);
 }
 ?>

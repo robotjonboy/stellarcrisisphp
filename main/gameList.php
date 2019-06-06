@@ -24,7 +24,7 @@ function gameList($vars)
 	$conditions = 'players.name = "'.$empire['name'].'" AND team >= 0';	
 	$order = 'ORDER BY series.update_time, series.name, games.game_number ASC';
 
-	$select = sc_mysql_query('SELECT '.$fields.
+	$select = sc_query('SELECT '.$fields.
 							' FROM '.$tables.
 							' WHERE '.$conditions.' '.
 							$order);
@@ -54,7 +54,7 @@ function gameList($vars)
 		$bridier_estimate = ($game['bridier'] >= 0 ? 
 			'<div>'.bridierEstimate($row, $game, $empire).'</div>' : '');
 		
-		$select_messages = sc_mysql_query('SELECT COUNT(*) as c
+		$select_messages = sc_query('SELECT COUNT(*) as c
 									FROM messages 
 									WHERE player_id = '.$row['player_id'].' 
 										AND flag = "0"');
@@ -123,7 +123,7 @@ function gameList($vars)
 		$conditions[] = 'empire = "'.$empire['name'].'"';
 		$conditions[] = 'status = "None"';
 
-		$select = sc_mysql_query('SELECT * FROM '.$tables.' WHERE '.implode(' AND ', $conditions).' ORDER BY invitations.id');
+		$select = sc_query('SELECT * FROM '.$tables.' WHERE '.implode(' AND ', $conditions).' ORDER BY invitations.id');
 		while ($row = $select->fetch_assoc())
 			{
 			if ($excluded_games[$row['game_id']]) continue;
@@ -203,7 +203,7 @@ function gameList($vars)
 
 		$order = 'ORDER BY series.update_time, series.name, games.game_number ASC';
 
-		$select = sc_mysql_query('SELECT DISTINCT games.* FROM '.$tables.' WHERE '.implode(' AND ', $conditions).' '.$order);
+		$select = sc_query('SELECT DISTINCT games.* FROM '.$tables.' WHERE '.implode(' AND ', $conditions).' '.$order);
 		while ($game = $select->fetch_assoc())
 			{
 			if ($excluded_games[$game['id']]) continue;
@@ -257,7 +257,7 @@ function gameList($vars)
 		$tables = 'games INNER JOIN series ON games.series_id = series.id';
 		$conditions = 'series.custom = "0" AND games.player_count = 0';
 
-		$select = sc_mysql_query('SELECT '.$fields.' FROM '.$tables.' WHERE '.$conditions.' ORDER BY series.update_time, series.name, game_number');
+		$select = sc_query('SELECT '.$fields.' FROM '.$tables.' WHERE '.$conditions.' ORDER BY series.update_time, series.name, game_number');
 		while ($row = $select->fetch_assoc())
 			{				
 			#$series = getSeries($game['series_id']);
@@ -447,7 +447,7 @@ function passwordGameList($vars)
 
 		$order = 'series.name, games.game_number';
 
-		$select = sc_mysql_query('SELECT DISTINCT games.* FROM '.$tables.' WHERE '.implode(' AND ', $conditions).' ORDER BY '.$order);
+		$select = sc_query('SELECT DISTINCT games.* FROM '.$tables.' WHERE '.implode(' AND ', $conditions).' ORDER BY '.$order);
 		while ($game = $select->fetch_assoc())
 			{
 			$series = getSeries($game['series_id']);
@@ -591,7 +591,7 @@ function gameList_processing($vars)
 
 	if ($action == 'decline')
 		{		
-		sc_mysql_query('UPDATE invitations SET status = "Declined" WHERE game_id = '.$game_id.' AND empire = "'.$empire['name'].'"');
+		sc_query('UPDATE invitations SET status = "Declined" WHERE game_id = '.$game_id.' AND empire = "'.$empire['name'].'"');
 		sendEmpireMessage($empire, 'Invitation declined.');
 		return gameList($vars);
 		}
@@ -611,7 +611,7 @@ function gameList_processing($vars)
 
 	if (preg_match('/(create|createp|login|join|accept)/', $action))
 		{	
-		$select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.$game_id.' AND name = "'.$empire['name'].'" AND team >= 0');
+		$select = sc_query('SELECT * FROM players WHERE game_id = '.$game_id.' AND name = "'.$empire['name'].'" AND team >= 0');
 		$vars['player_data'] = $player = $select->fetch_assoc();
 		
 		// If the player is already in the game, we can skip everything else and just log in.
@@ -620,10 +620,10 @@ function gameList_processing($vars)
 
 		if ($action == 'accept')
 			{
-			$select = sc_mysql_query('SELECT * FROM invitations WHERE game_id = '.$game['id'].' AND empire = "'.$empire['name'].'"');
+			$select = sc_query('SELECT * FROM invitations WHERE game_id = '.$game['id'].' AND empire = "'.$empire['name'].'"');
 			$invitation = $select->fetch_assoc();
 			
-			sc_mysql_query('UPDATE invitations SET status = "Accepted" WHERE id = '.$invitation['id']);
+			sc_query('UPDATE invitations SET status = "Accepted" WHERE id = '.$invitation['id']);
 
 			if ($series['team_game'])
 				return joinGame($vars, $invitation['team']);
@@ -655,10 +655,10 @@ function gameList_processing($vars)
 					$values[] = 'empire1 = "'.$empire['name'].'"';
 		
 					// For some reason, this creates duplicates sometimes. We'll ignore those errors for now.
-					sc_mysql_query('INSERT IGNORE INTO bridier SET '.implode(',', $values));
+					sc_query('INSERT IGNORE INTO bridier SET '.implode(',', $values));
 					}
 		
-				sc_mysql_query('UPDATE games SET bridier = "'.$bridier.'" WHERE id = '.$game['id']);
+				sc_query('UPDATE games SET bridier = "'.$bridier.'" WHERE id = '.$game['id']);
 				}
 		
 			// Create initial passwords for password game creation.
@@ -673,7 +673,7 @@ function gameList_processing($vars)
 				$values[] = 'password1 = "'.$game['password1'].'"';
 				$values[] = 'password2 = "'.$game['password2'].'"';
 
-				sc_mysql_query('UPDATE games SET '.implode(',', $values).' WHERE id = '.$game['id']);
+				sc_query('UPDATE games SET '.implode(',', $values).' WHERE id = '.$game['id']);
 				
 				// We'll need the password when we log into the game. Add it to the other POST variables.
 				$vars['gamePassword'][$game['id']] = $game['password1'];
@@ -760,7 +760,7 @@ function bridierEstimate($series, $game, $empire)
 		if ($game['bridier'] >= 0)
 			{
 			// Game is for ranking, so estimate win/lose amounts
-			$bridier_query = sc_mysql_query('SELECT * FROM bridier WHERE game_id = '.$game['id']);
+			$bridier_query = sc_query('SELECT * FROM bridier WHERE game_id = '.$game['id']);
 			
 			if ($bdata = mysql_fetch_array($bridier_query))
 				{
@@ -816,7 +816,7 @@ function bridierEstimate($series, $game, $empire)
 				{
 				// If we can't find a results record, it's an error so remove the bridier flag from the game.
 				$game['bridier'] = -1;
-				sc_mysql_query('UPDATE games SET bridier = -1 WHERE game_id = '.$game['id']);
+				sc_query('UPDATE games SET bridier = -1 WHERE game_id = '.$game['id']);
 				}
 			}
 		else
@@ -832,7 +832,7 @@ function bridierEstimate($series, $game, $empire)
 
 function empireMissive($empire)
 {
-	$select = sc_mysql_query('SELECT sender, text FROM messages WHERE empire_id = '.$empire['id'].' AND flag = "0" ORDER BY id ASC');
+	$select = sc_query('SELECT sender, text FROM messages WHERE empire_id = '.$empire['id'].' AND flag = "0" ORDER BY id ASC');
 	
 	if ($select->num_rows)
 		{		
@@ -849,7 +849,7 @@ function empireMissive($empire)
 			}
 			
 		// We could just mark the messages as read and keep them, but we don't.
-		sc_mysql_query('DELETE FROM messages WHERE empire_id = '.$empire['id']);
+		sc_query('DELETE FROM messages WHERE empire_id = '.$empire['id']);
 		
 		return '<div style="text-align: center; margin-top: 10pt;">'.implode('<br>', $messages).'</div>';
 		}
@@ -885,7 +885,7 @@ function sendMessage_processing($vars)
 		$values[] = 'text = "'.addslashes($message).'"';
 		$values[] = 'type = "instant"';
 		
-		sc_mysql_query('INSERT INTO messages SET '.implode(',', $values));
+		sc_query('INSERT INTO messages SET '.implode(',', $values));
 		}
 
 	echo '<body onLoad="window.close()">';
@@ -985,7 +985,7 @@ function playerList($gameID, $empire)
 	$order = 'IF (series.map_visible = "1" 
 				OR games.closed = "1", players.team, 1), players.name ASC';
 	
-	$select = sc_mysql_query('SELECT '.implode(',', $fields).' FROM '.$from.' WHERE players.game_id = "'.$gameID.'" AND players.team >= 0 ORDER BY '.$order);
+	$select = sc_query('SELECT '.implode(',', $fields).' FROM '.$from.' WHERE players.game_id = "'.$gameID.'" AND players.team >= 0 ORDER BY '.$order);
 
 	if ($select->num_rows > 10)
 		{
@@ -1082,7 +1082,7 @@ function onlinePlayers()
 	$empires = '(SELECT name FROM empires WHERE UNIX_TIMESTAMP() - last_login < 30*60)';
 	$players = '(SELECT DISTINCT name FROM players WHERE UNIX_TIMESTAMP() - last_access < 30*60)';
 	
-	$select = sc_mysql_query($empires.' UNION '.$players.' ORDER BY name');
+	$select = sc_query($empires.' UNION '.$players.' ORDER BY name');
 	if ($count = $select->num_rows)
 	{
 		$list = '<div style="text-align: center; margin-top: 10pt;">'.
@@ -1114,7 +1114,7 @@ function playerIsIdle($player_name)
 	$conditions[] = '(games.update_count - players.last_update) > '.$server['updates_to_idle'];
 	$conditions[] = 'team > 0';
 
-	$select = sc_mysql_query('SELECT COUNT(*) as c FROM '.$tables.' WHERE '.implode(' AND ', $conditions));
+	$select = sc_query('SELECT COUNT(*) as c FROM '.$tables.' WHERE '.implode(' AND ', $conditions));
 	
 	$line = $select->fetch_assoc();
 	

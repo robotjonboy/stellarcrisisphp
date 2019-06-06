@@ -47,22 +47,23 @@ if (isset($_POST['name']) and isset($_POST['pass']))
 	$sql  = 'SELECT name, is_admin FROM empires ';
 	$sql .= 'WHERE name = "'.$_POST['name'].'" ';
 	$sql .= 'AND password = "'.$_POST['pass'].'"';
-	$select = sc_mysql_query($sql);
+	$select = sc_query($sql);
 
-	if ($authenticated = mysql_num_rows($select))
+	if ($authenticated = $select->num_rows) //another intentional usage of a single =; and again, I didn't write this
 		{
-		$authenticated_as_admin = mysql_result($select, 0, 1);
+		$line = $select->fetch_assoc();
+		$authenticated_as_admin = $line['is_admin'];
 		
 		// Make sure the name is capitalized correctly in the $_POST array from now on 
 		// by taking the value from the database.
-		$_POST['name'] = mysql_result($select, 0, 0);
+		$_POST['name'] = $line['name'];
 		}
 	}
  
 	adminAction($_POST);
 	
 	// Processing ends here. Commit whatever we've done.
-	mysql_query('COMMIT');  //cjp stop commit on pop-up - adjust nesting
+	sc_query('COMMIT');  //cjp stop commit on pop-up - adjust nesting
 
 
 function adminAction($vars)

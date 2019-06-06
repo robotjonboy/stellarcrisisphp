@@ -124,7 +124,7 @@ if (isset($_POST['name']) and isset($_POST['pass']))
 	$sql  = 'SELECT name, is_admin FROM empires ';
 	$sql .= 'WHERE name = "'.$mysqli->real_escape_string($_POST['name']).'" ';
 	$sql .= 'AND password = "'.$mysqli->real_escape_string($_POST['pass']).'"';
-	$select = sc_mysql_query($sql);
+	$select = sc_query($sql);
 
 	if ($authenticated = $select->num_rows)
 	{
@@ -159,7 +159,7 @@ else
 		mainPage(); // User accessed the URL directly.
 	}
 	// Processing ends here. Commit whatever we've done.
-	sc_mysql_query('COMMIT');  //cjp stop commit on pop-up - adjust nesting
+	sc_query('COMMIT');  //cjp stop commit on pop-up - adjust nesting
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -242,7 +242,7 @@ function mainPage()
 	standardHeader('Login');
 
 //	$select_quickStats = sc_mysql_query('SELECT COUNT(DISTINCT players.name), COUNT(DISTINCT games.id) FROM players INNER JOIN games ON games.player_count > 0');
-	$select_quickStats = sc_mysql_query
+	$select_quickStats = sc_query
 	('
 		SELECT COUNT(DISTINCT players.name),
 		COUNT(DISTINCT games.id) 
@@ -250,7 +250,7 @@ function mainPage()
 		INNER JOIN games 
 		ON games.player_count > 0
 	');
-	$select_motd = sc_mysql_query
+	$select_motd = sc_query
 	('
 		SELECT text 
 		FROM messages 
@@ -371,7 +371,7 @@ function login($vars)
     		$sql='UPDATE empires SET last_login = '.time().', ';
 			$sql.='last_ip = "'.$_SERVER['REMOTE_ADDR'].'" ';
 			$sql.='WHERE name = "'.$vars['name'].'"';
-    		sc_mysql_query($sql);
+    		sc_query($sql);
 
 			// Reset the cookie holding the login name for another 24 hours.
 			setcookie('sc_login', $vars['name'], (time()+86400), '/');
@@ -380,7 +380,7 @@ function login($vars)
 			if (preg_match('^C', $empire['validation_info']))
 			{
 				list($code, $newpass) = explode('/', $empire['validation_info']);
-				sc_mysql_query
+				sc_query
 				('
 					UPDATE empires 
 					SET password = "'.$newpass.'", 
@@ -633,7 +633,7 @@ function handleIconUpload($vars, $file)
 			if (copy($file['iconToUpload']['tmp_name'], 
 				'images/aliens/custom/'.$filename))
 			{
-				sc_mysql_query('UPDATE empires SET icon = "custom/'.
+				sc_query('UPDATE empires SET icon = "custom/'.
 								$filename.
 								'" WHERE name = "'.$vars['name'].'"');
 				sendEmpireMessage($empire, 'Custom icon uploaded successfully.');
@@ -669,7 +669,7 @@ function spawnGame($series_name)
 		$next_update = time()+$series['update_time'];
   		$last_update = time();
 
-		sc_mysql_query('UPDATE series SET game_count = (game_count+1) WHERE id = '.$series['id'], __FILE__.'*'.__LINE__);
+		sc_query('UPDATE series SET game_count = (game_count+1) WHERE id = '.$series['id'], __FILE__.'*'.__LINE__);
 
 		$values = array();
 		$values[] = 'series_id = '.$series['id'];
@@ -680,7 +680,7 @@ function spawnGame($series_name)
 		$values[] = 'weekend_updates  = "'.$series['weekend_updates'].'"';
 		$values[] = 'max_allies  = '.($series['max_allies'] ? $series['max_allies'] : 'NULL');
 
-  		sc_mysql_query('INSERT INTO games SET '.implode(', ', $values), __FILE__.'*'.__LINE__);
+  		sc_query('INSERT INTO games SET '.implode(', ', $values), __FILE__.'*'.__LINE__);
   		
   		return $mysqli->insert_id;
 		}
@@ -730,7 +730,7 @@ function recalculateRatios($vars)
 
 	$query = 'SELECT '.implode(',', $fields).' FROM ships WHERE '.implode(' AND ', $conditions);
 
-	$select = sc_mysql_query($query, __FILE__.'*'.__LINE__);
+	$select = sc_query($query, __FILE__.'*'.__LINE__);
 
   	$build = (sc_result($select, 0, 0) ? sc_result($select, 0, 0) : 0);
 	$maintenance = (sc_result($select, 0, 1) ? sc_result($select, 0, 1) : 0);
@@ -749,7 +749,7 @@ function recalculateRatios($vars)
 	$conditions[] = 'game_id = '.$game['id'];
 	$conditions[] = 'owner = "'.$empire['name'].'"';
 
-	$select = sc_mysql_query('SELECT '.implode(',', $fields).' FROM systems WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+	$select = sc_query('SELECT '.implode(',', $fields).' FROM systems WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 
 	$mineral = (sc_result($select, 0, 0) ? sc_result($select, 0, 0) : 0);
   	$fuel = (sc_result($select, 0, 1) ? sc_result($select, 0, 1) : 0);
@@ -763,7 +763,7 @@ function recalculateRatios($vars)
 	$conditions[] = 'game_id = '.$game['id'];
 	$conditions[] = 'empire = "'.$empire['name'].'"';
 	$conditions[] = 'status > "3"';
-	$select = sc_mysql_query('SELECT id FROM diplomacies WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+	$select = sc_query('SELECT id FROM diplomacies WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
   	$trade = $select->num_rows;
 
 	// Ok, so do trade agreements give a 10% bonus on base resource totals, or effective totals?
@@ -794,7 +794,7 @@ function recalculateRatios($vars)
 	$values[] = 'agriculture_ratio = '.($population ? $agriculture/$population : 'NULL');
 	$values[] = 'tech_development = '.$tech_development;
 	
-	sc_mysql_query('UPDATE players SET '.implode(',', $values).' WHERE id = '.$player['id'], __FILE__.'*'.__LINE__);
+	sc_query('UPDATE players SET '.implode(',', $values).' WHERE id = '.$player['id'], __FILE__.'*'.__LINE__);
 
 	// We do this last, since the numbers here depend on what was done earlier.
 	$economic_power = getEconomicPower($player);
@@ -807,10 +807,10 @@ function recalculateRatios($vars)
 		$fields[] = 'max_economic_power = '.max($empire['max_economic_power'], $economic_power);
 		$fields[] = 'max_military_power = '.max($empire['max_military_power'], $military_power);
 		
-		sc_mysql_query('UPDATE empires SET '.implode(',', $fields).' WHERE id = '.$empire['id']);
+		sc_query('UPDATE empires SET '.implode(',', $fields).' WHERE id = '.$empire['id']);
 		}
 
-    sc_mysql_query('UPDATE players SET economic_power = '.$economic_power.', military_power = '.$military_power.' WHERE id = '.$player['id']);
+    sc_query('UPDATE players SET economic_power = '.$economic_power.', military_power = '.$military_power.' WHERE id = '.$player['id']);
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -828,7 +828,7 @@ function getMilitaryPower($player)
 	$conditions[] = 'player_id = '.$player['id'];
 	$conditions[] = 'orders <> "build"';
 
-	$select = sc_mysql_query('SELECT SUM(br*br) FROM ships WHERE '.implode(' AND ', $conditions));
+	$select = sc_query('SELECT SUM(br*br) FROM ships WHERE '.implode(' AND ', $conditions));
 
 	return floor( sc_result($select, 0, 0)/50 );
 }
@@ -842,15 +842,15 @@ function getMilitaryPower($player)
 function checkForUpdates()
 {
 	// Commit any previous work.
-	sc_mysql_query('COMMIT');
+	sc_query('COMMIT');
 	
 	// Check for holiday breaks and pause long-term games accordingly.
 	if (inHolidayBreak())
-    	sc_mysql_query('UPDATE games SET last_update = UNIX_TIMESTAMP() WHERE update_time > 600');
+    	sc_query('UPDATE games SET last_update = UNIX_TIMESTAMP() WHERE update_time > 600');
     
 	// Fix update times for non-weekend-updating games, if we are in the weekend.
 	if (preg_match('/Sat|Sun/i', date('D', time())))
-		sc_mysql_query('UPDATE games SET last_update = UNIX_TIMESTAMP() WHERE weekend_updates = "0"');
+		sc_query('UPDATE games SET last_update = UNIX_TIMESTAMP() WHERE weekend_updates = "0"');
 	
 	// Fix update times for paused games. This feature is DISABLED for now.
 	// sc_mysql_query('UPDATE games SET last_update = '.time().' WHERE on_hold = "1" AND closed = "0"');
@@ -869,7 +869,7 @@ function checkForUpdates()
 	$conditions[] = 'series.team_game = "1"';
 	$conditions[] = 'games.closed = "0"';
 	$conditions[] = 'games.player_count > 0';	
-	sc_mysql_query('UPDATE '.$tables.' SET games.last_update = UNIX_TIMESTAMP() WHERE '.implode(' AND ', $conditions));
+	sc_query('UPDATE '.$tables.' SET games.last_update = UNIX_TIMESTAMP() WHERE '.implode(' AND ', $conditions));
 
 	// Kill stale passworded games.
 	checkForOldPasswordedGames();
@@ -884,15 +884,15 @@ function checkForUpdates()
 	$next_updateable_game .= 'WHERE player_count > 1 ';
 	$next_updateable_game .= 'HAVING update_required = 1 ';
 	$next_updateable_game .= 'LIMIT 1';
-	$select = sc_mysql_query($next_updateable_game);
+	$select = sc_query($next_updateable_game);
 
 	if ($select->num_rows) { // if have one row of data then we might get more
-		sc_mysql_query('BEGIN'); // start transaction
+		sc_query('BEGIN'); // start transaction
 
 		while ($select->num_rows) { // while we still have one more
 			// Get the game we need to update and lock that one record FOR UPDATE.
 			$row = sc_fetch_assoc($select);
-			$select_next_game = sc_mysql_query('SELECT * FROM games WHERE id = '.$row['id'].' FOR UPDATE');
+			$select_next_game = sc_query('SELECT * FROM games WHERE id = '.$row['id'].' FOR UPDATE');
 			$game = sc_fetch_assoc($select_next_game);
 
 			// Maybe cache this?
@@ -907,14 +907,14 @@ function checkForUpdates()
 					break;
 			}
 		
-			sc_mysql_query('BEGIN'); // COMMITs the previous game and sets up up for the next one
+			sc_query('BEGIN'); // COMMITs the previous game and sets up up for the next one
 		
 			// Re-issue query to get the next updateable game.
-			$select = sc_mysql_query($next_updateable_game);
+			$select = sc_query($next_updateable_game);
 			}
 		}
 	
-	sc_mysql_query('BEGIN'); // COMMIT and process the rest of the user's request.
+	sc_query('BEGIN'); // COMMIT and process the rest of the user's request.
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -927,12 +927,12 @@ function checkForTournamentUpdates()
 {
 	//find running tournaments
 	$sql = 'select * from tournament where starttime < ' . time() . ' AND completed = false';
-	$select = sc_mysql_query($sql);
+	$select = sc_query($sql);
 	
 	while ($tourney = $select->fetch_assoc()) {
 		//are there any games?
 		$sql = 'select count(*) as numberofgames from tournamentgame where tournament = ' . $tourney['id'];
-		$result2 = sc_mysql_query($sql);
+		$result2 = sc_query($sql);
 		$line = mysql_fetch_assoc($result2);
 		$numberofgames = $line['numberofgames'];
 		
@@ -940,12 +940,12 @@ function checkForTournamentUpdates()
 			//setup the first round
 			//fetch the series
 			$sql2 = 'select * from series where id = ' . $tourney['series'];
-			$result2 = sc_mysql_query($sql2);
+			$result2 = sc_query($sql2);
 			$series = mysql_fetch_assoc($result2);
 			
 			//find out how many entrants we have
 			$sql2 = 'select te.id as teid, name, e.id as empireid, rand() as r from tournamententrant te, empires e where tournamentid = ' . $tourney['id'] . ' AND te.empireid = e.id order by r';
-			$result2 = sc_mysql_query($sql2);
+			$result2 = sc_query($sql2);
 			
 			$numberOfEntrants = mysql_num_rows($result2);
 						
@@ -956,7 +956,7 @@ function checkForTournamentUpdates()
 				$entrant = mysql_fetch_assoc($result2);
 				
 				$sql3 = 'update tournamententrant set byes = 1 where id = ' . $entrant['teid'];
-				sc_mysql_query($sql3);
+				sc_query($sql3);
 				$i = 1;
 			}
 			
@@ -977,12 +977,12 @@ function checkForTournamentUpdates()
 				//setup bridier
 				$sql3 = "insert ignore into bridier (game_id, series_name, game_number, empire1) values (" . $gameid . ", '" . $series['name'] . "', " . $game['game_number'] .
 					  ", '" . $firstPlayer['name'] . "')";
-				sc_mysql_query($sql3);
+				sc_query($sql3);
 				
 				$bridier = mysql_insert_id();
 				
 				$sql3 = 'UPDATE games SET bridier = "'.$bridier.'" WHERE id = '.$game['id'];
-				sc_mysql_query($sql3);
+				sc_query($sql3);
 				
 				//second player joins
 				//refresh game
@@ -993,7 +993,7 @@ function checkForTournamentUpdates()
 				//create the tournament game record
 				$sql3 = 'insert into tournamentgame (tournament, game, round, firstempire, secondempire) values (' . $tourney['id'] . ', ' . $gameid . ', ' .
 					  ($currentround + 1) . ", '" . $firstPlayer['name'] . "', '" . $secondPlayer['name'] . "')";
-				sc_mysql_query($sql3);
+				sc_query($sql3);
 			}
 		} else {
 			//current round?
@@ -1012,12 +1012,12 @@ function checkForTournamentUpdates()
 				//schedule next round
 				//fetch the series
 				$sql2 = 'select * from series where id = ' . $tourney['series'];
-				$result2 = sc_mysql_query($sql2);
+				$result2 = sc_query($sql2);
 				$series = mysql_fetch_assoc($result2);
 			
 				//find out how many entrants we have
 				$sql2 = 'select te.id as teid, name, e.id as empireid, rand() as r from tournamententrant te, empires e where tournamentid = ' . $tourney['id'] . ' AND te.empireid = e.id AND eliminated = false order by byes asc, r';
-				$result2 = sc_mysql_query($sql2);
+				$result2 = sc_query($sql2);
 			
 				$numberOfEntrants = mysql_num_rows($result2);
 
@@ -1028,7 +1028,7 @@ function checkForTournamentUpdates()
 					$entrant = mysql_fetch_assoc($result2);
 				
 					$sql3 = 'update tournamententrant set byes = byes + 1 where id = ' . $entrant['teid'];
-					sc_mysql_query($sql3);
+					sc_query($sql3);
 					$i = 1;
 				}
 			
@@ -1049,12 +1049,12 @@ function checkForTournamentUpdates()
 					//setup bridier
 					$sql3 = "insert ignore into bridier (game_id, series_name, game_number, empire1) values (" . $gameid . ", '" . $series['name'] . "', " . $game['game_number'] .
 						  ", '" . $firstPlayer['name'] . "')";
-					sc_mysql_query($sql3);
+					sc_query($sql3);
 					
 					$bridier = mysql_insert_id();
 				
 					$sql3 = 'UPDATE games SET bridier = "'.$bridier.'" WHERE id = '.$game['id'];
-					sc_mysql_query($sql3);
+					sc_query($sql3);
 				
 					//second player joins
 					$vars['name'] = $secondPlayer['name'];
@@ -1064,7 +1064,7 @@ function checkForTournamentUpdates()
 					//create the tournament game record
 					$sql3 = 'insert into tournamentgame (tournament, game, round, firstempire, secondempire) values (' . $tourney['id'] . ', ' . $gameid . ', ' .
 						  ($currentround + 1) . ", '" . $firstPlayer['name'] . "', '" . $secondPlayer['name'] . "')";
-					sc_mysql_query($sql3);
+					sc_query($sql3);
 				}	
 			}
 		}
@@ -1072,7 +1072,7 @@ function checkForTournamentUpdates()
 	}
 	
 	
-	sc_mysql_query('BEGIN'); // COMMIT and process the rest of the user's request.
+	sc_query('BEGIN'); // COMMIT and process the rest of the user's request.
 }
 
 
@@ -1099,7 +1099,7 @@ function checkForOldPasswordedGames()
     $conditions[] = '(player_count = 1 AND password1 <> "" AND (UNIX_TIMESTAMP()-created_at) > 3*games.update_time)';
     $conditions[] = '(series.team_game = "1" AND password1 <> "" AND closed = "0" AND (UNIX_TIMESTAMP()-created_at) > 5*games.update_time)';
 
-    $select_staleGames = sc_mysql_query('SELECT '.implode(',', $fields).' FROM '.$tables.' WHERE '.implode(' OR ', $conditions));
+    $select_staleGames = sc_query('SELECT '.implode(',', $fields).' FROM '.$tables.' WHERE '.implode(' OR ', $conditions));
   	while ($row = sc_fetch_assoc($select_staleGames))
 		{
 		$message = '<span class=red>'.$row['series_name'].' '.$row['game_number'].'</span> was cancelled because ';
@@ -1109,11 +1109,11 @@ function checkForOldPasswordedGames()
 
 		$tables = 'empires INNER JOIN players ON empires.name = players.name';
 
-		$select_empires = sc_mysql_query('SELECT empires.* FROM '.$tables.' WHERE game_id = '.$row['game_id'].' AND team >= 0');
+		$select_empires = sc_query('SELECT empires.* FROM '.$tables.' WHERE game_id = '.$row['game_id'].' AND team >= 0');
 		while ($empire = sc_fetch_assoc($select_empires)) sendEmpireMessage($empire, $message);
 		
 		// Remove pending Bridier result for cancelled Bridier games.
-		if ($row['bridier']) sc_mysql_query('DELETE FROM bridier WHERE game_id = '.$row['game_id']);
+		if ($row['bridier']) sc_query('DELETE FROM bridier WHERE game_id = '.$row['game_id']);
 		
 		eraseGame($row['game_id']);
 		}
@@ -1196,19 +1196,19 @@ function importExplored($ignorant_player, $other_player)
 {
 	// First, delete existing Shared HQ data coming from the other player.
 	// The from_shared_hq field contains the player ID of the contributing player.
-	sc_mysql_query('DELETE FROM explored '.
+	sc_query('DELETE FROM explored '.
 					'WHERE player_id = "'.$ignorant_player['id'].'" '.
 					'AND from_shared_hq = '.$other_player['id']);
 	
 	// The only thing we're importing is planets that the other player has explored himself. We are excluding intelligence
 	// he obtained from other potential Shared HQ friends. Hence the 'from_shared_hq = 0' condition.
-	$select = sc_mysql_query(   'SELECT * FROM explored '.
+	$select = sc_query(   'SELECT * FROM explored '.
 								'WHERE player_id = '.$other_player['id'].' '.
 								'AND from_shared_hq = 0');
 	while ($explored = sc_fetch_assoc($select))
 		{
 		// First, delete any scouting reports for this planet, or they'll overwrite the explored record on the map.
-		sc_mysql_query( 'DELETE FROM scouting_reports '.
+		sc_query( 'DELETE FROM scouting_reports '.
 						'WHERE player_id = '.$ignorant_player['id'].' '.
 						'AND coordinates = "'.$explored['coordinates'].'"');
 		
@@ -1221,7 +1221,7 @@ function importExplored($ignorant_player, $other_player)
 		$values[] = 'coordinates = "'.$explored['coordinates'].'"';
 		$values[] = 'from_shared_hq = '.$other_player['id'];
 
-		sc_mysql_query('INSERT IGNORE INTO explored SET '.implode(',', $values));
+		sc_query('INSERT IGNORE INTO explored SET '.implode(',', $values));
 		}
 }
 
@@ -1235,7 +1235,7 @@ function addExploredToFriends($player, $explored_id)
 	// Exit if this ID is somehow invalid.
 	if (!$explored = getExploredByID($explored_id)) return;
 
-	$select = sc_mysql_query(	'SELECT opponent '.
+	$select = sc_query(	'SELECT opponent '.
 								'FROM diplomacies '.
 								'WHERE game_id = '.$player['game_id'].' '.
 								'AND empire = "'.$player['name'].'" '.
@@ -1250,7 +1250,7 @@ function addExploredToFriends($player, $explored_id)
 		$conditions[] = 'coordinates = "'.$explored['coordinates'].'"';
 		$conditions[] = 'from_shared_hq = "'.$player['id'].'"';
 		
-		sc_mysql_query('DELETE FROM explored WHERE '.implode(' AND ', $conditions));
+		sc_query('DELETE FROM explored WHERE '.implode(' AND ', $conditions));
 			
 		$values = array();
 		$values[] = 'series_id = '.$explored['series_id'];
@@ -1261,7 +1261,7 @@ function addExploredToFriends($player, $explored_id)
 		$values[] = 'coordinates = "'.$explored['coordinates'].'"';
 		$values[] = 'from_shared_hq = '.$player['id'];
 
-		sc_mysql_query('INSERT IGNORE INTO explored SET '.implode(',', $values));
+		sc_query('INSERT IGNORE INTO explored SET '.implode(',', $values));
 		}
 }
 
@@ -1292,7 +1292,7 @@ function convertSharedHQToScoutingReports($series, $update, $player_1, $player_2
 	$conditions[] = 'explored.empire = "'.$player_1['name'].'"';
 	$conditions[] = 'explored.from_shared_hq = '.$player_2['id'];
 
-	$select = sc_mysql_query('SELECT '.implode(',', $fields).' FROM '.$from.' WHERE '.implode(' AND ', $conditions));
+	$select = sc_query('SELECT '.implode(',', $fields).' FROM '.$from.' WHERE '.implode(' AND ', $conditions));
 	while ($system = sc_fetch_assoc($select))
 		{
 		$values = array();
@@ -1316,7 +1316,7 @@ function convertSharedHQToScoutingReports($series, $update, $player_1, $player_2
 		$conditions[] = 'series_id = '.$series['id'];
 		$conditions[] = 'game_number = '.$system['game_number'];
 		$conditions[] = 'location = "'.$system['coordinates'].'"';
-		$ship_select = sc_mysql_query('SELECT * FROM ships WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__  );
+		$ship_select = sc_query('SELECT * FROM ships WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__  );
 	
 		while ($ship = sc_fetch_assoc($ship_select))
 			{
@@ -1352,11 +1352,11 @@ function convertSharedHQToScoutingReports($series, $update, $player_1, $player_2
 		if (strlen($ships))
 			$values[] = 'ships = "'.urlencode($ships).'"';
 		
-		sc_mysql_query('DELETE FROM scouting_reports WHERE player_id = '.$player_1['id'].' AND coordinates = "'.$system['coordinates'].'"', __FILE__.'*'.__LINE__);
-		sc_mysql_query('INSERT INTO scouting_reports SET '.implode(',', $values), __FILE__.'*'.__LINE__);
+		sc_query('DELETE FROM scouting_reports WHERE player_id = '.$player_1['id'].' AND coordinates = "'.$system['coordinates'].'"', __FILE__.'*'.__LINE__);
+		sc_query('INSERT INTO scouting_reports SET '.implode(',', $values), __FILE__.'*'.__LINE__);
 		}
 		
-	sc_mysql_query('DELETE FROM explored WHERE player_id = '.$player_1['id'].' AND from_shared_hq = '.$player_2['id'], __FILE__.'*'.__LINE__);
+	sc_query('DELETE FROM explored WHERE player_id = '.$player_1['id'].' AND from_shared_hq = '.$player_2['id'], __FILE__.'*'.__LINE__);
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -1374,7 +1374,7 @@ function getTeamDiplomacy($game)
 		{
 		$team_offer[$team] = 0;	// start at surrender-- we'll end up using the *highest* value found
 		
-		$select = sc_mysql_query('SELECT offer FROM diplomacies WHERE game_id = '.$game['id'].' AND opponent = "=Team'.$team.'="');
+		$select = sc_query('SELECT offer FROM diplomacies WHERE game_id = '.$game['id'].' AND opponent = "=Team'.$team.'="');
 		while ($diplomacy = sc_fetch_assoc($select))
 			if ($diplomacy['offer'] > $team_offer[$team]) $team_offer[$team] = $diplomacy['offer'];
 		}
@@ -1527,7 +1527,7 @@ function sendEmpireMessage($empire, $message)
 	$values[] = 'empire_id = '.$empire['id'];
 	$values[] = 'text = "'.addslashes($message).'"';
 
-	sc_mysql_query('INSERT INTO messages SET '.implode(',', $values));
+	sc_query('INSERT INTO messages SET '.implode(',', $values));
 }
 
 #----------------------------------------------------------------------------------------------------------------------#

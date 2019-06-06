@@ -26,7 +26,7 @@ function joinGame($vars, $team = 0, $spawngame = true, $returninfoscreen = true)
 		$history_values[] = 'event = "started"';
 		$history_values[] = 'info = '.time();
 
-		sc_mysql_query('INSERT INTO history SET '.implode(',', $history_values));
+		sc_query('INSERT INTO history SET '.implode(',', $history_values));
 
 		$game['created_by'] = $vars['name'];
 		$game['created_at'] = time();
@@ -39,7 +39,7 @@ function joinGame($vars, $team = 0, $spawngame = true, $returninfoscreen = true)
 		}
 	
 	// store the update	
-	sc_mysql_query('UPDATE games SET '.implode(',', $game_values).' WHERE id = '.((int)$game['id']));
+	sc_query('UPDATE games SET '.implode(',', $game_values).' WHERE id = '.((int)$game['id']));
 
 	if ($series['team_game'])
 		joinTeamGame($vars, $series, $game, $team);
@@ -52,14 +52,14 @@ function joinGame($vars, $team = 0, $spawngame = true, $returninfoscreen = true)
 	// If the game is full, set the closed flag and remove unanswered invitations.
 	if ($game['player_count'] == $series['max_players'])
 		{
-		sc_mysql_query('UPDATE games SET closed = "1" WHERE id = '.((int)$game['id']));
+		sc_query('UPDATE games SET closed = "1" WHERE id = '.((int)$game['id']));
 
 		$game['closed'] = 1;
 
 		// If it's a bridier game, finish setting up the results entry.
 		if ($game['bridier'] >= 0)
 			{
-			$bridier_query = sc_mysql_query('SELECT * FROM bridier WHERE game_id = '.((int)$game['id']));
+			$bridier_query = sc_query('SELECT * FROM bridier WHERE game_id = '.((int)$game['id']));
 			$bdata = mysql_fetch_array($bridier_query);
 			
 			$empire = getEmpire($vars['name']);
@@ -73,14 +73,14 @@ function joinGame($vars, $team = 0, $spawngame = true, $returninfoscreen = true)
 			$fields[] = 'starting_index2 = '.$empire['bridier_index'];
 			$fields[] = 'start_time = '.time();
 			
-			sc_mysql_query('UPDATE bridier SET '.implode(',',$fields).' WHERE game_id = '.$game['id']);
+			sc_query('UPDATE bridier SET '.implode(',',$fields).' WHERE game_id = '.$game['id']);
 			}
 
 		// Remove all invitations.
-		sc_mysql_query('DELETE FROM invitations WHERE game_id = '.((int)$game['id']));
+		sc_query('DELETE FROM invitations WHERE game_id = '.((int)$game['id']));
 		
 		// Remove any unused systems.
-		sc_mysql_query('DELETE FROM systems WHERE game_id = '.((int)$game['id']).' AND system_active = "0"');
+		sc_query('DELETE FROM systems WHERE game_id = '.((int)$game['id']).' AND system_active = "0"');
 		}
 
 	// Now get up to date player data for game history and passing into infoScreen
@@ -88,7 +88,7 @@ function joinGame($vars, $team = 0, $spawngame = true, $returninfoscreen = true)
 	
 	// Add player join to history.
 	// First, we need to get homeworld location so we can put it in the history record.
-	$select = sc_mysql_query('SELECT coordinates FROM systems WHERE game_id = '.((int)$game['id']).
+	$select = sc_query('SELECT coordinates FROM systems WHERE game_id = '.((int)$game['id']).
 	                         ' AND homeworld = "'.$mysqli->real_escape_string($vars['name']).'"');
 	$homeworld = $select->fetch_assoc();
 	
@@ -102,7 +102,7 @@ function joinGame($vars, $team = 0, $spawngame = true, $returninfoscreen = true)
 	if ($player['team'])
 		$values[] = 'info = "Team '.$player['team'].'"';
 	
-	sc_mysql_query('INSERT INTO history SET '.implode(',', $values));
+	sc_query('INSERT INTO history SET '.implode(',', $values));
 
 	$vars['series_data'] = $series;
 	$vars['game_data'] = $game;
@@ -122,7 +122,7 @@ function joinRegularGame($vars, $series, &$game)
 	// If this is the second player to join in, set the appropriate update time fields.
 	if ($game['player_count'] == 2)
 		{
-		sc_mysql_query('UPDATE games SET last_update ='.time().' WHERE id = '.((int)$game['id']));
+		sc_query('UPDATE games SET last_update ='.time().' WHERE id = '.((int)$game['id']));
 		$game['last_update'] = time();
 		}
 
@@ -196,7 +196,7 @@ function joinRegularGame($vars, $series, &$game)
 			$conditions = array();
 			$conditions[] = 'game_id = '.((int)$game['id']);
 			$conditions[] = 'empire = "'.$mysqli->real_escape_string($vars['name']).'"';
-			sc_mysql_query('UPDATE explored SET player_id = '.((int)$player['id']).' WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+			sc_query('UPDATE explored SET player_id = '.((int)$player['id']).' WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 			break;
 		}
 }
@@ -223,7 +223,7 @@ function joinTeamGame($vars, $series, &$game, $team)
 	else
 		{
 		// Make a list of who is in the game already.
-	   	$player_query = sc_mysql_query('SELECT * FROM players WHERE game_id = '.((int)$game['id']),
+	   	$player_query = sc_query('SELECT * FROM players WHERE game_id = '.((int)$game['id']),
 	   	                               __FILE__.'*'.__LINE__);
 
 		while ($player = mysql_fetch_array($player_query))
@@ -244,7 +244,7 @@ function joinTeamGame($vars, $series, &$game, $team)
 	
 	$team_openings = array(1 => array(), 2 => array());
 
-	$select = sc_mysql_query('SELECT owner, player_number FROM systems WHERE game_id = '.$game['id'].' AND owner <> ""');
+	$select = sc_query('SELECT owner, player_number FROM systems WHERE game_id = '.$game['id'].' AND owner <> ""');
 	while ($system = $select->fetch_assoc())
 		{
 		if (!in_array($system['owner'], $team_list[1]) and !in_array($system['owner'], $team_list[2]))
@@ -276,13 +276,13 @@ function joinTeamGame($vars, $series, &$game, $team)
 	$values[] = 'offer = "2"';
 	$values[] = 'status = "2"';
 
-	sc_mysql_query('INSERT INTO diplomacies SET '.implode(',', $values));
+	sc_query('INSERT INTO diplomacies SET '.implode(',', $values));
 	
 	// If the game is full, start the timer, close the game 
 	if ($game['player_count'] == $series['max_players'])
 		{
 		// Team games don't start until full.
-		sc_mysql_query('UPDATE games SET last_update = '.time().' WHERE id = '.((int)$game['id']));
+		sc_query('UPDATE games SET last_update = '.time().' WHERE id = '.((int)$game['id']));
 		
 		// Set local copies of variables so that info screen comes up correctly!
 		$game['last_update'] = time();
@@ -297,7 +297,7 @@ function joinPrebuiltGame($vars, $series, $game)
 {
 	// Load the entire map for this game
 	$map = array();
-	$select = sc_mysql_query('SELECT * FROM systems WHERE game_id = '.((int)$game['id']), __FILE__.'*'.__LINE__);
+	$select = sc_query('SELECT * FROM systems WHERE game_id = '.((int)$game['id']), __FILE__.'*'.__LINE__);
 	while ($sys = $select->fetch_assoc()) $map[$sys['coordinates']] = $sys;
 
 	// Look for inactive planets next to currently active ones-- these are the player positions we can activate now.
@@ -327,7 +327,7 @@ function joinPrebuiltGame($vars, $series, $game)
 	$conditions[] = 'player_number = '.((int)$player);
 
 	$query = 'UPDATE systems SET system_active = "1" WHERE '.implode(' AND ',$conditions);
-	sc_mysql_query($query, __FILE__.'*'.__LINE__);
+	sc_query($query, __FILE__.'*'.__LINE__);
 	
 	fixPrebuiltLinks($game);
 }
@@ -352,7 +352,7 @@ function fillPlayerPosition($player_slot, $vars, $series, $game, $team = 0)
 	$conditions[] = 'game_id = '.((int)$game['id']);
 	$conditions[] = 'empire = "=Player '.$player_slot.'="';
 
-	sc_mysql_query('UPDATE explored SET '.implode(',', $values).' WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+	sc_query('UPDATE explored SET '.implode(',', $values).' WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 
 	$values = array();
 	$values[] = 'name = "'.$mysqli->real_escape_string($vars['name']).'"';
@@ -363,14 +363,14 @@ function fillPlayerPosition($player_slot, $vars, $series, $game, $team = 0)
 	$conditions[] = 'game_id = '.((int)$game['id']);
 	$conditions[] = 'homeworld = "=Player '.$player_slot.'="';
 
-	sc_mysql_query('UPDATE systems SET '.implode(',', $values).' WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+	sc_query('UPDATE systems SET '.implode(',', $values).' WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 
 	$conditions = array();
 	$conditions[] = 'game_id = '.((int)$game['id']);
 	$conditions[] = 'player_number = '.((int)$player_slot);
 
 	$query = 'UPDATE systems SET system_active = "1" WHERE '.implode(' AND ', $conditions);
-	sc_mysql_query($query, __FILE__.'*'.__LINE__);
+	sc_query($query, __FILE__.'*'.__LINE__);
 }
 
 #-----------------------------------------------------------------------------------------------------------------------------------------#
@@ -382,8 +382,8 @@ function fixPrebuiltLinks($game)
 	$map = array();
 	
 	// Load the active systems in the map
-	$query = sc_mysql_query('SELECT * FROM systems WHERE game_id = '.$game['id'].' AND system_active = "1"', __FILE__.'*'.__LINE__);
-	while ($sys = mysql_fetch_array($query)) $map[$sys['coordinates']] = $sys;
+	$query = sc_query('SELECT * FROM systems WHERE game_id = '.$game['id'].' AND system_active = "1"', __FILE__.'*'.__LINE__);
+	while ($sys = $query->fetch_assoc()) $map[$sys['coordinates']] = $sys;
 	
 	// Go through all the active systems and check for links.
 	foreach (array_keys($map) as $coord)
@@ -410,7 +410,7 @@ function fixPrebuiltLinks($game)
 					$conditions[] = 'game_id = '.$game['id'];
 					$conditions[] = 'coordinates = "'.$jump.'"';
 
-					sc_mysql_query('UPDATE systems SET jumps = "'.$map[$jump]['jumps'].'" WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+					sc_query('UPDATE systems SET jumps = "'.$map[$jump]['jumps'].'" WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 					}
 				}
 				
@@ -420,7 +420,7 @@ function fixPrebuiltLinks($game)
 		$conditions[] = 'game_id = '.$game['id'];
 		$conditions[] = 'coordinates = "'.$coord.'"';
 
-		sc_mysql_query('UPDATE systems SET jumps = "'.$map[$coord]['jumps'].'" WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+		sc_query('UPDATE systems SET jumps = "'.$map[$coord]['jumps'].'" WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 		}
 }
 
@@ -435,7 +435,7 @@ function initPlayer($vars, $series, $game, $team, $player_slot = '')
 	// The player's tech level is by default 1.0, unless there is someone in this game which has a higher tech level.
 	// If this is the case, set the player's tech level to the highest tech level of the other players.
 	$sql = 'SELECT GREATEST(1.0, MAX(tech_level)) as g FROM players WHERE game_id = '.$game['id'].' AND name <> "'.$vars['name'].'"';
-	$select = sc_mysql_query($sql);
+	$select = sc_query($sql);
 	$line = $select->fetch_assoc();
 	$tech_level = $line['g'];
 	
@@ -471,7 +471,7 @@ function initPlayer($vars, $series, $game, $team, $player_slot = '')
 	$values[] = 'ip = "'.$_SERVER['REMOTE_ADDR'].'"';
 	$values[] = 'map_origin = "'.$empire['map_origin'].'"';
 
-	sc_mysql_query('INSERT INTO players SET '.implode(',', $values));
+	sc_query('INSERT INTO players SET '.implode(',', $values));
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -510,7 +510,7 @@ function createPrebuiltMap($series, $game)
 	saveMap($series, $game, $big_map);
 
 	// Now set all the systems to inactive-- to be woken up as players join the game
-	sc_mysql_query('UPDATE systems SET system_active = "0" WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
+	sc_query('UPDATE systems SET system_active = "0" WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
 	
 #	if (in_array('=Player 2=', $big_map))
 #		echo 'Found!<br>';
@@ -1289,7 +1289,7 @@ function generateMapForPlayer($name, $series, $game)
 
 	// Get the current map, if there is one.
 	$big_map = array();
-	$select = sc_mysql_query('SELECT * FROM systems WHERE series_id = '.$series['id'].' AND game_number = '.$game['game_number'], __FILE__.'*'.__LINE__);
+	$select = sc_query('SELECT * FROM systems WHERE series_id = '.$series['id'].' AND game_number = '.$game['game_number'], __FILE__.'*'.__LINE__);
 	while ($system = $select->fetch_assoc())
 		$big_map[$system['coordinates']] = $system;
 
@@ -1339,7 +1339,7 @@ function generateMapForPlayer($name, $series, $game)
 					$conditions[] = 'game_number = '.$game['game_number'];
 					$conditions[] = 'coordinates = "'.$ixb.'"';
 
-					sc_mysql_query('UPDATE systems SET jumps = "'.$jumps.'" WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+					sc_query('UPDATE systems SET jumps = "'.$jumps.'" WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 					}
 				}
 
@@ -1351,7 +1351,7 @@ function generateMapForPlayer($name, $series, $game)
 		$conditions[] = 'game_number = '.$game['game_number'];
 		$conditions[] = 'coordinates = "'.$ixa.'"';
 
-		sc_mysql_query('UPDATE systems SET jumps = "'.$jumps.'" WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+		sc_query('UPDATE systems SET jumps = "'.$jumps.'" WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 		}
 
 	// debug
@@ -1678,7 +1678,7 @@ function saveMap( $series, $game, $map )
 					break;
 			}
 		
-		sc_mysql_query('INSERT INTO systems SET '.implode(', ', $values), __FILE__.'*'.__LINE__);
+		sc_query('INSERT INTO systems SET '.implode(', ', $values), __FILE__.'*'.__LINE__);
 		
 		$player = getPlayer($game['id'], $name);
 		
@@ -1697,7 +1697,7 @@ function saveMap( $series, $game, $map )
 			
 			$query = 'INSERT INTO explored SET '.implode(',', $values);
 			
-			sc_mysql_query($query, __FILE__.'*'.__LINE__);
+			sc_query($query, __FILE__.'*'.__LINE__);
 			}
 		}
 }
@@ -1711,7 +1711,7 @@ function showMap($game)
 	$map = array();
 	
 	// load the active systems in the map
-	$select = sc_mysql_query('SELECT * FROM systems WHERE game_id = '.$game['id'].' AND system_active = "1"', __FILE__.'*'.__LINE__);
+	$select = sc_query('SELECT * FROM systems WHERE game_id = '.$game['id'].' AND system_active = "1"', __FILE__.'*'.__LINE__);
 	while ($system = $select->fetch_assoc())
 		$map[$system['coordinates']] = $system;
 	
@@ -1812,11 +1812,11 @@ function nameSystem(&$big_map)
 		// We could to an "ORDER BY RAND() LIMIT 1", but with the table on Iceberg being over 85 thousand records, that would
 		// incur a *massive* performance penalty, since we're sorting the entire table for each query. For big maps, this
 		// adds up to a very long wait. Hence, we find a random id (COUNT(*) is very fast) and pick out the word.
-		$word_count = sc_mysql_query('SELECT COUNT(*) as c FROM '.$server['systemNameSource'], __FILE__.'*'.__LINE__);
+		$word_count = sc_query('SELECT COUNT(*) as c FROM '.$server['systemNameSource'], __FILE__.'*'.__LINE__);
 		$line = $word_count->fetch_assoc();
 		$random_id = rand(1, $line['c']);
 		
-		$select = sc_mysql_query('SELECT word FROM '.$server['systemNameSource'].' WHERE id = '.$random_id, __FILE__.'*'.__LINE__);
+		$select = sc_query('SELECT word FROM '.$server['systemNameSource'].' WHERE id = '.$random_id, __FILE__.'*'.__LINE__);
 		$word = $select->fetch_assoc();
 		
 		return ucfirst($word['word']);

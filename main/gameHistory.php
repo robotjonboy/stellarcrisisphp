@@ -9,7 +9,7 @@ function gameHistory($vars)
 	
 	$conditions = (count($vars['conditions']) ? ' WHERE '.implode(' AND ', $vars['conditions']) : '');
 	
-	$select = sc_mysql_query('SELECT COUNT(id) FROM gamelog '.$conditions);
+	$select = sc_query('SELECT COUNT(id) FROM gamelog '.$conditions);
 	$recorded_games = mysql_result($select, 0, 0);
 	
 	if (!isset($vars['first_record']))
@@ -28,7 +28,7 @@ function gameHistory($vars)
 	if (!$vars['result'])
 		$vars['result'] = 'All';
 
-	$select = sc_mysql_query('SELECT * FROM gamelog'.$conditions.' ORDER BY id DESC LIMIT '.$limit);
+	$select = sc_query('SELECT * FROM gamelog'.$conditions.' ORDER BY id DESC LIMIT '.$limit);
 ?>
 <div>
 <input type=hidden name=name value="<?php echo $vars['name']; ?>">
@@ -198,7 +198,7 @@ function gameHistory_processing($vars)
 		case 'Previous Page':
 			if ($vars['first_record'] == -1)
 				{
-				$select = sc_mysql_query('SELECT COUNT(id) FROM gamelog '.$conditions);
+				$select = sc_query('SELECT COUNT(id) FROM gamelog '.$conditions);
 				$recorded_games = mysql_result($select, 0, 0);
 				$last_page_count = ($recorded_games % $server['histories_per_page']);
 				$vars['first_record'] = $recorded_games-$last_page_count-$server['histories_per_page']-1;

@@ -29,13 +29,13 @@ function update_game($series, &$game, $update_time)
 	
 	// Commit any previous transactions. This ensures that future threads wait for the update
 	// to finish since the semaphore will now be visible to them.
-	#mysql_query('COMMIT');
+	#sc_query('COMMIT');
 	
 	// Start the update. If anything goes wrong, we'll end up in a pre-update state.
 	// Note, if the update was triggered by ended turn, all the players in the game will have ended 
 	// turn when they check their screen, leading to a bizarre situation. They would need to cancel their "end turn"
 	// and end it again. This should be remedied (clearing the ended turn flag on rollback?).
-	#sc_mysql_query('START TRANSACTION');
+	#sc_query('START TRANSACTION');
 
 	// Update the game record to reflect that the update has occurred. We also update the $game array
 	// so we don't need to reload it from the database.
@@ -43,7 +43,7 @@ function update_game($series, &$game, $update_time)
 	$game['last_update'] = $update_time;
 	
 	$query = 'UPDATE games SET update_count = '.$game['update_count'].', last_update = '.$game['last_update'].' WHERE id = '.$game['id'];
-	sc_mysql_query($query);
+	sc_query($query);
 	
 	$history = array();
 	$history[] = array('', '', 'update', $update_time);
@@ -72,7 +72,7 @@ function update_game($series, &$game, $update_time)
 	$tables[] = 'history WRITE';
 	$tables[] = 'gamelog WRITE';
 	//we do not write to ship_types or words
-	sc_mysql_query('LOCK TABLES '.implode(',', $tables), __FILE__.'*'.__LINE__);*/
+	sc_query('LOCK TABLES '.implode(',', $tables), __FILE__.'*'.__LINE__);*/
 
 	srand(time()); //cjp make rand() work properly
 
@@ -93,7 +93,7 @@ function update_game($series, &$game, $update_time)
 							'</font> has ended in a draw.<br>';
 			
 			// Send a messages to the players, and record the event.
-			$select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
+			$select = sc_query('SELECT * FROM players WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
 			while ($player = $select->fetch_assoc())
 			{
 				$history[] = array('', $player['name'], 'draw', 'Team '.$player['team']);
@@ -116,39 +116,39 @@ function update_game($series, &$game, $update_time)
 
 			if ($team_offer[$team] == '0')
 			{				
-				$select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND ABS(team) = '.$offering_team, __FILE__.'*'.__LINE__);
+				$select = sc_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND ABS(team) = '.$offering_team, __FILE__.'*'.__LINE__);
 				while ($player = $select->fetch_assoc())
 				{
 					// Only players still left are actually surrendering
 					if ( $player['team'] > 0 )
 						$history[] = array( '', $player['name'], 'surrender', 'Team '.$player['team'] );
 					
-					sc_mysql_query('DELETE FROM ships WHERE game_id = '.$game['id'].' AND owner = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
-					sc_mysql_query('DELETE FROM fleets WHERE game_id = '.$game['id'].' AND owner = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
-					sc_mysql_query('DELETE FROM explored WHERE game_id = '.$game['id'].' AND empire = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
-					sc_mysql_query('DELETE FROM diplomacies WHERE game_id = '.$game['id'].' AND empire = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
+					sc_query('DELETE FROM ships WHERE game_id = '.$game['id'].' AND owner = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
+					sc_query('DELETE FROM fleets WHERE game_id = '.$game['id'].' AND owner = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
+					sc_query('DELETE FROM explored WHERE game_id = '.$game['id'].' AND empire = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
+					sc_query('DELETE FROM diplomacies WHERE game_id = '.$game['id'].' AND empire = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
 
 					// We can delete this here because we are sending the message and setting the nuked immediately (below)
-					sc_mysql_query('DELETE FROM players WHERE id = '.$player['id'], __FILE__.'*'.__LINE__);
-					sc_mysql_query('DELETE FROM scouting_reports WHERE player_id = "'.$player['id'].'"', __FILE__.'*'.__LINE__);
-					sc_mysql_query('DELETE FROM messages WHERE player_id = "'.$player['id'].'"', __FILE__.'*'.__LINE__);
-					sc_mysql_query('UPDATE games SET player_count = (player_count-1) WHERE id = '.$game['id'], __FILE__.'*'.__LINE__);
+					sc_query('DELETE FROM players WHERE id = '.$player['id'], __FILE__.'*'.__LINE__);
+					sc_query('DELETE FROM scouting_reports WHERE player_id = "'.$player['id'].'"', __FILE__.'*'.__LINE__);
+					sc_query('DELETE FROM messages WHERE player_id = "'.$player['id'].'"', __FILE__.'*'.__LINE__);
+					sc_query('UPDATE games SET player_count = (player_count-1) WHERE id = '.$game['id'], __FILE__.'*'.__LINE__);
 					
 					if ($player['team'] > 0)
-						sc_mysql_query('UPDATE empires SET nuked = (nuked + 1) WHERE name = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
+						sc_query('UPDATE empires SET nuked = (nuked + 1) WHERE name = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
 
 					$fields = array();
 					$fields[] = 'homeworld = ""';
 					$fields[] = 'owner = ""';
 					$fields[] = 'population = 0';
 					
-					sc_mysql_query('UPDATE systems SET '.implode(',', $fields).' WHERE game_id = '.$game['id'].' AND owner = "'.$player['name'].'"');
+					sc_query('UPDATE systems SET '.implode(',', $fields).' WHERE game_id = '.$game['id'].' AND owner = "'.$player['name'].'"');
 				
 					$empire = getEmpire($player['name']);
 					sendEmpireMessage($empire, 'Your team has surrendered in <span class=red>'.$series['name'].' '.$game['game_number'].'</span>.');
 				}
 
-				$select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND team = '.$team, __FILE__.'*'.__LINE__);
+				$select = sc_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND team = '.$team, __FILE__.'*'.__LINE__);
 				while ($player = $select->fetch_assoc())
 				{
 					$empire = getEmpire($player['name']);
@@ -176,10 +176,10 @@ function update_game($series, &$game, $update_time)
 	$values = array();
 	$values[] = 'update_count = '.$game['update_count'];
 	$values[] = 'last_update = '.$game['last_update'];
-	sc_mysql_query('UPDATE games SET '.implode(',', $values).' WHERE id = '.$game['id']);*/
+	sc_query('UPDATE games SET '.implode(',', $values).' WHERE id = '.$game['id']);*/
 
 	// Here we loop through each player for this game to see what's up with him, or her.
-	$select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND team >= 0', __FILE__.'*'.__LINE__);
+	$select = sc_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND team >= 0', __FILE__.'*'.__LINE__);
 	while ($player = $select->fetch_assoc())
     	{
     		// Put the players homeworld coordinates in the homeworld array for localizing missives.
@@ -188,7 +188,7 @@ function update_game($series, &$game, $update_time)
 		$conditions[] = 'game_id = '.$game['id'];
 		$conditions[] = 'homeworld = "'.$player['name'].'"';
 		
-		$system_query = sc_mysql_query('SELECT coordinates FROM systems WHERE '.implode(' AND ', $conditions).' LIMIT 1', __FILE__.'*'.__LINE__);
+		$system_query = sc_query('SELECT coordinates FROM systems WHERE '.implode(' AND ', $conditions).' LIMIT 1', __FILE__.'*'.__LINE__);
 
 		$system = $system_query->fetch_assoc();
 		
@@ -212,7 +212,7 @@ function update_game($series, &$game, $update_time)
 			
 		// For every diplomatic state this player has with another player, change the status to the new one
         	// if both empires agreed on it and inform him of his status in the update text.
-	        $diplomacy_select = sc_mysql_query( 'SELECT * FROM diplomacies '.
+	        $diplomacy_select = sc_query( 'SELECT * FROM diplomacies '.
 												'WHERE game_id = '.$game['id'].' '.
 												'AND empire = "'.$player['name'].'" '.
 												'ORDER BY status ASC',
@@ -231,7 +231,7 @@ function update_game($series, &$game, $update_time)
 				{
 					// Prevent two people from surrendering to each other. In this case, revert to war for both.
 					if ($diplomacy['offer'] == 0 and $opponent['offer'] == 0)
-						sc_mysql_query('UPDATE diplomacies SET status = "2" WHERE id = '.$diplomacy['id'],
+						sc_query('UPDATE diplomacies SET status = "2" WHERE id = '.$diplomacy['id'],
 									   __FILE__.'*'.__LINE__);
 					else if ($diplomacy['offer'] == 0)
 					{
@@ -271,7 +271,7 @@ function update_game($series, &$game, $update_time)
 						$sql=	'UPDATE diplomacies '.
 								'SET status = "'.$new_status.'" '.
 								'WHERE id = '.$diplomacy['id'];	
-						sc_mysql_query($sql, __FILE__.'*'.__LINE__);
+						sc_query($sql, __FILE__.'*'.__LINE__);
 
 						// Inform the player of this.
 						$buffered_missive[$player['id']]['diplomaticStatus'][] = 
@@ -279,7 +279,7 @@ function update_game($series, &$game, $update_time)
 					}
 				}
 				else 
-					sc_mysql_query('DELETE FROM diplomacies WHERE id = '.$diplomacy['id'], __FILE__.'*'.__LINE__);
+					sc_query('DELETE FROM diplomacies WHERE id = '.$diplomacy['id'], __FILE__.'*'.__LINE__);
 			}
 		}
 
@@ -290,7 +290,7 @@ function update_game($series, &$game, $update_time)
 		
 		$new_population = 'LEAST(population*'.$player['agriculture_ratio'].'+1, max_population)';
 
-		sc_mysql_query('UPDATE systems SET population = '.$new_population.' WHERE '.implode(' AND ', $conditions));
+		sc_query('UPDATE systems SET population = '.$new_population.' WHERE '.implode(' AND ', $conditions));
 
 		// Prepare arrays used for this player's ship processing.
 		$explored_planets = array();
@@ -308,7 +308,7 @@ function update_game($series, &$game, $update_time)
 		// or make rand work with a number based on #of rows and then loop through dbase
 		// it wouldn't be quite as random but not too bad.
 		// ** I put srand(time()); at start of the routine
-		$ship_query = sc_mysql_query('SELECT * FROM ships WHERE '.
+		$ship_query = sc_query('SELECT * FROM ships WHERE '.
 						implode(' AND ', $conditions).
 						' ORDER BY RAND()');
 	
@@ -392,7 +392,7 @@ function update_game($series, &$game, $update_time)
 						$conditions[] = 'player_id = "'.$player['id'].'"';
 						$conditions[] = 'coordinates = "'.$value.'"';
 	
-						sc_mysql_query('DELETE FROM explored WHERE '.implode(' AND ', $conditions));
+						sc_query('DELETE FROM explored WHERE '.implode(' AND ', $conditions));
 						
 						$values = array();
 						$values[] = 'series_id = '.$series['id'];
@@ -403,18 +403,18 @@ function update_game($series, &$game, $update_time)
 						$values[] = 'coordinates = "'.$value.'"';
 						$values[] = 'update_explored = "'.$game['update_count'].'"';
 	
-						sc_mysql_query('INSERT INTO explored SET '.implode(',', $values));
+						sc_query('INSERT INTO explored SET '.implode(',', $values));
 						
 						// Share the wealth, if we have to.
 						if ($series['diplomacy'] == 6)
-							addExploredToFriends($player, mysql_insert_id());
+							addExploredToFriends($player, $mysqli->insert_id);
 
 						// Remove this planet from the scouting reports if it's there; we don't need it anymore.
 						$conditions = array();
 						$conditions[] = 'player_id = "'.$player['id'].'"';
 						$conditions[] = 'coordinates = "'.$value.'"';
 
-						sc_mysql_query('DELETE FROM scouting_reports WHERE '.implode(' AND ', $conditions));
+						sc_query('DELETE FROM scouting_reports WHERE '.implode(' AND ', $conditions));
 
 						// Save the coordinates for the update report.
 						$explored_planets[$value] = 1;
@@ -435,12 +435,12 @@ function update_game($series, &$game, $update_time)
 							$fields[3] = 'empire = "'.$player['name'].'"';
 							$fields[4] = 'opponent = "'.$destination['owner'].'"';
 
-							sc_mysql_query('INSERT INTO diplomacies SET '.implode(',', $fields));
+							sc_query('INSERT INTO diplomacies SET '.implode(',', $fields));
 
 							$fields[3] = 'empire = "'.$destination['owner'].'"';
 							$fields[4] = 'opponent = "'.$player['name'].'"';
 
-							sc_mysql_query('INSERT INTO diplomacies SET '.implode(',', $fields));
+							sc_query('INSERT INTO diplomacies SET '.implode(',', $fields));
 
 							$history[] = array($destination['coordinates'], $player['name'], 'ship to system', $destination['owner']);
 							
@@ -465,7 +465,7 @@ function update_game($series, &$game, $update_time)
 				case 'dismantle':
 					$dismantled_ships[ $ship['type'] ]++;
 					$ignore_this_ship = 1;
-					sc_mysql_query('DELETE FROM ships WHERE id = '.$ship['id']);
+					sc_query('DELETE FROM ships WHERE id = '.$ship['id']);
 					break;
 				case 'nuke':
 					$nuke[ $ship['location'] ][] = $ship['id'];
@@ -504,7 +504,7 @@ function update_game($series, &$game, $update_time)
 				$values[] = 'orders = "'.$ship['orders'].'"';
 				$values[] = 'order_arguments = '.($ship['order_arguments'] ? '"'.$ship['order_arguments'].'"' : '\'NULL\'');
 
-				sc_mysql_query('UPDATE ships SET '.implode(',', $values).' WHERE id = '.$ship['id']);
+				sc_query('UPDATE ships SET '.implode(',', $values).' WHERE id = '.$ship['id']);
 			}
 		} //end while ships to process
 
@@ -554,7 +554,7 @@ function update_game($series, &$game, $update_time)
 		$values = array();
 		$values[] = 'tech_level = "'.$player['tech_level'].'"';
 		$values[] = 'ended_turn = "'.$player['ended_turn'].'"';
-		sc_mysql_query('UPDATE players SET '.implode(',', $values).' WHERE id = '.$player['id']);
+		sc_query('UPDATE players SET '.implode(',', $values).' WHERE id = '.$player['id']);
 
 		// Finally, we process orders for non-idle fleets. Their ships have acted already, but we need to update the fleets so their orders
 		// appear correctly on the fleet screen. We don't check the validity of the fleet orders since in any case, the ships have acted
@@ -564,14 +564,14 @@ function update_game($series, &$game, $update_time)
 		$conditions[] = '(orders = "move" or orders = "explore")';
 		$conditions[] = 'owner = "'.$player['name'].'"';
 		
-		sc_mysql_query('UPDATE fleets SET location = order_arguments WHERE '.implode(' AND ', $conditions));
+		sc_query('UPDATE fleets SET location = order_arguments WHERE '.implode(' AND ', $conditions));
 
 		// All fleets are now on stand by.
 		$conditions = array();
 		$conditions[] = 'game_id = '.$game['id'];
 		$conditions[] = 'owner = "'.$player['name'].'"';
 		
-		sc_mysql_query('UPDATE fleets SET orders = "standby", order_arguments = NULL WHERE '.implode(' AND ', $conditions));
+		sc_query('UPDATE fleets SET orders = "standby", order_arguments = NULL WHERE '.implode(' AND ', $conditions));
 		}
 
 	$mined = array();
@@ -581,8 +581,8 @@ function update_game($series, &$game, $update_time)
 	#####################################################################################################################################
 	#
 	// Battle calculations.
-	$query = sc_mysql_query('SELECT * FROM systems WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
-	while ($system = mysql_fetch_array($query))
+	$query = sc_query('SELECT * FROM systems WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
+	while ($system = $query->fetch_assoc())
 		{
 		// save map data in case game ends this turn
 		$saved_map[$system['coordinates']] = array();
@@ -603,16 +603,16 @@ function update_game($series, &$game, $update_time)
 		$conditions[] = 'location = "'.$system['coordinates'].'"';
 		$conditions[] = 'cloaked = "0"';
 
-		$emps_present = sc_mysql_query('SELECT DISTINCT owner FROM ships WHERE '.implode(' AND ',$conditions), __FILE__.'*'.__LINE__);
+		$emps_present = sc_query('SELECT DISTINCT owner FROM ships WHERE '.implode(' AND ',$conditions), __FILE__.'*'.__LINE__);
 
 		$missive[$system['coordinates']]['dest'] = array();
 		$missive[$system['coordinates']]['sight'] = array();
 
 		// No battles if no one is here.
-		if (mysql_num_rows($emps_present) == 0) continue;
+		if ($emps_present->num_rows == 0) continue;
 		
 		$empire_inventory = array();
-		while ( $row = mysql_fetch_array($emps_present) )
+		while ( $row = $emps_present->fetch_assoc() )
 			$empire_inventory[] = $row['owner'];
 		
 		$saved_map[$system['coordinates']]['ships'] = array();
@@ -633,9 +633,9 @@ function update_game($series, &$game, $update_time)
 			$conditions[] = 'location = "'.$system['coordinates'].'"';
 			$conditions[] = 'owner = "'.$ship_owner.'"';
 			$conditions[] = 'cloaked = "0"';
-			$select = sc_mysql_query('SELECT SUM(br*br), COUNT(id) FROM ships WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
-
-			$battle_points[$ship_owner] = mysql_result($select, 0, 0);
+			$select = sc_query('SELECT SUM(br*br) as s, COUNT(id) as c FROM ships WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+			$line = $select->fetch_assoc();
+			$battle_points[$ship_owner] = $line['s'];
 			$damage_received[$ship_owner] = 0;
 
 			$destroyed[$system['coordinates']][$ship_owner] = array();
@@ -651,7 +651,7 @@ function update_game($series, &$game, $update_time)
 			$allegiances[$ship_owner] = allegiances($empire_inventory, $system, $series, $game, $ship_owner, $missive, $history);
 
 			// get count of this players ships for the saved map data
-			$saved_map[$system['coordinates']]['ships'][$ship_owner] = mysql_result($select, 0, 1);
+			$saved_map[$system['coordinates']]['ships'][$ship_owner] = $line['c'];
 			
 			$player = getPlayer($game['id'], $ship_owner);
 			
@@ -693,7 +693,7 @@ function update_game($series, &$game, $update_time)
 			$conditions[] = 'cloaked = "0"';
 			$conditions[] = 'type <> "Minefield"'; // As the FAQ states, minefields are immune to DEST.
 			
-			$select = sc_mysql_query('SELECT * FROM ships WHERE '.implode(' AND ', $conditions).' ORDER BY RAND()', __FILE__.'*'.__LINE__);
+			$select = sc_query('SELECT * FROM ships WHERE '.implode(' AND ', $conditions).' ORDER BY RAND()', __FILE__.'*'.__LINE__);
 
 			while ( $ship = $select->fetch_assoc() )
 				{
@@ -707,7 +707,7 @@ function update_game($series, &$game, $update_time)
 					$dest -= pow((float)$ship['br'], 2) * $fuel_ratio;
 
 					// Destroy the ship.
-					sc_mysql_query('DELETE FROM ships WHERE id = '.$ship['id']);
+					sc_query('DELETE FROM ships WHERE id = '.$ship['id']);
 					}
 				}
 
@@ -716,9 +716,9 @@ function update_game($series, &$game, $update_time)
 			$conditions[] = 'location = "'.$system['coordinates'].'"';
 			$conditions[] = 'owner = "'.$ship_owner.'"';
 			$conditions[] = 'cloaked = "0"';
-			$select = sc_mysql_query('SELECT SUM(br*br) FROM ships WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
-
-			if ($BP_remaining = (mysql_result($select, 0, 0)*$fuel_ratio))
+			$select = sc_query('SELECT SUM(br*br) as s FROM ships WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+			$line = $select->fetch_assoc();
+			if ($BP_remaining = ($line['s']*$fuel_ratio))
 				{
 				$damage_ratio = 1-(($damage_received[$ship_owner]/2 + $dest)/$BP_remaining);
 				
@@ -730,7 +730,7 @@ function update_game($series, &$game, $update_time)
 				
 				if ($damage_ratio <= 0)
 					{
-					$select = sc_mysql_query('SELECT * FROM ships WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+					$select = sc_query('SELECT * FROM ships WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 					while ($ship = $select->fetch_assoc())
 						{
 						$missive[$system['coordinates']]['dest'][$ship_owner][] = $ship['name'];
@@ -740,11 +740,11 @@ function update_game($series, &$game, $update_time)
 							$mined[$system['coordinates']] = 1;
 						}
 						
-					sc_mysql_query('DELETE FROM ships WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+					sc_query('DELETE FROM ships WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 					}
 				else
 					{
-					$select = sc_mysql_query('SELECT * FROM ships WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+					$select = sc_query('SELECT * FROM ships WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 						
 					while ( $ship = $select->fetch_assoc() )
 						{
@@ -754,7 +754,7 @@ function update_game($series, &$game, $update_time)
 							$swept[$system['coordinates']] = 1;
 						}
 
-					sc_mysql_query('UPDATE ships SET br = (br*'.$damage_ratio.') WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+					sc_query('UPDATE ships SET br = (br*'.$damage_ratio.') WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 					}
 				}
 			}
@@ -770,7 +770,7 @@ function update_game($series, &$game, $update_time)
 			$system = getSystem($game['id'], $location, __FILE__.'*'.__LINE__);
 
 			// All the ships in this system are toast. Collect their names for posterity.
-			$select = sc_mysql_query('SELECT * FROM ships WHERE game_id = '.$game['id'].' AND location = "'.$location.'"');
+			$select = sc_query('SELECT * FROM ships WHERE game_id = '.$game['id'].' AND location = "'.$location.'"');
             while ($ship = $select->fetch_assoc())
 				{
             	$missive[$location]['dest'][ $ship['owner'] ][ $ship['id'] ] = $ship['name'];
@@ -778,10 +778,10 @@ function update_game($series, &$game, $update_time)
 				}
 
 			// Blow them up; no minesweepers were able to save them.
-            sc_mysql_query('DELETE FROM ships WHERE game_id = '.$game['id'].' AND location = "'.$location.'"');
+            sc_query('DELETE FROM ships WHERE game_id = '.$game['id'].' AND location = "'.$location.'"');
 
 			// Exploding minefields destroy half the population.
-			sc_mysql_query('UPDATE systems SET population = '.max($system['population']/2, 1).' WHERE id = '.$system['id']);
+			sc_query('UPDATE systems SET population = '.max($system['population']/2, 1).' WHERE id = '.$system['id']);
 
 			$missive[$location]['sys'] = '<span class=updateNuke>A minefield exploded in '.$system['name'].' (*coord*).</span>';
 			$history[] = array( $system['coordinates'], '', 'minefield', '' );
@@ -803,7 +803,7 @@ function update_game($series, &$game, $update_time)
 				$sql=	'UPDATE ships '.
 						'SET location = "'.$destination.'" '.
 						'WHERE '.implode(' AND ', $conditions);
-				sc_mysql_query($sql, __FILE__.'*'.__LINE__);
+				sc_query($sql, __FILE__.'*'.__LINE__);
 
 				// Transport any fleets present in this location as well. The ships will have moved already.
 				$conditions = array();
@@ -813,7 +813,7 @@ function update_game($series, &$game, $update_time)
 				$sql=	'UPDATE fleets '.
 						'SET location = "'.$destination.'" '.
 						'WHERE '.implode(' AND ', $conditions);
-				sc_mysql_query($sql, __FILE__.'*'.__LINE__);
+				sc_query($sql, __FILE__.'*'.__LINE__);
 				}
         	}
 
@@ -848,7 +848,7 @@ function update_game($series, &$game, $update_time)
                 $values[] = 'fuel = (fuel/2)';
                 $values[] = 'agriculture = (agriculture/2)';
                 $values[] = 'max_population = GREATEST(1, max_population/2)';
-                sc_mysql_query('UPDATE systems SET '.implode(',', $values).' WHERE id = '.$system['id'], __FILE__.'*'.__LINE__);
+                sc_query('UPDATE systems SET '.implode(',', $values).' WHERE id = '.$system['id'], __FILE__.'*'.__LINE__);
 
 				// Exit the loop; no one can nuke this system again in this update.
 				break;
@@ -885,7 +885,7 @@ function update_game($series, &$game, $update_time)
                 $values[] = 'annihilated = "1"';
                 $values[] = 'homeworld = ""';
 				#$values[] = 'name = 'Remains of System'';
-                sc_mysql_query('UPDATE systems SET '.implode(',', $values).' WHERE id = '.$system['id'], __FILE__.'*'.__LINE__);
+                sc_query('UPDATE systems SET '.implode(',', $values).' WHERE id = '.$system['id'], __FILE__.'*'.__LINE__);
 
 				// Exit the loop; no one can annihilate this system again in this update.
 				break;
@@ -933,7 +933,7 @@ function update_game($series, &$game, $update_time)
 					$fields[] = 'homeworld = ""';
 					$fields[] = 'owner = "'.$ship['owner'].'"';
 					$fields[] = 'population = '.round($system['population']/2);
-					sc_mysql_query('UPDATE systems SET '.implode(',', $fields).' WHERE id = '.$system['id'], __FILE__.'*'.__LINE__);
+					sc_query('UPDATE systems SET '.implode(',', $fields).' WHERE id = '.$system['id'], __FILE__.'*'.__LINE__);
 
 					// Ensure we have this planet explored if we invade it - this removes oddities in Shared HQ games.
 					// The reasonning? If you dropped from Shared HQ as you were trooping, you'd lose the planet if you hadn't explored
@@ -946,7 +946,7 @@ function update_game($series, &$game, $update_time)
 						$conditions[] = 'player_id = "'.$player['id'].'"';
 						$conditions[] = 'coordinates = "'.$system['coordinates'].'"';
 	
-						sc_mysql_query('DELETE FROM explored WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+						sc_query('DELETE FROM explored WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 							
 						$values = array();
 						$values[] = 'series_id = '.$series['id'];
@@ -957,9 +957,9 @@ function update_game($series, &$game, $update_time)
 						$values[] = 'coordinates = "'.$system['coordinates'].'"';
 						$values[] = 'update_explored = "'.$game['update_count'].'"';
 
-						sc_mysql_query('INSERT INTO explored SET '.implode(',', $values), __FILE__.'*'.__LINE__);
+						sc_query('INSERT INTO explored SET '.implode(',', $values), __FILE__.'*'.__LINE__);
 
-						addExploredToFriends($player, mysql_insert_id());
+						addExploredToFriends($player, $mysqli->insert_id);
 						}
                     }
                 else
@@ -972,11 +972,11 @@ function update_game($series, &$game, $update_time)
 					
 					$system['population'] -= floor(2*$ship['br']);
 					
-					sc_mysql_query('UPDATE systems SET population = '.$system['population'].' WHERE id = '.$system['id'], __FILE__.'*'.__LINE__);
+					sc_query('UPDATE systems SET population = '.$system['population'].' WHERE id = '.$system['id'], __FILE__.'*'.__LINE__);
                     }
 
 				// Discard the ship.
-				sc_mysql_query('DELETE FROM ships WHERE id = '.$ship['id'], __FILE__.'*'.__LINE__);
+				sc_query('DELETE FROM ships WHERE id = '.$ship['id'], __FILE__.'*'.__LINE__);
 				
 				// Exit the loop for this system only if our invasion was successful.
 				if ($invasion_successful) break;
@@ -1005,7 +1005,7 @@ function update_game($series, &$game, $update_time)
 				// reset max pop in case previous owner had it set too low.
 		    	$max_pop = max(1, max($system['mineral'], $system['fuel']));
 
-                sc_mysql_query(	'UPDATE systems SET'.
+                sc_query(	'UPDATE systems SET'.
 								' population = '.$initial_population.
 								', owner = "'.$ship['owner'].
 								'", max_population = '.$max_pop.
@@ -1023,7 +1023,7 @@ function update_game($series, &$game, $update_time)
 					$conditions[] = 'player_id = "'.$player['id'].'"';
 					$conditions[] = 'coordinates = "'.$system['coordinates'].'"';
 
-					sc_mysql_query('DELETE FROM explored WHERE '.implode(' AND ', $conditions), 
+					sc_query('DELETE FROM explored WHERE '.implode(' AND ', $conditions), 
 									__FILE__.'*'.__LINE__);
 						
 					$values = array();
@@ -1034,11 +1034,11 @@ function update_game($series, &$game, $update_time)
 					$values[] = 'player_id = "'.$player['id'].'"';
 					$values[] = 'coordinates = "'.$system['coordinates'].'"';
 					$values[] = 'update_explored = "'.$game['update_count'].'"';
-					sc_mysql_query('INSERT INTO explored SET '.implode(',', $values), __FILE__.'*'.__LINE__);
-					addExploredToFriends($player, mysql_insert_id());
+					sc_query('INSERT INTO explored SET '.implode(',', $values), __FILE__.'*'.__LINE__);
+					addExploredToFriends($player, $mysqli->insert_id);
 					}
 
-				sc_mysql_query('DELETE FROM ships WHERE id = '.$ship['id'], __FILE__.'*'.__LINE__);
+				sc_query('DELETE FROM ships WHERE id = '.$ship['id'], __FILE__.'*'.__LINE__);
 
 				// This planet has been colonized; nothing more can happen.
 				break;
@@ -1065,8 +1065,8 @@ function update_game($series, &$game, $update_time)
                 $terraform_count++;
 				$history[] = array($location, $ship['owner'], 'terraformed', $ship['name']);
 
-				sc_mysql_query('UPDATE systems SET agriculture = '.$system['agriculture'].' WHERE id = '.$system['id'], __FILE__.'*'.__LINE__);
-                sc_mysql_query('DELETE FROM ships WHERE id = '.$ship['id'], __FILE__.'*'.__LINE__);
+				sc_query('UPDATE systems SET agriculture = '.$system['agriculture'].' WHERE id = '.$system['id'], __FILE__.'*'.__LINE__);
+                sc_query('DELETE FROM ships WHERE id = '.$ship['id'], __FILE__.'*'.__LINE__);
 				}
 
 			// Exit the loop for this system if it can't be terraformed anymore.
@@ -1118,8 +1118,8 @@ function update_game($series, &$game, $update_time)
                	$jumps2 = array_remove($system['coordinates'], $jumps2);
 
 				// Update the database.
-                sc_mysql_query('UPDATE systems SET jumps = "'.implode(' ', $jumps).'" WHERE id = '.$system['id'], __FILE__.'*'.__LINE__);
-				sc_mysql_query('UPDATE systems SET jumps = "'.implode(' ', $jumps2).'" WHERE id = "'.$system2['id'].'"', __FILE__.'*'.__LINE__);
+                sc_query('UPDATE systems SET jumps = "'.implode(' ', $jumps).'" WHERE id = '.$system['id'], __FILE__.'*'.__LINE__);
+				sc_query('UPDATE systems SET jumps = "'.implode(' ', $jumps2).'" WHERE id = "'.$system2['id'].'"', __FILE__.'*'.__LINE__);
 
 				$new_maxbr = $ship['max_br'] - $server['engineer_br_loss'];
 
@@ -1127,7 +1127,7 @@ function update_game($series, &$game, $update_time)
 					{
 					// Destroy the ship.
 					$engineer_consumed = true;
-                    sc_mysql_query('DELETE FROM ships WHERE id = '.$ship['id'], __FILE__.'*'.__LINE__);
+                    sc_query('DELETE FROM ships WHERE id = '.$ship['id'], __FILE__.'*'.__LINE__);
 					}
 				else
 					{
@@ -1137,7 +1137,7 @@ function update_game($series, &$game, $update_time)
 					$fields = array();
 					$fields[] = 'br = (br - '.$server['engineer_br_loss'].')';
 					$fields[] = 'max_br = '.$new_maxbr;
-					sc_mysql_query('UPDATE ships SET '.implode(', ', $fields).' WHERE id = '.$ship_id, __FILE__.'*'.__LINE__);
+					sc_query('UPDATE ships SET '.implode(', ', $fields).' WHERE id = '.$ship_id, __FILE__.'*'.__LINE__);
 					}
 
 				$action = array();
@@ -1177,8 +1177,8 @@ function update_game($series, &$game, $update_time)
 				$jumps2[] = $system['coordinates'];
 
 				// Update the database.
-                sc_mysql_query('UPDATE systems SET jumps = "'.implode(' ', $jumps).'" WHERE id = '.$system['id'], __FILE__.'*'.__LINE__);
-				sc_mysql_query('UPDATE systems SET jumps = "'.implode(' ', $jumps2).'" WHERE id = '.$system2['id'], __FILE__.'*'.__LINE__);
+                sc_query('UPDATE systems SET jumps = "'.implode(' ', $jumps).'" WHERE id = '.$system['id'], __FILE__.'*'.__LINE__);
+				sc_query('UPDATE systems SET jumps = "'.implode(' ', $jumps2).'" WHERE id = '.$system2['id'], __FILE__.'*'.__LINE__);
 
 				$new_maxbr = $ship['max_br'] - $server['engineer_br_loss'];
 
@@ -1186,7 +1186,7 @@ function update_game($series, &$game, $update_time)
 					{
 					// Destroy the ship.
 					$engineer_consumed = true;
-                    sc_mysql_query('DELETE FROM ships WHERE id = '.$ship['id'], __FILE__.'*'.__LINE__);
+                    sc_query('DELETE FROM ships WHERE id = '.$ship['id'], __FILE__.'*'.__LINE__);
 					}
 				else
 					{
@@ -1196,7 +1196,7 @@ function update_game($series, &$game, $update_time)
 					$fields = array();
 					$fields[] = 'br = (br - '.$server['engineer_br_loss'].')';
 					$fields[] = 'max_br = '.$new_maxbr;
-					sc_mysql_query('UPDATE ships SET '.implode(', ', $fields).' WHERE id = '.$ship_id, __FILE__.'*'.__LINE__);
+					sc_query('UPDATE ships SET '.implode(', ', $fields).' WHERE id = '.$ship_id, __FILE__.'*'.__LINE__);
 					}
 
 				$action = array();
@@ -1292,9 +1292,9 @@ function update_game($series, &$game, $update_time)
 			$empire = getEmpire($nuke['victim']);
 			sendEmpireMessage($empire, 'You '.$method.' in <span class=red>'.$series['name'].' '.$game['game_number'].'</span>.');
 
-			sc_mysql_query('UPDATE empires SET nuked = (nuked+1) WHERE name = "'.$nuke['victim'].'"', __FILE__.'*'.__LINE__);
-			sc_mysql_query('UPDATE empires SET nukes = (nukes+1) WHERE name = "'.$nuke['doer'].'"', __FILE__.'*'.__LINE__);
-			sc_mysql_query('UPDATE games SET player_count = (player_count-1) WHERE id = '.$game['id'], __FILE__.'*'.__LINE__);
+			sc_query('UPDATE empires SET nuked = (nuked+1) WHERE name = "'.$nuke['victim'].'"', __FILE__.'*'.__LINE__);
+			sc_query('UPDATE empires SET nukes = (nukes+1) WHERE name = "'.$nuke['doer'].'"', __FILE__.'*'.__LINE__);
+			sc_query('UPDATE games SET player_count = (player_count-1) WHERE id = '.$game['id'], __FILE__.'*'.__LINE__);
 			$game['player_count'] -= 1;
 			
 			$player = getPlayer($game['id'], $nuke['victim']);
@@ -1303,36 +1303,36 @@ function update_game($series, &$game, $update_time)
 			if ($series['team_game'])
 				{
 				// Set team to a negative number but leave player in list for team games so that we can award the team win later.
-				sc_mysql_query('UPDATE players SET team = (-team) WHERE id = '.$player['id'], __FILE__.'*'.__LINE__);
+				sc_query('UPDATE players SET team = (-team) WHERE id = '.$player['id'], __FILE__.'*'.__LINE__);
 				}
 			else
 				{
 				// Otherwise, just go ahead an remove the player from the table.
-				sc_mysql_query('DELETE FROM players WHERE id = "'.$player['id'].'"', __FILE__.'*'.__LINE__);
+				sc_query('DELETE FROM players WHERE id = "'.$player['id'].'"', __FILE__.'*'.__LINE__);
 				}
 			
-			sc_mysql_query('DELETE FROM ships WHERE game_id = "'.$game['id'].'" AND owner = "'.$nuke['victim'].'"', __FILE__.'*'.__LINE__);
-			sc_mysql_query('DELETE FROM fleets WHERE game_id = "'.$game['id'].'" AND owner = "'.$nuke['victim'].'"', __FILE__.'*'.__LINE__);
-			sc_mysql_query('DELETE FROM explored WHERE game_id = "'.$game['id'].'" AND empire = "'.$nuke['victim'].'"', __FILE__.'*'.__LINE__);
-			sc_mysql_query('DELETE FROM scouting_reports WHERE player_id = "'.$player['id'].'"', __FILE__.'*'.__LINE__);
-			sc_mysql_query('DELETE FROM messages WHERE player_id = "'.$player['id'].'"', __FILE__.'*'.__LINE__);
+			sc_query('DELETE FROM ships WHERE game_id = "'.$game['id'].'" AND owner = "'.$nuke['victim'].'"', __FILE__.'*'.__LINE__);
+			sc_query('DELETE FROM fleets WHERE game_id = "'.$game['id'].'" AND owner = "'.$nuke['victim'].'"', __FILE__.'*'.__LINE__);
+			sc_query('DELETE FROM explored WHERE game_id = "'.$game['id'].'" AND empire = "'.$nuke['victim'].'"', __FILE__.'*'.__LINE__);
+			sc_query('DELETE FROM scouting_reports WHERE player_id = "'.$player['id'].'"', __FILE__.'*'.__LINE__);
+			sc_query('DELETE FROM messages WHERE player_id = "'.$player['id'].'"', __FILE__.'*'.__LINE__);
 
 			$conditions = array();
 			$conditions[] = 'game_id = '.$game['id'];
 			$conditions[] = '(empire = "'.$nuke['victim'].'" OR opponent = "'.$nuke['victim'].'")';
-			sc_mysql_query('DELETE FROM diplomacies WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+			sc_query('DELETE FROM diplomacies WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 
 			$values = array();
 			$values[] = 'homeworld = ""';
 			$values[] = 'owner = ""';	
 			$values[] = 'population = 0';			
-			sc_mysql_query('UPDATE systems SET '.implode(',', $values).' WHERE game_id = '.$game['id'].' AND owner = "'.$nuke['victim'].'"', __FILE__.'*'.__LINE__);
+			sc_query('UPDATE systems SET '.implode(',', $values).' WHERE game_id = '.$game['id'].' AND owner = "'.$nuke['victim'].'"', __FILE__.'*'.__LINE__);
 			
 			$general_missive .= $nuke['doer'].' has obliterated '.$nuke['victim'].'.<br>';
 			}
 
 	// Check for empires that are falling into ruins and send the relevant missive to players.
-    $select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND team >= 0', __FILE__.'*'.__LINE__);
+    $select = sc_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND team >= 0', __FILE__.'*'.__LINE__);
     while ($player = $select->fetch_assoc())
         {
 		if ( ($game['update_count']-$player['last_update']) > $server['updates_to_ruin'] )
@@ -1344,9 +1344,9 @@ function update_game($series, &$game, $update_time)
 			$history[] = array( '', $player['name'], 'ruins', '' );
            	
             // Update the player's record to reflect his ruinage and remove him from the game.
-            sc_mysql_query('UPDATE empires SET ruined = (ruined+1) WHERE name = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
+            sc_query('UPDATE empires SET ruined = (ruined+1) WHERE name = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
             
-			sc_mysql_query('UPDATE games SET player_count = (player_count-1) WHERE id = '.$game['id'], __FILE__.'*'.__LINE__);
+			sc_query('UPDATE games SET player_count = (player_count-1) WHERE id = '.$game['id'], __FILE__.'*'.__LINE__);
 				
 			$game['player_count'] -= 1;
 		
@@ -1364,7 +1364,7 @@ function update_game($series, &$game, $update_time)
 			$conditions[] = 'game_id = '.$game['id'];
 			$conditions[] = 'homeworld = "'.$player['name'].'"';
 
-			sc_mysql_query('UPDATE systems SET '.implode(',', $fields).' WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+			sc_query('UPDATE systems SET '.implode(',', $fields).' WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 
 			// Remove ownership and homeworld status for his planets.
 			$fields = array(); $conditions = array();
@@ -1375,34 +1375,34 @@ function update_game($series, &$game, $update_time)
 			$conditions = array();
 			$conditions[] = 'game_id = '.$game['id'];
 			$conditions[] = 'owner = "'.$player['name'].'"';
-			sc_mysql_query('UPDATE systems SET '.implode(', ', $fields).' WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+			sc_query('UPDATE systems SET '.implode(', ', $fields).' WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 
 			// Delete the player, or move to inactive in a team game,
 			if ($series['team_game'])
-				sc_mysql_query('UPDATE players SET team = -team WHERE id = '.$player['id'], __FILE__.'*'.__LINE__);
+				sc_query('UPDATE players SET team = -team WHERE id = '.$player['id'], __FILE__.'*'.__LINE__);
 			else
-				sc_mysql_query('DELETE FROM players WHERE id = '.$player['id'], __FILE__.'*'.__LINE__);
+				sc_query('DELETE FROM players WHERE id = '.$player['id'], __FILE__.'*'.__LINE__);
 
 			// Delete his ships and fleets.
 			$conditions = array();
 			$conditions[0] = 'game_id = '.$game['id'];
 			$conditions[1] = 'owner = "'.$player['name'].'"';
-			sc_mysql_query('DELETE FROM ships WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
-			sc_mysql_query('DELETE FROM fleets WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+			sc_query('DELETE FROM ships WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+			sc_query('DELETE FROM fleets WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 
 			// ...related diplomatic records...
 			$conditions[1] = '(empire = "'.$player['name'].'" OR opponent = "'.$player['name'].'")';
-			sc_mysql_query('DELETE FROM diplomacies WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+			sc_query('DELETE FROM diplomacies WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 
 			// ... and his explored map data...
 			$conditions[1] = 'empire = "'.$player['name'].'"';
-			sc_mysql_query('DELETE FROM explored WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+			sc_query('DELETE FROM explored WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 
 			// ... and his scouting reports.
-			sc_mysql_query('DELETE FROM scouting_reports WHERE player_id = '.$player['id'], __FILE__.'*'.__LINE__);
+			sc_query('DELETE FROM scouting_reports WHERE player_id = '.$player['id'], __FILE__.'*'.__LINE__);
 
 			// ... and his messages.
-			sc_mysql_query('DELETE FROM messages WHERE player_id = '.$player['id'], __FILE__.'*'.__LINE__);
+			sc_query('DELETE FROM messages WHERE player_id = '.$player['id'], __FILE__.'*'.__LINE__);
 			}
 
 		// Dump the missive array to each player, depending on whether they can see the planet.
@@ -1515,8 +1515,8 @@ function update_game($series, &$game, $update_time)
 		}
 
 	// One last update to the general missive.
-	$select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND ended_turn = "1" AND team >= 0', __FILE__.'*'.__LINE__);
-	if ($idling_empires = mysql_num_rows($select))
+	$select = sc_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND ended_turn = "1" AND team >= 0', __FILE__.'*'.__LINE__);
+	if ($idling_empires = $select->num_rows)
 		$general_missive .= $idling_empires.' empire'.($idling_empires > 1 ? 's are' : ' is').' idling.<br>';
 
 	if ($general_missive != '')
@@ -1556,7 +1556,7 @@ function update_game($series, &$game, $update_time)
 		
 		$query = 'INSERT INTO messages SET '.implode(',', $values);
 
-		sc_mysql_query($query, __FILE__.'*'.__LINE__);
+		sc_query($query, __FILE__.'*'.__LINE__);
 		}
 
 	$series = getSeries($series['id']);
@@ -1579,18 +1579,18 @@ function update_game($series, &$game, $update_time)
 		$conditions = array();
 		$conditions[] = 'game_id = '.$game['id'];
 		$conditions[] = 'team >= 0';
-		$player_select = sc_mysql_query('SELECT * FROM players WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
-		while ($player = mysql_fetch_array($player_select))
+		$player_select = sc_query('SELECT * FROM players WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+		while ($player = $player_select->fetch_assoc())
 			{
 			$conditions = array();
 			$conditions[] = 'game_id = '.$game['id'];
 			$conditions[] = 'empire = "'.$player['name'].'"';
 			$conditions[] = 'opponent NOT LIKE "=Team_="';
-			$diplomacy_select = sc_mysql_query('SELECT * FROM diplomacies WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+			$diplomacy_select = sc_query('SELECT * FROM diplomacies WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 
 			// First check: does this player have diplomatic relations with everyone else? If not, we can't end this game
 			// since he hasn't met everyone yet.
-			if ( mysql_num_rows($diplomacy_select) < ($game['player_count']-1) )
+			if ( $diplomacy_select->num_rows < ($game['player_count']-1) )
 				{
 				// Break if we get here; this player has not relations with everyone: they have to meet! No need to continue searching.
 				$game_over = 0;
@@ -1617,7 +1617,7 @@ function update_game($series, &$game, $update_time)
 		$message = '<font color=FF0000>'.$series['name'].' '.$game['game_number'].' has ended in a draw.</font><br>';
 
 		// The game is closed and both players chose to draw.
-		$select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
+		$select = sc_query('SELECT * FROM players WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
 		while ($player = $select->fetch_assoc())
 			{
 			$empire = getEmpire($player['name']);
@@ -1638,7 +1638,7 @@ function update_game($series, &$game, $update_time)
 		// Inform the remaining players that they have won.
 
         $winning_team = 0;
-		$select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND team >= 0', __FILE__.'*'.__LINE__);
+		$select = sc_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND team >= 0', __FILE__.'*'.__LINE__);
 		while ($player = $select->fetch_assoc())
 			{
 			$empire = getEmpire($player['name']);
@@ -1647,7 +1647,7 @@ function update_game($series, &$game, $update_time)
 
 			$history[] = array( '', $player['name'], 'won', ($series['team_game']?'Team '.$player['team']:'') );
 			
-			sc_mysql_query('UPDATE empires SET wins = (wins+1) WHERE name = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
+			sc_query('UPDATE empires SET wins = (wins+1) WHERE name = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
 
 			sendEmpireMessage($empire, 'You have won <span class=red>'.$series['name'].' '.$game['game_number'].'</span>.');
 
@@ -1655,7 +1655,7 @@ function update_game($series, &$game, $update_time)
 			// code currently relies on $player containing the info for that winner
 			if ( $game['bridier'] >= 0 )
 				{
-				$bridier_query = sc_mysql_query('SELECT * FROM bridier WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
+				$bridier_query = sc_query('SELECT * FROM bridier WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
 				$bdata = $bridier_query->fetch_assoc();
 				if ( $player['name'] == $bdata['empire1'] )
 					{
@@ -1686,7 +1686,7 @@ function update_game($series, &$game, $update_time)
 				$values[] = 'ending_rank'.$winner.' = '.($empire['bridier_rank']+$win);
 				$values[] = 'ending_rank'.$loser.' = '.($opponent['bridier_rank']-$lose);
 				$values[] = 'end_time = '.time();
-				sc_mysql_query('UPDATE bridier SET '.implode(', ',$values).' WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
+				sc_query('UPDATE bridier SET '.implode(', ',$values).' WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
 				
 				// and then update the empire records
 				
@@ -1701,7 +1701,7 @@ function update_game($series, &$game, $update_time)
 				$values[] = 'bridier_index = '.( $new_index<100 ? 100 : $new_index );
 				$values[] = 'bridier_update = '.time();
 				$values[] = 'bridier_delta = '.$win;
-				sc_mysql_query('UPDATE empires SET '.implode(', ',$values).' WHERE id = '.$empire['id'], __FILE__.'*'.__LINE__);
+				sc_query('UPDATE empires SET '.implode(', ',$values).' WHERE id = '.$empire['id'], __FILE__.'*'.__LINE__);
 
 				$new_index = $opponent['bridier_index'] - ( $lose>25 ? 50 : 2*$lose );
 
@@ -1714,7 +1714,7 @@ function update_game($series, &$game, $update_time)
 				$values[] = 'bridier_index = '.( $new_index<100 ? 100 : $new_index );
 				$values[] = 'bridier_update = '.time();
 				$values[] = 'bridier_delta = -'.$lose;
-				sc_mysql_query('UPDATE empires SET '.implode(', ',$values).' WHERE id = '.$opponent['id'], __FILE__.'*'.__LINE__);
+				sc_query('UPDATE empires SET '.implode(', ',$values).' WHERE id = '.$opponent['id'], __FILE__.'*'.__LINE__);
 				}
 			}
 			
@@ -1722,21 +1722,21 @@ function update_game($series, &$game, $update_time)
 		// and losing team gets to know how the game turned out
 		if ($winning_team > 0)
 			{
-			$select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND team = (-'.$winning_team.')');
+			$select = sc_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND team = (-'.$winning_team.')');
 			while ($player = $select->fetch_assoc())
 				{
 				$empire = getEmpire($player['name']);
 		
 				$history[] = array( '', $player['name'], 'won', ($series['team_game']?'Team '.$winning_team.' (nuked)':''));
 
-				sc_mysql_query('UPDATE empires SET wins = (wins+1) WHERE name = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
+				sc_query('UPDATE empires SET wins = (wins+1) WHERE name = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
 				
 				sendEmpireMessage($empire, 'Your team has won <span class=red>'.$series['name'].' '.$game['game_number'].'</span>.');
 				}
 	
 			$losing_team = ($winning_team == 1 ? 2 : 1);
 			
-			$select = sc_mysql_query('SELECT * FROM players WHERE team = (-'.$losing_team.') AND game_id = '.$game['id']);
+			$select = sc_query('SELECT * FROM players WHERE team = (-'.$losing_team.') AND game_id = '.$game['id']);
 			while ($player = $select->fetch_assoc())
 				{
 				$empire = getEmpire($player['name']);				
@@ -1753,18 +1753,18 @@ function update_game($series, &$game, $update_time)
 	if (!$game['closed'] and $game['update_count'] >= $server['updates_to_close'])
 		{
 		// We updated enough; the game is now closed
-		sc_mysql_query('UPDATE games SET closed = "1" WHERE id = '.$game['id'], __FILE__.'*'.__LINE__);
+		sc_query('UPDATE games SET closed = "1" WHERE id = '.$game['id'], __FILE__.'*'.__LINE__);
 
 		// remove all invitations for a closed game
-		sc_mysql_query('DELETE FROM invitations WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
+		sc_query('DELETE FROM invitations WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
 		
 		// remove unused planets in a pre-built map
 		if ( $series['map_type'] == 'prebuilt' )
-			sc_mysql_query('DELETE FROM systems WHERE game_id = '.$game['id'].' AND system_active = "0"', __FILE__.'*'.__LINE__);
+			sc_query('DELETE FROM systems WHERE game_id = '.$game['id'].' AND system_active = "0"', __FILE__.'*'.__LINE__);
         }
 
 	write_history($game, $history);
-    #sc_mysql_query('UNLOCK TABLES', __FILE__.'*'.__LINE__);
+    #sc_query('UNLOCK TABLES', __FILE__.'*'.__LINE__);
     
 	return 1;
 }
@@ -1793,7 +1793,7 @@ function allegiances($emps_there, $system, $series, $game, $player_name, &$missi
 			$values[2] = 'game_id = '.$game['id'];
 			$values[3] = 'empire = "'.$player_name.'"';
 			$values[4] = 'opponent = "'.$potential_enemy.'"';
-			sc_mysql_query('INSERT INTO diplomacies SET '.implode(', ', $values), __FILE__.'*'.__LINE__);
+			sc_query('INSERT INTO diplomacies SET '.implode(', ', $values), __FILE__.'*'.__LINE__);
 
 			$history[] = array( $system['coordinates'], $player_name, 'ship to ship', $potential_enemy );
 
@@ -1803,7 +1803,7 @@ function allegiances($emps_there, $system, $series, $game, $player_name, &$missi
 
 			$values[3] = 'empire = "'.$potential_enemy.'"';
 			$values[4] = 'opponent = "'.$player_name.'"';
-			sc_mysql_query('INSERT INTO diplomacies SET '.implode(', ', $values), __FILE__.'*'.__LINE__);
+			sc_query('INSERT INTO diplomacies SET '.implode(', ', $values), __FILE__.'*'.__LINE__);
 
 			$missive[$system['coordinates']]['first_contact'][$potential_enemy][] =
 				'You have had first contact with '.$player_name.' in (*coord*) (ship to ship).';

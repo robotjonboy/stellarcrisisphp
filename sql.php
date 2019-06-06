@@ -3,7 +3,7 @@
 # Function to make MySQL queries and attempt to trap and correct some key errors
 #
 
-function sc_mysql_query($query, $fileinfo = 'unknown*unknown', $ignored_errors = array())
+function sc_query($query, $fileinfo = 'unknown*unknown', $ignored_errors = array())
 {
 	global $mysqli;
 	
@@ -60,12 +60,14 @@ function sc_result($result, $number, $field=0) {
 
 function explored($player, $location)
 {
+	global $mysqli;
+	
 	$conditions = array();
 	$conditions[] = 'player_id = '.((int)$player['id']);
 	$conditions[] = 'coordinates = "'.$mysqli->real_escape_string($location).'"';
 
-	$select = sc_mysql_query('SELECT id FROM explored WHERE '.implode(' AND ', $conditions));
-	return mysql_num_rows($select);
+	$select = sc_query('SELECT id FROM explored WHERE '.implode(' AND ', $conditions));
+	return $select->num_rows;
 }
 
 #--------------------------------------------------------------------------------------------------------------------#
@@ -74,8 +76,8 @@ function explored($player, $location)
 
 function shipExists($ship_id)
 {
-	$select = sc_mysql_query('SELECT id FROM ships WHERE id = '.((int)$ship_id));
-	return mysql_num_rows($select);
+	$select = sc_query('SELECT id FROM ships WHERE id = '.((int)$ship_id));
+	return $select->num_rows;
 }
 
 #--------------------------------------------------------------------------------------------------------------------#
@@ -87,7 +89,7 @@ function shipExists($ship_id)
 function getPlayer($game_id, $name)
 {
 	global $mysqli;
-	$select = sc_mysql_query('SELECT * FROM players WHERE game_id = '.((int)$game_id).' AND name = "'.
+	$select = sc_query('SELECT * FROM players WHERE game_id = '.((int)$game_id).' AND name = "'.
 	          $mysqli->real_escape_string($name).'" and team >= 0');
 	return $select->fetch_assoc();
 }
@@ -98,7 +100,7 @@ function getPlayer($game_id, $name)
 
 function getPlayerByID($id)
 {
-	$select = sc_mysql_query('SELECT * FROM players WHERE id = '.((int)$id));
+	$select = sc_query('SELECT * FROM players WHERE id = '.((int)$id));
 	return $select->fetch_assoc();
 }
 
@@ -107,7 +109,7 @@ function getPlayerByID($id)
 
 function getExploredByID($id)
 {
-	$select = sc_mysql_query('SELECT * FROM explored WHERE id = '.((int)$id));
+	$select = sc_query('SELECT * FROM explored WHERE id = '.((int)$id));
 	return $select->fetch_assoc();
 }
 
@@ -122,7 +124,7 @@ function getDiplomacyWithOpponent($game_id, $name, $opponent)
 	$conditions[] = 'empire = "'.$mysqli->real_escape_string($name).'"';
 	$conditions[] = 'opponent = "'.$mysqli->real_escape_string($opponent).'"';
 
-	$select = sc_mysql_query('SELECT * FROM diplomacies WHERE '.implode(' AND ', $conditions));
+	$select = sc_query('SELECT * FROM diplomacies WHERE '.implode(' AND ', $conditions));
 	return $select->fetch_assoc();
 }
 
@@ -133,7 +135,7 @@ function getDiplomacyWithOpponent($game_id, $name, $opponent)
 function getEmpire($name)
 {
 	global $mysqli;
-	$select = sc_mysql_query('SELECT * FROM empires WHERE name = "'.$mysqli->real_escape_string($name).'"');
+	$select = sc_query('SELECT * FROM empires WHERE name = "'.$mysqli->real_escape_string($name).'"');
 	return $select->fetch_assoc();
 }
 
@@ -143,7 +145,7 @@ function getEmpire($name)
 
 function getEmpireByID($id)
 {
-	$select = sc_mysql_query('SELECT * FROM empires WHERE id = '.((int)$id));
+	$select = sc_query('SELECT * FROM empires WHERE id = '.((int)$id));
 	return $select->fetch_assoc();
 }
 
@@ -153,7 +155,7 @@ function getEmpireByID($id)
 
 function getSeries($id)
 {
-	$select = sc_mysql_query('SELECT * FROM series WHERE id = '.((int)$id));
+	$select = sc_query('SELECT * FROM series WHERE id = '.((int)$id));
     return $select->fetch_assoc();
 }
 
@@ -165,7 +167,7 @@ function getSeriesByName($name)
 {
 	global $mysqli;
 	
-	$select = sc_mysql_query('SELECT * FROM series WHERE name = "'.$mysqli->real_escape_string($name).'"');
+	$select = sc_query('SELECT * FROM series WHERE name = "'.$mysqli->real_escape_string($name).'"');
     return $select->fetch_assoc();
 }
 
@@ -175,7 +177,7 @@ function getSeriesByName($name)
 
 function getGame($series_id, $game_number)
 {
-	$select = sc_mysql_query('SELECT * FROM games WHERE series_id = "'.((int)$series_id).
+	$select = sc_query('SELECT * FROM games WHERE series_id = "'.((int)$series_id).
 	                         '" AND game_number = '.((int)$game_number));
     return $select->fetch_assoc();
 }
@@ -186,7 +188,7 @@ function getGame($series_id, $game_number)
 
 function getGameByID($game_id)
 {
-	$select = sc_mysql_query('SELECT * FROM games WHERE id = '.((int)$game_id));
+	$select = sc_query('SELECT * FROM games WHERE id = '.((int)$game_id));
     return $select->fetch_assoc();
 }
 
@@ -196,7 +198,7 @@ function getGameByID($game_id)
 
 function getTourneyByID($tourney_id)
 {
-	$select = sc_mysql_query('SELECT * FROM tournament WHERE id = '.((int)$tourney_id));
+	$select = sc_query('SELECT * FROM tournament WHERE id = '.((int)$tourney_id));
     return $select->fetch_assoc();
 }
 
@@ -206,7 +208,7 @@ function getTourneyByID($tourney_id)
 
 function getShipByID($id)
 {
-	$select = sc_mysql_query('SELECT * FROM ships WHERE id = '.((int)$id));
+	$select = sc_query('SELECT * FROM ships WHERE id = '.((int)$id));
 	return $select->fetch_assoc();
 }
 
@@ -216,7 +218,7 @@ function getShipByID($id)
 
 function getFleetByID($id)
 {
-	$select = sc_mysql_query('SELECT * FROM fleets WHERE id = '.((int)$id));
+	$select = sc_query('SELECT * FROM fleets WHERE id = '.((int)$id));
 	return $select->fetch_assoc();
 }
 
@@ -235,7 +237,7 @@ function getSystem($game_id, $coordinates)
 	$conditions[] = 'coordinates = "'.$mysqli->real_escape_string($coordinates).'"';
 	$conditions[] = 'system_active = "1"';
 
-	$select = sc_mysql_query('SELECT * FROM systems WHERE '.implode(' AND ', $conditions));
+	$select = sc_query('SELECT * FROM systems WHERE '.implode(' AND ', $conditions));
 	return $select->fetch_assoc();
 }
 
@@ -245,7 +247,7 @@ function getSystem($game_id, $coordinates)
 
 function getSystemByID($id)
 {
-	$select = sc_mysql_query('SELECT * FROM systems WHERE id = '.((int)$id));
+	$select = sc_query('SELECT * FROM systems WHERE id = '.((int)$id));
 	return $select->fetch_assoc();
 }
 
@@ -258,19 +260,19 @@ function eraseGame($game_id)
 	$game_id = (int) $game_id;
 	
 	$tables = 'scouting_reports INNER JOIN players ON scouting_reports.player_id = players.id';
-	sc_mysql_query('DELETE scouting_reports.* FROM '.$tables.' WHERE players.game_id = '.$game_id);
+	sc_query('DELETE scouting_reports.* FROM '.$tables.' WHERE players.game_id = '.$game_id);
 
 	$tables = 'messages INNER JOIN players ON messages.player_id = players.id';
-	sc_mysql_query('DELETE messages.* FROM '.$tables.' WHERE players.game_id = '.$game_id);
+	sc_query('DELETE messages.* FROM '.$tables.' WHERE players.game_id = '.$game_id);
 
-	sc_mysql_query('DELETE FROM diplomacies WHERE game_id = '.$game_id);
-	sc_mysql_query('DELETE FROM explored WHERE game_id = '.$game_id);
-	sc_mysql_query('DELETE FROM fleets WHERE game_id = '.$game_id);
-	sc_mysql_query('DELETE FROM games WHERE id = '.$game_id);
-	sc_mysql_query('DELETE FROM history WHERE game_id = '.$game_id);
-	sc_mysql_query('DELETE FROM invitations WHERE game_id = '.$game_id);
-	sc_mysql_query('DELETE FROM players WHERE game_id = '.$game_id);
-	sc_mysql_query('DELETE FROM ships WHERE game_id = '.$game_id);
-	sc_mysql_query('DELETE FROM systems WHERE game_id = '.$game_id);
+	sc_query('DELETE FROM diplomacies WHERE game_id = '.$game_id);
+	sc_query('DELETE FROM explored WHERE game_id = '.$game_id);
+	sc_query('DELETE FROM fleets WHERE game_id = '.$game_id);
+	sc_query('DELETE FROM games WHERE id = '.$game_id);
+	sc_query('DELETE FROM history WHERE game_id = '.$game_id);
+	sc_query('DELETE FROM invitations WHERE game_id = '.$game_id);
+	sc_query('DELETE FROM players WHERE game_id = '.$game_id);
+	sc_query('DELETE FROM ships WHERE game_id = '.$game_id);
+	sc_query('DELETE FROM systems WHERE game_id = '.$game_id);
 }
 ?>

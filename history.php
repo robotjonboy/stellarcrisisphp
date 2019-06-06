@@ -18,7 +18,7 @@ function write_history($game, $history)
 		$values[4] = 'event = "'.$event[2].'"';
 		$values[5] = 'info = "'.$event[3].'"';
 				
-		sc_mysql_query('INSERT INTO history SET '.implode(',', $values));
+		sc_query('INSERT INTO history SET '.implode(',', $values));
 		}
 }
 
@@ -33,8 +33,8 @@ function endGame($series, $game, $history, $saved_map)
 
 	// Initialize ownership array for the movie.
 	$owner_history = array();
-	$select = sc_mysql_query('SELECT coordinates FROM systems WHERE game_id = '.$game['id']);
-	while ($system = mysql_fetch_array($select))
+	$select = sc_query('SELECT coordinates FROM systems WHERE game_id = '.$game['id']);
+	while ($system = $select->fetch_assoc())
 		{
 		$owner_history[$system['coordinates']] = array();
 		$owner_history[$system['coordinates']][0] = 0;
@@ -67,8 +67,8 @@ function endGame($series, $game, $history, $saved_map)
 
 	ob_start();
 
-	$game_history = sc_mysql_query('SELECT * from history WHERE game_id = '.$game['id'].' ORDER BY id');
-	while ($event = mysql_fetch_array($game_history))
+	$game_history = sc_query('SELECT * from history WHERE game_id = '.$game['id'].' ORDER BY id');
+	while ($event = $game_history->fetch_assoc())
 		{
 		// This is set up as a while loop to catch up over gaps in the history data.
 		// Gaps should only occur for games started before history was implemented so
@@ -333,8 +333,8 @@ function endGame($series, $game, $history, $saved_map)
 
 	ob_start();
 
-	$select = sc_mysql_query('SELECT * FROM systems WHERE game_id = '.$game['id']);
-	while ($system = mysql_fetch_array($select))
+	$select = sc_query('SELECT * FROM systems WHERE game_id = '.$game['id']);
+	while ($system = $select->fetch_assoc())
 		{
 		if (count($saved_map))
 			{
@@ -442,29 +442,29 @@ function endGame($series, $game, $history, $saved_map)
 	$fields[] = 'emps_nuked = "='.implode('=', $lost).'="';
 	$fields[] = 'end_date = "'.date('Y-m-d H:i:s', $end_date).'"';
 	
-	sc_mysql_query('INSERT INTO gamelog SET '.implode(',',$fields));
+	sc_query('INSERT INTO gamelog SET '.implode(',',$fields));
 	
 	//is this a tournament game?
 	$sql = 'select * from tournamentgame where game = ' . $game['id'];
-	$result = sc_mysql_query($sql);
+	$result = sc_query($sql);
 	
-	if ($tourneygame = mysql_fetch_assoc($result)) {
+	if ($tourneygame = $result->fetch_assoc()) {
 		$empire = getEmpire($won['0']);
 		$sql = 'update tournamentgame set winner = ' . $empire['id'] . ' where game = ' . $game['id'];
-		sc_mysql_query($sql);
+		sc_query($sql);
 		
 		$empire = getEmpire($lost['0']);
 		$sql = 'update tournamententrant set eliminated = true where tournamentid = ' . $tourneygame['tournament'] . ' AND empireid = ' . $empire['id'];
-		sc_mysql_query($sql);
+		sc_query($sql);
 		
 		//is the tournament over?
 		$sql = 'select count(*) as numberofplayersremaining from tournamententrant where tournamentid = ' . $tourneygame['tournament'] . ' AND eliminated = false';
-		$result = sc_mysql_query($sql);
-		$line = mysql_fetch_assoc($result);
+		$result = sc_query($sql);
+		$line = $result->fetch_assoc();
 		
 		if ($line['numberofplayersremaining'] == 1) {
 			$sql = 'update tournament set completed = true where id = ' . $tourneygame['tournament'];
-			sc_mysql_query($sql);
+			sc_query($sql);
 		}
 	}
 	

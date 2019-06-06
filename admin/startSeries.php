@@ -365,7 +365,7 @@ function startSeries_processing($vars)
 	$cjpsql='INSERT INTO series SET '.implode(',', $values);
 	echo "<p>".$cjpsql."<p>";
 
-	sc_mysql_query('INSERT INTO series SET '.implode(',', $values));
+	sc_query('INSERT INTO series SET '.implode(',', $values));
 
 	spawnGame($vars['series_name']);
 

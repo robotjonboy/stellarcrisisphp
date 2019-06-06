@@ -88,7 +88,7 @@ $fields[] = 'games.password1';
 
 $tables = 'series INNER JOIN games ON series.id = games.series_id';
 
-$result = sc_mysql_query('SELECT '.implode(',', $fields).'  FROM '.$tables.' WHERE games.player_count > 0 AND games.closed = "0"');
+$result = sc_query('SELECT '.implode(',', $fields).'  FROM '.$tables.' WHERE games.player_count > 0 AND games.closed = "0"');
 
 #=----------------------------------------------------------------------------=#
 

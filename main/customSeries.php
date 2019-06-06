@@ -39,7 +39,7 @@ Once a series has been created, the only control its creator has over it is to k
 	$from = 'series INNER JOIN games ON series.id = games.series_id INNER JOIN players ON games.id = players.game_id';
 	
 	$open_game_exists = array();
-	$select = sc_mysql_query('SELECT series.halted, series.id as series_id, COUNT(games.id) AS games_in_progress FROM '.$from.' WHERE '.implode(' AND ', $conditions).' GROUP BY series_id');
+	$select = sc_query('SELECT series.halted, series.id as series_id, COUNT(games.id) AS games_in_progress FROM '.$from.' WHERE '.implode(' AND ', $conditions).' GROUP BY series_id');
 	while ($row = mysql_fetch_array($select))
 		{
 		$open_game_exists[$row['series_id']] = $row['games_in_progress'];
@@ -57,7 +57,7 @@ Once a series has been created, the only control its creator has over it is to k
 	$tables = 'games INNER JOIN series ON games.series_id = series.id';
 	$conditions = 'series.custom = "1" AND games.player_count = 0';
 
-	$select = sc_mysql_query('SELECT '.implode(',', $fields).' FROM '.$tables.' WHERE '.$conditions.' ORDER BY flag, creator, series.update_time, series.name, game_number');
+	$select = sc_query('SELECT '.implode(',', $fields).' FROM '.$tables.' WHERE '.$conditions.' ORDER BY flag, creator, series.update_time, series.name, game_number');
 		
 	ob_start();
 	
@@ -164,18 +164,18 @@ function customSeries_processing($vars)
 		if ($action == 'killCustomSeries')
 			{
 			// Yep. Delete the series if there are no active games.
-			$select = sc_mysql_query('SELECT id FROM games WHERE series_id = '.$series_id.' AND player_count > 0');
-			if (mysql_num_rows($select))
+			$select = sc_query('SELECT id FROM games WHERE series_id = '.$series_id.' AND player_count > 0');
+			if ($select->num_rows)
 				return customSeries($vars, 'This series has active games. Deletion aborted.');
 			else
 				{
 				#echo 'DELETE FROM series WHERE id = '.$series_id.' AND creator = "'.$vars['name'].'"';
-				sc_mysql_query('DELETE FROM series WHERE id = '.$series_id.' AND creator = "'.$vars['name'].'"');
+				sc_query('DELETE FROM series WHERE id = '.$series_id.' AND creator = "'.$vars['name'].'"');
 				
 				if (mysql_affected_rows())
 					{
 					#echo 'DELETE FROM games WHERE series_id = '.$series_id.' AND player_count = 0';
-					sc_mysql_query('DELETE FROM games WHERE series_id = '.$series_id.' AND player_count = 0');
+					sc_query('DELETE FROM games WHERE series_id = '.$series_id.' AND player_count = 0');
 					}
 
 				return customSeries($vars, 'Series deleted.');
@@ -466,7 +466,7 @@ function createCustomSeries_processing($vars)
 	$values[] = 'custom = "1"';
 	$values[] = 'creator = "'.$empire['name'].'"';
 
-	sc_mysql_query('INSERT INTO series SET '.implode(',', $values));
+	sc_query('INSERT INTO series SET '.implode(',', $values));
 
 	spawnGame($vars['series_name']);
 
@@ -555,7 +555,7 @@ function canCreateCustomSeries($empire)
 {
 	global $server;
 	
-	$select = sc_mysql_query('SELECT COUNT(*) FROM series WHERE creator = "'.$empire['name'].'"');
+	$select = sc_query('SELECT COUNT(*) FROM series WHERE creator = "'.$empire['name'].'"');
 	
 	$allowed_series = floor(($empire['wins']/$server['custom_series_wins_chunk'])*$server['custom_series_per_wins_chunk']);
 	

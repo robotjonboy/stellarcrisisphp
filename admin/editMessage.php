@@ -6,7 +6,7 @@ function editMessage($vars)
 	$empire = $vars['empire_data'];
 	standardHeader('Edit Message', $empire);
 	
-	$select = sc_mysql_query('SELECT text FROM messages WHERE type = "'.$vars['message_type'].'" LIMIT 1');
+	$select = sc_query('SELECT text FROM messages WHERE type = "'.$vars['message_type'].'" LIMIT 1');
 	$row = $select->fetch_assoc();
 	
 	switch ($vars['message_type'])
@@ -54,8 +54,8 @@ function editMessage($vars)
 
 function editMessage_processing($vars)
 {
-	sc_mysql_query('DELETE FROM messages WHERE type = "'.$vars['message_type'].'"');
-	sc_mysql_query('INSERT INTO messages SET type = "'.$vars['message_type'].'", text = "'.addslashes($vars['message']).'"');
+	sc_query('DELETE FROM messages WHERE type = "'.$vars['message_type'].'"');
+	sc_query('INSERT INTO messages SET type = "'.$vars['message_type'].'", text = "'.addslashes($vars['message']).'"');
 
 	sendEmpireMessage($vars['empire_data'], 'Message updated.');
 	return mainPage_admin($vars);

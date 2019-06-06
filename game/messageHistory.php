@@ -21,7 +21,7 @@ function messageHistory($vars)
 							'scout' => 'Scouting reports', 
 							'' => 'Instant',
 							'update' => 'Updates');
-	$select = sc_mysql_query('SELECT type, COUNT(id) as c '.
+	$select = sc_query('SELECT type, COUNT(id) as c '.
 							'FROM messages '.
 							'WHERE player_id = '.$player['id'].' '.
 							'GROUP BY type');
@@ -41,7 +41,7 @@ function messageHistory($vars)
 		$total_messages += $row['c'];
 	}
 
-	if (mysql_num_rows($select))
+	if ($select->num_rows)
 	{
 ?>
 <div class=messageBold>
@@ -78,12 +78,12 @@ Choose the category of messages you wish to display.
 
 	$order = ($vars['reverse_order'] ? 'ASC' : 'DESC');
 
-	$select = sc_mysql_query('SELECT * 
+	$select = sc_query('SELECT * 
 								FROM messages 
 								WHERE '.implode(' AND ', $conditions).
 								' ORDER BY id '.$order);
 
-	if (mysql_num_rows($select))
+	if ($select->num_rows)
 		{
 		$tmp_missives = array();
 		while ($row = mysql_fetch_array($select))
@@ -152,7 +152,7 @@ function messageHistory_processing($vars)
 			// deleting messages that don't belong to them.
 			foreach ($vars['deleteMessage'] as $message_id)
 				{
-				sc_mysql_query('DELETE 
+				sc_query('DELETE 
 								FROM messages 
 								WHERE id = '.$message_id.' 
 								AND player_id = '.$player['id']);

@@ -12,7 +12,7 @@ function resumeSeries($vars)
 <?php
 	echo drawButtons($vars['empire_data']).serverTime().onlinePlayers().empireMissive($vars['empire_data']);
 
-	$select = sc_mysql_query('SELECT id, name FROM series WHERE halted = "1" ORDER BY name ASC');
+	$select = sc_query('SELECT id, name FROM series WHERE halted = "1" ORDER BY name ASC');
 ?>
 <img class=spacerule src="images/spacerule.jpg" width="100%">
 
@@ -50,11 +50,11 @@ function resumeSeries_processing($vars)
 		{
 		$series = getSeries($vars['seriesToResume']);
 
-		sc_mysql_query('UPDATE series SET halted = "0" WHERE id = '.$series['id']);
+		sc_query('UPDATE series SET halted = "0" WHERE id = '.$series['id']);
 
 		// Not in 2.8 code, but how will one start a new game if it doesn't appear on the game list screen?
 		// This will spawn a new game if no other is open.
-		$select_empty_games = sc_mysql_query('SELECT COUNT(*) FROM games WHERE series_id = '.$series['id'].' AND player_count = 0');
+		$select_empty_games = sc_query('SELECT COUNT(*) FROM games WHERE series_id = '.$series['id'].' AND player_count = 0');
 		if (!mysql_result($select_empty_games, 0, 0))
 			spawnGame($series['name']);
 

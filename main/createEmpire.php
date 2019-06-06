@@ -143,7 +143,7 @@ function createEmpire_processing($vars)
 			}
 		
 		$sql='INSERT INTO empires SET '.implode(', ', $values);
-		sc_mysql_query($sql);
+		sc_query($sql);
 		
 		if ($server['require_valid_email'])
 			return newEmpireLogin($vars);
@@ -170,25 +170,25 @@ function blockEmail($address, $tpass)
 {
 	standardHeader('Email Address Blocking');
 	
-	$select = sc_mysql_query('SELECT * FROM empires WHERE email = "'.$address.'" AND NOT validation_info REGEXP "^C"');
+	$select = sc_query('SELECT * FROM empires WHERE email = "'.$address.'" AND NOT validation_info REGEXP "^C"');
 	
-	if (mysql_num_rows($select) > 0)
+	if ($select->num_rows > 0)
 		echo 'You may not block the address of a registered empire.';
 	else
 		{
-		$select = sc_mysql_query('SELECT * FROM empires WHERE email = "'.$address.'" AND password = "'.$tpass.'"');
-		if (!mysql_num_rows($select))
+		$select = sc_query('SELECT * FROM empires WHERE email = "'.$address.'" AND password = "'.$tpass.'"');
+		if (!$select->num_rows)
 			echo 'Invalid temporary password.'; 
 		else
 			{
 			$empire = mysql_fetch_array($select);
 			
-			sc_mysql_query('DELETE FROM empires WHERE email = "'.$address.'"');
+			sc_query('DELETE FROM empires WHERE email = "'.$address.'"');
 			
 			$result = mysql_query('SELECT * FROM blockedemail WHERE email="'.$address.'"');
 			
 			if (!mysql_num_rows($result))
-				sc_mysql_query('INSERT INTO blockedemail SET email = "'.$address.'", time = '.time().', empname = "'.$empire['name'].'"');
+				sc_query('INSERT INTO blockedemail SET email = "'.$address.'", time = '.time().', empname = "'.$empire['name'].'"');
 			
 			echo $address.' added to our blocked email list.';
 			}

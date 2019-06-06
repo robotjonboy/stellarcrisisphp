@@ -81,7 +81,7 @@ function editSeries($vars, $message = '')
 		echo '<select name="series_id">'."\n";
 		echo "<option value=0>Select series...\n";
 		// and present list of series in dropdown box
-		$select = sc_mysql_query('SELECT id, name FROM series ORDER BY name ASC',
+		$select = sc_query('SELECT id, name FROM series ORDER BY name ASC',
 								__FILE__.'*'.__LINE__);
 		while ($series = mysql_fetch_array($select))
 		{
@@ -491,7 +491,7 @@ function editSeries_processing($vars)
 	debugecho("14: pre mysql update");
 	$cjpsql='UPDATE series SET '.implode(',', $values).' WHERE id = '.$vars['editSeriesID'];
 	debugecho($cjpsql);
-	sc_mysql_query('UPDATE series SET '.implode(',', $values).' WHERE id = '.$vars['editSeriesID'], __FILE__.'*'.__LINE__);
+	sc_query('UPDATE series SET '.implode(',', $values).' WHERE id = '.$vars['editSeriesID'], __FILE__.'*'.__LINE__);
 
 	debugecho("14: pre sendEmpireMessage");
 	$empire =$vars['empireID'];

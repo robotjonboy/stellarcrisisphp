@@ -5,10 +5,10 @@ function addTournament($vars)
 	
 	//grab a list of two player series (currently tournaments only support two player series)
 	$sql  = 'SELECT id, name from series where max_players = 2';
-	$select = sc_mysql_query($sql);
+	$select = sc_query($sql);
 	
 	$numberOfSeries = 0;
-	for ($i = 0; $series = mysql_fetch_assoc($select); $i++)
+	for ($i = 0; $series = $select->fetch_assoc(); $i++)
 	{
 		$numberOfSeries++;
 		$seriesList[$i] = $series;
@@ -77,7 +77,7 @@ function addTournament($vars)
 
 function addTournament_processing($vars)
 {
-	global $authenticated_as_admin;
+	global $authenticated_as_admin,$mysqli;
 	
 	if (!$authenticated_as_admin)
 		return loginFailed('Identity check failed.');
@@ -145,16 +145,16 @@ function addTournament_processing($vars)
 		
 	//verify that the chosen series is a two player series
 	$sql  = 'SELECT id, name from series where max_players = 2 AND id = ' . ((int) $vars['series']);
-	$select = sc_mysql_query($sql);
+	$select = sc_query($sql);
 	
-	if (!$select || mysql_num_rows($select) == 0)
+	if (!$select || $select->num_rows == 0)
 	{
 		sendEmpireMessage($empire, 'An invalid series was selected.');
 		$invalid_data = true;
 	}	
 	
 	$numberOfSeries = 0;
-	for ($i = 0; $series = mysql_fetch_assoc($select); $i++)
+	for ($i = 0; $series = $select->fetch_assoc(); $i++)
 	{
 		$numberOfSeries++;
 		$seriesList[$i] = $series;
@@ -168,11 +168,11 @@ function addTournament_processing($vars)
 
 	$values = array();
 	$values[] = 'starttime = "'.$starttime.'"';
-	$values[] = 'name = "'.mysql_real_escape_string($vars['tournament_name']).'"';
-	$values[] = 'description = "'.mysql_real_escape_string($vars['tournament_description']).'"';
+	$values[] = 'name = "'.$mysqli->real_escape_string($vars['tournament_name']).'"';
+	$values[] = 'description = "'.$mysqli->real_escape_string($vars['tournament_description']).'"';
 	$values[] = 'series = "'.((int)$vars['series']).'"';
 
-	sc_mysql_query('INSERT INTO tournament SET '.implode(',', $values));
+	sc_query('INSERT INTO tournament SET '.implode(',', $values));
 
 	sendEmpireMessage($empire, 'Tournament <span style="color: red;">'.stripslashes($vars['tournament_name']).'</span> successfully created.');
 

@@ -23,7 +23,7 @@ function buildScreen($vars)
 	$conditions[] = 'game_id = '.$game['id'];
 	$conditions[] = 'owner = "'.$mysqli->real_escape_string($vars['name']).'"';
 	$conditions[] = 'population >= '.$server['builder_population'];
-	$select = sc_mysql_query('SELECT name, coordinates, homeworld FROM systems WHERE '.implode(' AND ', $conditions).' ORDER BY name, coordinates ASC');
+	$select = sc_query('SELECT name, coordinates, homeworld FROM systems WHERE '.implode(' AND ', $conditions).' ORDER BY name, coordinates ASC');
 
   	if (!$select->num_rows)
     	{
@@ -48,7 +48,7 @@ function buildScreen($vars)
 	$conditions[] = 'game_id = '.$game['id'];
 	$conditions[] = 'owner = "'.$mysqli->real_escape_string($vars['name']).'"';
 	$conditions[] = 'orders = "build"';
-	$current_builds = sc_mysql_query('SELECT type, COUNT(id) AS ship_count FROM ships WHERE '.implode(' AND ', $conditions).' GROUP BY type');
+	$current_builds = sc_query('SELECT type, COUNT(id) AS ship_count FROM ships WHERE '.implode(' AND ', $conditions).' GROUP BY type');
 	
 	if ($current_builds->num_rows)
 		{
@@ -209,7 +209,7 @@ function buildScreen_processing($vars)
 				
 			// Build the requested amount of ships.
 			for ($x = 0; $x < $build_count; $x++)
-				sc_mysql_query('INSERT INTO ships SET '.implode(',', $values));
+				sc_query('INSERT INTO ships SET '.implode(',', $values));
 
 			$outbuild[] = $build_count.' '.$ship_type.(in_array($ship_type, $moving_ships) ? ' ship' : '').($build_count != 1 ? 's' : '').
 						  ($build_name ? ' named '.$build_name : '').' (BR '.$br.') built at '.$system['name'].' ('.$build_location.').';
@@ -217,7 +217,7 @@ function buildScreen_processing($vars)
 
 		// Farewell, colonists!
 		foreach (array_keys($departing_colonists) as $system_id)
-			sc_mysql_query('UPDATE systems SET population = (population-'.$departing_colonists[$system_id].') WHERE id = '.$system_id);
+			sc_query('UPDATE systems SET population = (population-'.$departing_colonists[$system_id].') WHERE id = '.$system_id);
 
 		recalculateRatios($vars);
 		

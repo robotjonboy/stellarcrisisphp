@@ -6,9 +6,9 @@ function viewTournament($vars, $message = '')
 	
 	//is the empire an entrant?
 	$sql = 'select * from tournamententrant where tournamentid = ' . $tourney['id'] . ' AND empireid = ' . $empire['id'];
-	$select = sc_mysql_query($sql);
+	$select = sc_query($sql);
 	
-	if (mysql_num_rows($select) > 0) {
+	if ($select->num_rows > 0) {
 		$empireisentrant = true;
 	} else {
 		$empireisentrant = false;
@@ -24,10 +24,10 @@ function viewTournament($vars, $message = '')
 	//grab a list of active entrants
 	$sql  = 'SELECT empireid, e.id, name, eliminated from tournamententrant te, empires e where tournamentid = ' . $tourney['id'] .
 		  ' AND empireid = e.id AND eliminated = false';
-	$select = sc_mysql_query($sql);
+	$select = sc_query($sql);
 	
 	$numberOfEntrants = 0;
-	for ($i = 0; $entrant = mysql_fetch_assoc($select); $i++)
+	for ($i = 0; $entrant = $select->fetch_assoc(); $i++)
 	{
 		$entrants[$i] = $entrant;
 		
@@ -37,10 +37,10 @@ function viewTournament($vars, $message = '')
 	//eliminated entrants
 	$sql  = 'SELECT empireid, e.id, name, eliminated from tournamententrant te, empires e where tournamentid = ' . $tourney['id'] .
 		  ' AND empireid = e.id AND eliminated = true';
-	$select = sc_mysql_query($sql);
+	$select = sc_query($sql);
 	
 	$numberOfEliminatedEntrants = 0;
-	for ($i = 0; $entrant = mysql_fetch_assoc($select); $i++)
+	for ($i = 0; $entrant = $select->fetch_assoc(); $i++)
 	{
 		$eliminatedEntrants[$i] = $entrant;
 		
@@ -49,22 +49,22 @@ function viewTournament($vars, $message = '')
 	
 	//grab a list of tournament games
 	$sql = 'select * from tournamentgame where tournament = ' . $tourney['id'] . ' order by round desc';
-	$select = sc_mysql_query($sql);
+	$select = sc_query($sql);
 	
 	$numberOfCurrentRoundGames = 0;
 	$numberOfPreviousRoundGames = 0;
 	$currentRound = 1;
-	while ($tourneyGame = mysql_fetch_assoc($select)) {
+	while ($tourneyGame = $select->fetch_assoc()) {
 		$currentRound = max($currentRound, $tourneyGame['round']);
 		
 		//grab player names
 		$sql2 = 'select game_id, name from players where game_id = ' . $tourneyGame['id'];
-		$result2 = sc_mysql_query($sql);
+		$result2 = sc_query($sql);
 		
 		//grab winner name
 		if (isset($tourneyGame['winner'])) {
 			$sql2 = 'select id, name from empires where id = ' . $tourneyGame['winner'];
-			$result2 = sc_mysql_query($sql2);
+			$result2 = sc_query($sql2);
 			$empire = mysql_fetch_assoc($result2);
 			
 			$tourneyGame['winnerName'] = $empire['name'];

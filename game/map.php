@@ -57,7 +57,7 @@ function mapScreen($vars)
 	
 	$scouted_query = 'SELECT '.implode(',', $fields).', "no" AS explored FROM scouting_reports WHERE scouting_reports.player_id = '.$player['id'];
 
-	$select = sc_mysql_query($explored_query.' UNION '.$scouted_query);
+	$select = sc_query($explored_query.' UNION '.$scouted_query);
 	while ($row = $select->fetch_assoc())
 		{
 		$systems[ $row['coordinates'] ]['coordinates'] 	= $row['coordinates'];
@@ -111,7 +111,7 @@ function mapScreen($vars)
 	$conditions[] = 'explored.empire = "'.$player['name'].'"';
 	$conditions[] = 'ships.game_id = '.$game['id'];
 
-	$select = sc_mysql_query('SELECT '.implode(', ', $fields).' FROM '.$from.' WHERE '.implode(' AND ', $conditions).' GROUP BY location');
+	$select = sc_query('SELECT '.implode(', ', $fields).' FROM '.$from.' WHERE '.implode(' AND ', $conditions).' GROUP BY location');
 	while ($row = $select->fetch_assoc())
 		{
 		$ship_counts[$row['location']]['friendly'] = $row['friendly'];
@@ -290,7 +290,7 @@ function miniMapScreen($vars)
 
 	$from = 'explored INNER JOIN systems ON explored.game_id = systems.game_id AND explored.coordinates = systems.coordinates';
 	$query = 'SELECT * FROM '.$from.' WHERE explored.game_id = '.$game['id'].' AND explored.empire = "'.$vars['name'].'"';
-	$select = sc_mysql_query($query, __FILE__.'*'.__LINE__);
+	$select = sc_query($query, __FILE__.'*'.__LINE__);
 
 	while ($row = $select->fetch_assoc())
 		{
@@ -308,7 +308,7 @@ function miniMapScreen($vars)
 
 	// Add scouting report planets.
 	$query = 'SELECT * FROM scouting_reports WHERE player_id = '.$player['id'];
-	$select = sc_mysql_query($query, __FILE__.'*'.__LINE__);
+	$select = sc_query($query, __FILE__.'*'.__LINE__);
 	while ($row = $select->fetch_assoc())
 		{
 		if ($minimap_data[$row['coordinates']]) continue;

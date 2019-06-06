@@ -10,7 +10,7 @@ function infoScreen($vars)
 	$conditions[] = 'game_id = '.((int)$game['id']);
 	$conditions[] = 'ended_turn = "0"';
 	$conditions[] = 'team >= 0';
-	$select = sc_mysql_query('SELECT COUNT(*) as c FROM players WHERE '.implode(' AND ', $conditions));
+	$select = sc_query('SELECT COUNT(*) as c FROM players WHERE '.implode(' AND ', $conditions));
 	$line = $select->fetch_assoc();
 	$not_ended_turn = $line['c'];
 	$ended_turn = $game['player_count']-$not_ended_turn;

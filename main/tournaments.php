@@ -5,14 +5,14 @@ function tournaments($vars, $message = '')
 	
 	//grab a list of tournaments
 	$sql  = 'SELECT * from tournament order by starttime desc';
-	$select = sc_mysql_query($sql);
+	$select = sc_query($sql);
 	
 	$numberOfTournaments = 0;
-	for ($i = 0; $tourney = mysql_fetch_assoc($select); $i++)
+	for ($i = 0; $tourney = $select->fetch_assoc(); $i++)
 	{
 		//grab series name
 		$sql2 = 'select id, name from series where id = ' . $tourney['series'];
-		$result2 = sc_mysql_query($sql2);
+		$result2 = sc_query($sql2);
 		$series = mysql_fetch_assoc($result2);
 		$tourney['seriesname'] = $series['name'];
 		

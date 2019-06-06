@@ -20,7 +20,7 @@ function shipsScreen($vars)
 	
 	$query = 'SELECT * FROM ships WHERE '.implode(' AND ', $conditions).' ORDER BY '.$order;
 	
-	$select_ships = sc_mysql_query($query);
+	$select_ships = sc_query($query);
 
 	$builds = '';
 	$ships = '';
@@ -67,9 +67,9 @@ function shipsScreen($vars)
 			 'FROM fleets INNER JOIN systems ON fleets.game_id = systems.game_id AND fleets.location = systems.coordinates '.
 			 'WHERE '.implode(' AND ', $conditions).' ORDER BY fleets.location ASC';
 	
-	$select_fleets = sc_mysql_query($query);
+	$select_fleets = sc_query($query);
 
-	while ($fleet = mysql_fetch_array($select_fleets))
+	while ($fleet = $select_fleets->fetch_assoc())
 		{
 		$fleet_orders = '';
 		
@@ -123,12 +123,12 @@ function shipsScreen($vars)
 		$fields[] = 'SUM(POW(max_br, 2)) AS fleetMaxStrength';
 		$fields[] = 'COUNT(*) AS shipCount';
 
-		$select_ships = sc_mysql_query('SELECT '.implode(',', $fields).' FROM ships WHERE fleet_id = '.$fleet['id']);
-		
-		$fleetStrength = sqrt(mysql_result($select_ships, 0, 0));
-		$fleetNextStrength = sqrt(mysql_result($select_ships, 0, 1));
-		$fleetMaxStrength = sqrt(mysql_result($select_ships, 0, 2));
-		$ship_count = mysql_result($select_ships, 0, 3);
+		$select_ships = sc_query('SELECT '.implode(',', $fields).' FROM ships WHERE fleet_id = '.$fleet['id']);
+		$line = $select_ships->fetch_assoc();
+		$fleetStrength = sqrt($line['fleetStrength']);
+		$fleetNextStrength = sqrt($line['fleetNextStrength']);
+		$fleetMaxStrength = sqrt($line['fleetMaxStrength']);
+		$ship_count = $line['shipCount'];
 		
 		if ($fleetMaxStrength != 0)
 			{
@@ -142,7 +142,7 @@ function shipsScreen($vars)
 		
 		// Ship inventory.
 		$ship_inventory = array();
-		$select_ships = sc_mysql_query('SELECT type, COUNT(*) as count FROM ships WHERE fleet_id = '.$fleet['id'].' GROUP BY type');
+		$select_ships = sc_query('SELECT type, COUNT(*) as count FROM ships WHERE fleet_id = '.$fleet['id'].' GROUP BY type');
 		while ($row = $select_ships->fetch_assoc()) $ship_inventory[$row['type']] = $row['count'];
 		
 		$fleets .= '<tr class=center>'.
@@ -213,14 +213,14 @@ function shipsScreen_processing($vars)
 		$conditions[] = 'orders = "build"';
 		$conditions[] = 'type = "Colony"';
 
-		$select = sc_mysql_query('SELECT location, COUNT(id) AS pop_delta FROM ships WHERE '.implode(' AND ', $conditions).' GROUP BY location');
+		$select = sc_query('SELECT location, COUNT(id) AS pop_delta FROM ships WHERE '.implode(' AND ', $conditions).' GROUP BY location');
 		while ($row = $select->fetch_assoc())
 			{
 			$conditions = array();
 			$conditions[] = 'game_id = "'.$game['id'].'"';
 			$conditions[] = 'coordinates = "'.$row['location'].'"';
 
-			sc_mysql_query('UPDATE systems SET population = (population+'.$row['pop_delta'].') WHERE '.implode(' AND ', $conditions));
+			sc_query('UPDATE systems SET population = (population+'.$row['pop_delta'].') WHERE '.implode(' AND ', $conditions));
 			}
 			
 		// Discard the building ships.
@@ -229,7 +229,7 @@ function shipsScreen_processing($vars)
 		$conditions[] = 'owner = "'.$player['name'].'"';
 		$conditions[] = 'orders = "build"';
 
-		sc_mysql_query('DELETE FROM ships WHERE '.implode(' AND ', $conditions));
+		sc_query('DELETE FROM ships WHERE '.implode(' AND ', $conditions));
 			
 		recalculateRatios($vars);
 		
@@ -252,7 +252,7 @@ function shipsScreen_processing($vars)
 			// Comparing the name does not slow things significantly, so if we can spare
 			// an update transaction with the database, let's do it.
 			if ($new_ship_name != $ship['name'])
-				sc_mysql_query('UPDATE ships SET name = "'.sanitizeString($new_ship_name).'" WHERE id = '.$ship_id);
+				sc_query('UPDATE ships SET name = "'.sanitizeString($new_ship_name).'" WHERE id = '.$ship_id);
 
 			$dirty_orders = explode(':', $vars['ship_orders'][$ship_id]);
 			list($orders, $order_arguments) = $dirty_orders;
@@ -279,11 +279,11 @@ function shipsScreen_processing($vars)
 						$conditions = array();
 						$conditions[] = 'game_id = "'.$game['id'].'"';
 						$conditions[] = 'coordinates = "'.$ship['location'].'"';
-						sc_mysql_query('UPDATE systems SET population = (population+1) WHERE '.implode(' AND ', $conditions));
+						sc_query('UPDATE systems SET population = (population+1) WHERE '.implode(' AND ', $conditions));
 						}
 
 					// Discard the ship.
-					sc_mysql_query('DELETE FROM ships WHERE id = '.$ship_id);
+					sc_query('DELETE FROM ships WHERE id = '.$ship_id);
 
 					$recalculateRatios = true;
 					}
@@ -293,7 +293,7 @@ function shipsScreen_processing($vars)
 					// Note that the orders of the ship does not change. We only change its location;
 					// this way, the update_game() code does not need to be changed. We are in fact
 					// emulating a build cancelation and a re-issuing of building orders on another planet.
-					sc_mysql_query('UPDATE ships SET location = "'.xlateToGalactic($order_arguments).'" WHERE id = '.$ship_id);
+					sc_query('UPDATE ships SET location = "'.xlateToGalactic($order_arguments).'" WHERE id = '.$ship_id);
 
 					// Adjust populations if this is a colony ship and we are switching planets.
 					if ($ship['type'] == 'Colony')
@@ -301,10 +301,10 @@ function shipsScreen_processing($vars)
 						$conditions = array();
 						$conditions[0] = 'game_id = '.$game['id'];
 						$conditions[1] = 'coordinates = "'.$ship['location'].'"';
-						sc_mysql_query('UPDATE systems SET population = (population+1) WHERE '.implode(' AND ', $conditions));
+						sc_query('UPDATE systems SET population = (population+1) WHERE '.implode(' AND ', $conditions));
 
 						$conditions[1] = 'coordinates = "'.xlateToGalactic($order_arguments).'"';
-						sc_mysql_query('UPDATE systems SET population = (population-1) WHERE '.implode(' AND ', $conditions));
+						sc_query('UPDATE systems SET population = (population-1) WHERE '.implode(' AND ', $conditions));
 						}
 					}
 				else if ($orders == 'fleet')
@@ -313,7 +313,7 @@ function shipsScreen_processing($vars)
 					$values[] = 'fleet_id = '.$order_arguments;
 					$values[] = 'orders = "fleet"';
 					$values[] = 'order_arguments = "'.$order_arguments.'"';
-					sc_mysql_query('UPDATE ships SET '.implode(',', $values).' WHERE id = '.$ship_id);
+					sc_query('UPDATE ships SET '.implode(',', $values).' WHERE id = '.$ship_id);
 					}
 				else
 					{
@@ -322,12 +322,12 @@ function shipsScreen_processing($vars)
 					
 					if ($orders == 'morph')
 						$values[] = 'order_arguments = "'.$order_arguments.'"';
-					else if (ereg($orders, 'explore|move|send|open|close|create'))
+					else if (preg_match('/' . $orders . '/', 'explore|move|send|open|close|create'))
 						$values[] = 'order_arguments = "'.xlateToGalactic($order_arguments).'"';
 					else
-						$values[] = 'order_arguments = NULL';
+						$values[] = 'order_arguments = \'\'';
 
-					sc_mysql_query('UPDATE ships SET '.implode(',', $values).' WHERE id = '.$ship_id);
+					sc_query('UPDATE ships SET '.implode(',', $values).' WHERE id = '.$ship_id);
 					}
 				}
 			}
@@ -357,7 +357,7 @@ function fleetsScreen($vars)
 	$fleet_ids = array();
 	$ship_ids = array();
 
-	$select = sc_mysql_query('SELECT * FROM fleets WHERE player_id = '.$player['id']);
+	$select = sc_query('SELECT * FROM fleets WHERE player_id = '.$player['id']);
 	while ($fleet = $select->fetch_assoc())
 		{
 		$valid_fleet_orders = getFleetOrders($player, $fleet);
@@ -424,7 +424,7 @@ function fleetsScreen($vars)
 
     	if ($fleet['collapsed'] == 0)
 			{
-    		$select_ships = sc_mysql_query('SELECT * FROM ships WHERE fleet_id = '.$fleet['id'].' ORDER BY type, location, max_br ASC');
+    		$select_ships = sc_query('SELECT * FROM ships WHERE fleet_id = '.$fleet['id'].' ORDER BY type, location, max_br ASC');
 			
 			if (mysql_num_rows($select_ships))
 				$ship_list = '<tr><th colspan=7 style="vertical-align: top;">'.
@@ -464,7 +464,7 @@ function fleetsScreen($vars)
 							 '<img class=spaceruleThin style="margin-bottom: 5pt; margin-top: 5pt;" src="images/spacerule.jpg"></th></tr>';
 			$ship_count = 0;
 			$ship_inventory = array();
-			$select_ships = sc_mysql_query('SELECT type, COUNT(id) as count FROM ships WHERE fleet_id = '.$fleet['id'].' GROUP BY type');
+			$select_ships = sc_query('SELECT type, COUNT(id) as count FROM ships WHERE fleet_id = '.$fleet['id'].' GROUP BY type');
 			while ($row = $select_ships->fetch_assoc())
 				{
 				$ship_count += $row['count'];
@@ -476,7 +476,7 @@ function fleetsScreen($vars)
 			$fields[] = 'SUM(POW(LEAST(br*'.($player['mineral_ratio'] ? $player['mineral_ratio'] : 0).', max_br), 2)) as fleetNextStrength';
 			$fields[] = 'SUM(POW(max_br, 2)) as fleetMaxStrength';
 
-			$select_ships = sc_mysql_query('SELECT '.implode(',', $fields).' FROM ships WHERE fleet_id = '.$fleet['id']);
+			$select_ships = sc_query('SELECT '.implode(',', $fields).' FROM ships WHERE fleet_id = '.$fleet['id']);
 			$line = $select_ships->fetch_assoc();
 			$fleetStrength = $line['fleetStrength'];
 			$fleetNextStrength = $line['fleetNextStrength'];
@@ -565,7 +565,7 @@ function fleetsScreen($vars)
 	
 	$from = 'ships INNER JOIN systems ON ships.game_id = systems.game_id AND ships.location = systems.coordinates';
 	
-	$select = sc_mysql_query('SELECT '.implode(',', $fields).' FROM '.$from.' WHERE '.implode(' AND ', $conditions).' GROUP BY location ORDER BY name ASC');	
+	$select = sc_query('SELECT '.implode(',', $fields).' FROM '.$from.' WHERE '.implode(' AND ', $conditions).' GROUP BY location ORDER BY name ASC');	
 	
 	if ($select->num_rows)
 		{
@@ -637,7 +637,7 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 			
 			// Update the ship's name; we specify the owner field to make sure no cheater affects fleets he doesn't own.
 			if ($ship['name'] != $new_ship_name)
-				sc_mysql_query('UPDATE ships SET name = "'.addslashes($new_ship_name).'" WHERE id = '.$ship_id);
+				sc_query('UPDATE ships SET name = "'.addslashes($new_ship_name).'" WHERE id = '.$ship_id);
 				
 			$dirty_orders = explode(':', $vars['ship_orders'][$ship_id]);
 			list($orders, $order_arguments) = $dirty_orders;
@@ -663,7 +663,7 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 				
 				$values = array();
 				
-				if (ereg($orders, 'explore|move'))
+				if (preg_match('/' . $orders . '/', 'explore|move'))
 					{
 					$values[] = 'fleet_id = 0';
 					$values[] = 'orders = "'.$orders.'"';
@@ -688,7 +688,7 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 					$values[] = 'order_arguments = "'.$arguments.'"';
 					}
 
-				sc_mysql_query('UPDATE ships SET '.implode(',', $values).' WHERE id = '.$ship_id);
+				sc_query('UPDATE ships SET '.implode(',', $values).' WHERE id = '.$ship_id);
 				}
 			}
 		}
@@ -701,7 +701,7 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 			if ($fleet['owner'] != $vars['name']) continue;
 
 			if ($fleet['name'] != $new_fleet_name)
-				sc_mysql_query('UPDATE fleets SET name = "'.addslashes($new_fleet_name).'" WHERE id = '.$fleet_id);
+				sc_query('UPDATE fleets SET name = "'.addslashes($new_fleet_name).'" WHERE id = '.$fleet_id);
 				
 			list($orders, $order_arguments) = explode(':', $vars['fleet_orders'][$fleet_id]);
 
@@ -724,12 +724,12 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 				switch ($orders)
 					{
 					case 'disband':
-						sc_mysql_query('UPDATE ships SET orders = "standby", order_arguments = NULL, fleet_id = 0 WHERE fleet_id = '.$fleet_id);
-						sc_mysql_query('DELETE FROM fleets WHERE id = '.$fleet_id);
+						sc_query('UPDATE ships SET orders = "standby", order_arguments = NULL, fleet_id = 0 WHERE fleet_id = '.$fleet_id);
+						sc_query('DELETE FROM fleets WHERE id = '.$fleet_id);
 						break;
 					case 'disbandall':
-						sc_mysql_query('UPDATE ships SET orders = "dismantle", order_arguments = NULL, fleet_id = 0 WHERE fleet_id = '.$fleet_id);
-						sc_mysql_query('DELETE FROM fleets WHERE id = '.$fleet_id);
+						sc_query('UPDATE ships SET orders = "dismantle", order_arguments = NULL, fleet_id = 0 WHERE fleet_id = '.$fleet_id);
+						sc_query('DELETE FROM fleets WHERE id = '.$fleet_id);
 						break;
 					case 'pickup':
 						$values = array();
@@ -745,18 +745,18 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 						$conditions[] = 'FIND_IN_SET(type, "Stargate,Jumpgate,Satellite,Minefield") = 0';
 						$conditions[] = 'orders = "standby"';				
 
-						sc_mysql_query('UPDATE ships SET '.implode(',', $values).' WHERE '.implode(' AND ', $conditions));
+						sc_query('UPDATE ships SET '.implode(',', $values).' WHERE '.implode(' AND ', $conditions));
 						break;
 					case 'standby':
 					case 'nuke':
 					case 'colonize':
 					case 'terraform':
 					case 'invade':
-						sc_mysql_query('UPDATE fleets SET orders = "'.$orders.'", order_arguments = NULL WHERE id = '.$fleet_id);
+						sc_query('UPDATE fleets SET orders = "'.$orders.'", order_arguments = NULL WHERE id = '.$fleet_id);
 						break;
 					case 'move':
 						$arguments = xlateToGalactic($order_arguments);							
-						sc_mysql_query('UPDATE fleets SET orders = "move", order_arguments = "'.$arguments.'" WHERE id = '.$fleet_id);
+						sc_query('UPDATE fleets SET orders = "move", order_arguments = "'.$arguments.'" WHERE id = '.$fleet_id);
 						break;
 					}
 				}
@@ -765,12 +765,12 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 
 	if (isset($vars['expand']))
 		{
-		sc_mysql_query('UPDATE fleets SET collapsed = "0" WHERE id = '.key($vars['expand']).' AND owner = "'.$player['name'].'"');
+		sc_query('UPDATE fleets SET collapsed = "0" WHERE id = '.key($vars['expand']).' AND owner = "'.$player['name'].'"');
 		return sendGameMessage($player, 'Fleet expanded.');
 		}
 	else if (isset($vars['collapse']))
 		{
-		sc_mysql_query('UPDATE fleets SET collapsed = "1" WHERE id = '.key($vars['collapse']).' AND owner = "'.$player['name'].'"');
+		sc_query('UPDATE fleets SET collapsed = "1" WHERE id = '.key($vars['collapse']).' AND owner = "'.$player['name'].'"');
 		return sendGameMessage($player, 'Fleet collapsed.');
 		}
 
@@ -788,7 +788,7 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 		$field_values[] = 'location = "'.xlateToGalactic($vars['new_fleet_location']).'"';
 		$field_values[] = 'orders = "standby"';
 
-		sc_mysql_query('INSERT INTO fleets SET '.implode(',', $field_values));
+		sc_query('INSERT INTO fleets SET '.implode(',', $field_values));
 
 		return sendGameMessage($player, 'Fleet created.');
 		}
@@ -806,7 +806,7 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 		$field_values[] = 'location = "'.xlateToGalactic($vars['new_fleet_location']).'"';
 		$field_values[] = 'orders = "standby"';
 
-		sc_mysql_query('INSERT INTO fleets SET '.implode(',', $field_values));
+		sc_query('INSERT INTO fleets SET '.implode(',', $field_values));
 		
 		$new_fleet_id = mysql_insert_id();
 		
@@ -817,9 +817,9 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 		$conditions[] = 'fleet_id = 0';
 		$conditions[] = 'FIND_IN_SET(type, "Stargate,Satellite,Minefield") = 0';
 		$conditions[] = 'orders = "standby"';				
-		sc_mysql_query('UPDATE ships SET orders = "fleet", order_arguments = "'.$new_fleet_id.'", fleet_id = '.$new_fleet_id.' WHERE '.implode(' AND ', $conditions));
+		sc_query('UPDATE ships SET orders = "fleet", order_arguments = "'.$new_fleet_id.'", fleet_id = '.$new_fleet_id.' WHERE '.implode(' AND ', $conditions));
 						
-		sc_mysql_query('UPDATE fleets SET collapsed = "1" WHERE id = '.$new_fleet_id.' AND owner = "'.$vars['name'].'"');
+		sc_query('UPDATE fleets SET collapsed = "1" WHERE id = '.$new_fleet_id.' AND owner = "'.$vars['name'].'"');
 			
 		return sendGameMessage($player, 'Fleet created and ships gathered.');
 		}
@@ -863,7 +863,7 @@ function getFleetOrders($player, $fleet)
    		$conditions[] = 'player_id = '.$player['id'];
 		$conditions[] = '(coordinates = "'.implode('" OR coordinates = "', explode(' ', $system['jumps'])).'")';
 		
-		$select = sc_mysql_query('SELECT coordinates FROM explored WHERE '.implode(' AND ', $conditions));
+		$select = sc_query('SELECT coordinates FROM explored WHERE '.implode(' AND ', $conditions));
 		while ($row = $select->fetch_assoc()) $orders[] = 'move:'.xlateToLocal($row['coordinates']);
 		}
 
@@ -874,7 +874,7 @@ function getFleetOrders($player, $fleet)
 	$fields[] = 'SUM(IF(type = "Colony" AND "'.$system['owner'].'" = "" AND "'.$system['annihilated'].'" = "0", 1, 0)) AS can_colonize';
 	$fields[] = 'SUM(IF(type = "Terraformer" AND owner = "'.$system['owner'].'" AND '.$system['agriculture'].' < '.max($system['mineral'], $system['fuel']).', 1, 0)) AS can_terraform';
 
-	$select = sc_mysql_query('SELECT '.implode(',', $fields).' FROM ships WHERE fleet_id = '.$fleet['id']);
+	$select = sc_query('SELECT '.implode(',', $fields).' FROM ships WHERE fleet_id = '.$fleet['id']);
 	$fleet_ships = $select->fetch_assoc();
 
     if ($fleet_ships['can_nuke']) $orders[] = 'nuke';
@@ -920,7 +920,7 @@ function getValidOrders($series, $game, $ship, $player)
 		$conditions[] = 'coordinates <> "'.$ship['location'].'"';
 		$conditions[] = 'population >= '.$server['builder_population'];
 		
-		$select = sc_mysql_query('SELECT coordinates FROM systems WHERE '.implode(' AND ', $conditions).' ORDER BY name, coordinates ASC');
+		$select = sc_query('SELECT coordinates FROM systems WHERE '.implode(' AND ', $conditions).' ORDER BY name, coordinates ASC');
 		while ($system = $select->fetch_assoc())
 			$build_at[] = array('build_at', xlateToLocal($system['coordinates']));
 
@@ -939,7 +939,7 @@ function getValidOrders($series, $game, $ship, $player)
 		$conditions[] = 'empire = "'.$ship['owner'].'"';
 		$conditions[] = 'status = "6"';
 		
-		$select = sc_mysql_query('SELECT opponent FROM diplomacies WHERE '.implode(' AND ', $conditions));
+		$select = sc_query('SELECT opponent FROM diplomacies WHERE '.implode(' AND ', $conditions));
 		while ($row = $select->fetch_assoc()) $friends[] = $row['opponent'];
 		}
 		
@@ -957,7 +957,7 @@ function getValidOrders($series, $game, $ship, $player)
 			 'FROM systems LEFT JOIN diplomacies ON systems.game_id = diplomacies.game_id AND systems.owner = diplomacies.opponent AND diplomacies.empire = "'.$player['name'].'"'.
 			 'WHERE systems.game_id = '.$game['id'].' AND systems.coordinates = "'.$ship['location'].'"';
 
-	$select = sc_mysql_query($query);
+	$select = sc_query($query);
 	$system = $select->fetch_assoc();
 
 	$jumps = ($system['jumps'] ? explode(' ', $system['jumps']) : array());
@@ -973,7 +973,7 @@ function getValidOrders($series, $game, $ship, $player)
 		$conditions[] = 'owner = "'.$ship['owner'].'"';
 		$conditions[] = 'location = "'.$ship['location'].'"';
 
-		$select = sc_mysql_query('SELECT id FROM fleets WHERE '.implode(' AND ', $conditions));
+		$select = sc_query('SELECT id FROM fleets WHERE '.implode(' AND ', $conditions));
 		while ($fleet = $select->fetch_assoc()) $orders[] = array('fleet', $fleet['id']);
 
 		// Here we determine where the ship may move to. Skip if there are no jumps.
@@ -989,7 +989,7 @@ function getValidOrders($series, $game, $ship, $player)
 			$conditions[] = 'player_id = '.$player['id'];
 			$conditions[] = '(coordinates = "'.implode('" OR coordinates = "', $jumps).'")';
 				
-			$select = sc_mysql_query('SELECT coordinates FROM explored WHERE '.implode(' AND ', $conditions).' LIMIT 4');
+			$select = sc_query('SELECT coordinates FROM explored WHERE '.implode(' AND ', $conditions).' LIMIT 4');
 			while ($row = $select->fetch_assoc())
 				{
 				$orders[] = array('move', xlateToLocal($row['coordinates']));
@@ -1081,7 +1081,7 @@ function getValidOrders($series, $game, $ship, $player)
 				$conditions[] = 'game_id = '.$game['id'];
 				$conditions[] = '(coordinates = "'.implode('" OR coordinates = "', $potential_jumps).'")';
 
-				$select = sc_mysql_query('SELECT coordinates FROM systems WHERE '.implode(' AND ', $conditions).' LIMIT 4');
+				$select = sc_query('SELECT coordinates FROM systems WHERE '.implode(' AND ', $conditions).' LIMIT 4');
 				while ($row = $select->fetch_assoc()) $orders[] = array('open', xlateToLocal($row['coordinates']));
 				}
 			break;
@@ -1109,7 +1109,7 @@ function getValidOrders($series, $game, $ship, $player)
 			else
 				$query = $query_for_owner.' ORDER BY name, coordinates ASC';
 
-			$select = sc_mysql_query($query);
+			$select = sc_query($query);
 			while ($system = $select->fetch_assoc())
 				$orders[] = array('send', xlateToLocal($system['coordinates']));
 			break;
@@ -1136,7 +1136,7 @@ function getValidOrders($series, $game, $ship, $player)
 					 'FROM systems INNER JOIN explored ON systems.game_id = explored.game_id AND systems.coordinates = explored.coordinates '.
 					 'WHERE '.implode(' AND ', $conditions).' ORDER BY systems.name ASC';
 
-			$select = sc_mysql_query($query);
+			$select = sc_query($query);
 
 			while ($system = $select->fetch_assoc())
 				{
@@ -1167,7 +1167,7 @@ function fixOrders($dirty_orders, $series, $game, $player, $ship)
 	list($current_orders, $current_order_arguments) = array($ship['orders'], $ship['order_arguments']);
 
 	if ($current_orders != '')
-		if (ereg($current_orders, 'explore|move|send|open|close|create'))
+		if (preg_match('/' . $current_orders . '/', 'explore|move|send|open|close|create'))
 			$current_order_arguments = xlateToLocal($current_order_arguments);
 
 	for ($fixed_orders = array(), $x = 0, $j = 0; $j < count($dirty_orders); $j++, $x++)
@@ -1275,10 +1275,10 @@ function nameFleet()
 		return randomName();
 	else if ($server['fleetNameSource'] != '')
 		{		
-		$select_word_count = sc_mysql_query('SELECT COUNT(*) FROM '.$server['fleetNameSource']);
+		$select_word_count = sc_query('SELECT COUNT(*) FROM '.$server['fleetNameSource']);
 		$random_id = rand(1, mysql_result($select_word_count, 0, 0));
 		
-		$select = sc_mysql_query('SELECT word FROM '.$server['fleetNameSource'].' WHERE id = '.$random_id);
+		$select = sc_query('SELECT word FROM '.$server['fleetNameSource'].' WHERE id = '.$random_id);
 		$word = $select->fetch_assoc();
 		
 		return ucfirst($word['word']);
