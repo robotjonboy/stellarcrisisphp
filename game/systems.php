@@ -63,7 +63,7 @@ function systemsScreen($vars)
 							' FROM '.$from.
 							' WHERE '.implode(' AND ', $conditions).
 							' ORDER BY explored.id');	
-	while ($system = mysql_fetch_array($select))
+	while ($system = $select->fetch_assoc())
 	{
 		if ($system['owner'] == $empire['name'])
 		{
@@ -317,7 +317,7 @@ function systemsScreen_fromScoutingReport($vars)
 								'FROM scouting_reports '.
 								'WHERE player_id = '.$player['id'].
 								' AND coordinates = "'.$coordinates.'"');	
-	$system = mysql_fetch_array($select);
+	$system = $select->fetch_assoc();
 	
 	$system['name'] = ($system['annihilated'] ? 'Remains of ' : '').$system['name'];
 
@@ -512,7 +512,7 @@ function shipInventory($series, $player)
 
 	$select = sc_query($query, __FILE__.'*'.__LINE__);
 
-	while ($ship = mysql_fetch_array($select))
+	while ($ship = $select->fetch_assoc())
 		{
 		// check for using the cloaker appear as attack rule-- however, for the owner they always appear as cloakers
 		if ($series['cloakers_as_attacks'] 
@@ -573,7 +573,7 @@ function populationAdjustment($player)
 			' GROUP BY ships.location';
 
 	$select = sc_query($query, __FILE__.'*'.__LINE__);
-	while ($row = mysql_fetch_array($select))
+	while ($row = $select->fetch_assoc())
 	{
 		$population_adjustment[$row['location']] = $row['ship_count'];
 	}

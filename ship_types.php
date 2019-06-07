@@ -1,4 +1,4 @@
-<?
+<?php
 # file: ship_types.php
 # generate two arrays as shown below from the database
 # this allows easier addition of ship types without programming
@@ -7,7 +7,7 @@ $ship_types = array();
 $moving_ships = array();
 
 $select = sc_query('SELECT * FROM ship_types WHERE version = "v2" ORDER BY type');
-while ($row = mysql_fetch_array($select))
+while ($row = $select->fetch_assoc())
 	{
 	$ship_types[$row['type']] = $row;
 	

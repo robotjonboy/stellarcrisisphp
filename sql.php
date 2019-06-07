@@ -119,6 +119,7 @@ function getExploredByID($id)
 
 function getDiplomacyWithOpponent($game_id, $name, $opponent)
 {
+	global $mysqli;
 	$conditions = array();
 	$conditions[] = 'game_id = '.((int)$game_id);
 	$conditions[] = 'empire = "'.$mysqli->real_escape_string($name).'"';
