@@ -1249,12 +1249,18 @@ function fixOrders($dirty_orders, $series, $game, $player, $ship)
 					}
 				}
     		}
-
-		if (!$ship['fleet_id'] and $dirty_orders[$j][0] == $current_orders and $dirty_orders[$j][1] == $current_order_arguments)
+		//error_log("fleed id: " . $ship['fleet_id']);
+		//error_log("dirty orders: " . $dirty_orders[$j][0]);
+		//error_log("current orders: " . $current_orders);
+		//error_log("dirty order args: " . $dirty_orders[$j][1]);
+		//error_log("current order args: " . $current_order_arguments);
+		if ($ship['fleet_id'] == 0 and $dirty_orders[$j][0] == $current_orders and 
+				($current_order_arguments == 'NULL' || $dirty_orders[$j][1] == $current_order_arguments))
 			$selected = true;
-
+		//error_log("selected: " . $selected);
 		$fixed_orders[$x] = '<option '.($selected ? 'selected ' : '').
 							'value="'.$dirty_orders[$j][0].':'.$dirty_orders[$j][1].'">'.$fixed_orders[$x];
+		//error_log("fixed orders: " . $fixed_orders[$x]);
   		}
 
 	// Don't sort Stargate orders; that was done in the original SQL query.
