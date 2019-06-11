@@ -1471,7 +1471,7 @@ function update_game($series, &$game, $update_time)
 				}
 				
 			// This is where we list first contacts.
-			if (count($missive[$location]['first_contact']))
+			if (is_array($missive[$location]) && array_key_exists('first_contact', $missive[$location]) && count($missive[$location]['first_contact']))
 				foreach (array_keys($missive[$location]['first_contact']) as $empire_name)
 					{
 					// Skip if this message is not for this empire.
@@ -1484,7 +1484,7 @@ function update_game($series, &$game, $update_time)
 					}
 
 			// Report actions performed in this system.
-			if ($missive[$location]['sys'])
+			if (array_key_exists('sys', $missive[$location]) && $missive[$location]['sys'])
 				{
 				$missive_update = str_replace('*coord*', localize($location, $player['name'], $homeworlds), $missive[$location]['sys']);
 
@@ -1492,7 +1492,7 @@ function update_game($series, &$game, $update_time)
 				}
 
 			// Add information about jump openings and closings
-			if ( count($missive[$location]['neer']) > 0 )
+			if (array_key_exists('neer', $missive[$location]) && count($missive[$location]['neer']) > 0 )
 				foreach ( $missive[$location]['neer'] as $action )
 					{
 					if ( $action['consumed'] )
@@ -1533,19 +1533,18 @@ function update_game($series, &$game, $update_time)
 		
 		#foreach (array_keys($buffered_missive[$player_id]) as $type)
 		foreach ($message_types as $type)
-			{
-			if (!count($buffered_missive[$player_id][$type])) continue;
-
-			foreach ($buffered_missive[$player_id][$type] as $message)
-				{
-				if ($last_type != '' and $type != $last_type)
-					$complete_missive .= '<br>';
-				
-				$complete_missive .= ($last_type != '' ? '<br>' : '').$message;
-				
-				$last_type = $type;
+		{
+			if (array_key_exists($type, $buffered_missive[$player_id]) && count($buffered_missive[$player_id][$type]) > 0) {
+				foreach ($buffered_missive[$player_id][$type] as $message) {
+					if ($last_type != '' and $type != $last_type)
+						$complete_missive .= '<br>';
+					
+					$complete_missive .= ($last_type != '' ? '<br>' : '').$message;
+					
+					$last_type = $type;
 				}
 			}
+		}
 				
 		$values = array();
 		$values[] = 'time = '.$update_time;

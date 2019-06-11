@@ -1,7 +1,7 @@
 <?php
 function diplomacyScreen($vars)
 {
-	global $server;
+	global $server,$mysqli;
 
 	$empire = $vars['empire_data'];
 	$series = $vars['series_data'];
@@ -29,7 +29,7 @@ function diplomacyScreen($vars)
 	// Get all the diplomatic statuses the player has with other empires.
 	$conditions = array();
 	$conditions[] = 'game_id = '.((int)$game['id']);
-	$conditions[] = 'empire = "'.mysql_real_escape_string($empire['name']).'"';
+	$conditions[] = 'empire = "'.$mysqli->real_escape_string($empire['name']).'"';
 	$query = sc_query('SELECT * FROM diplomacies WHERE '.implode(' AND ', $conditions).' ORDER BY status, opponent ASC');
 	while ($diplomacy = $query->fetch_assoc())
 		{
@@ -132,7 +132,7 @@ function diplomacyScreen($vars)
 	if ($server['multiemp_warning'])
 		{
 		$select = sc_query('SELECT name, ip FROM players WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
-		while ($row = mysql_fetch_array($select)) $ip_addresses[$row['ip']][] = $row['name'];
+		while ($row = $select->fetch_assoc()) $ip_addresses[$row['ip']][] = $row['name'];
 
 		foreach (array_keys($ip_addresses) as $key)
 			if ( count($ip_addresses[$key]) > 1 )
@@ -240,9 +240,9 @@ function diplomacyScreen_processing($vars)
 	// Current allies aren't affected - those aren't offers per se.
 	if ($game['diplomacy'] != 2 and is_numeric($game['max_allies']) and $game['max_allies'] >= 0)
 		{
-		$select = sc_query('SELECT COUNT(*) FROM diplomacies WHERE game_id = '.$game['id'].' AND empire = "'.$player['name'].'" AND offer = "5"');
-		
-		if (mysql_result($select, 0, 0) > $game['max_allies'])
+		$select = sc_query('SELECT COUNT(*) as c FROM diplomacies WHERE game_id = '.$game['id'].' AND empire = "'.$player['name'].'" AND offer = "5"');
+		$line = $select->fetch_assoc();
+		if ($line['c'] > $game['max_allies'])
 			{
 			sendPlayerMissive($player, $player['id'], '', 'game_message', 'Alliance limit reached. Offers have been dropped down to truce.');
 			sc_query('UPDATE diplomacies SET offer = "4" WHERE game_id = '.$game['id'].' AND empire = "'.$player['name'].'" AND status <> "5"');
@@ -264,13 +264,13 @@ function diplomacyScreen_processing($vars)
 			if (in_array('Broadcast', $vars['recipients']))
 				{
 				$select = sc_query('SELECT id FROM players WHERE game_id = '.$game['id']);
-				while ($row = mysql_fetch_array($select))
+				while ($row = $select->fetch_assoc())
 					sendPlayerMissive($player, $row['id'], '', 'broadcast', $message);
 				}
 			else if (in_array('Team Radio', $vars['recipients']))
 				{
 				$select = sc_query('SELECT id FROM players WHERE game_id = '.$game['id'].' AND team = "'.$player['team'].'"');
-				while ($row = mysql_fetch_array($select))
+				while ($row = $select->fetch_assoc())
 					sendPlayerMissive($player, $row['id'], '', 'team', $message);
 				}
 			else
