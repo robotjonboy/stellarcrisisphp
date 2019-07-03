@@ -1,4 +1,4 @@
-<?
+<?php
 function joinTournament($vars, $message = '')
 {
 	$empire = $vars['empire_data'];

@@ -250,7 +250,7 @@ function createSeries_processing($vars)
 		$invalid_data = true;
 		}
 
-	if (ereg('=', $vars['series_name']))
+	if (preg_match('/=/', $vars['series_name']))
 		{
 		sendEmpireMessage($empire, 'The series name cannot contain an "=".');
 		$invalid_data = true;

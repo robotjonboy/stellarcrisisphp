@@ -1,6 +1,56 @@
-<?
+<?php
 # file:sc.php
-# 
+#
+# This file is a bag of functions
+# Here they are sorted alphabetically
+/*
+ main -general program switch to select function to call
+function addExploredToFriends($player, $explored_id)
+function array_random($array)
+function array_remove($remove_value, $array)
+function calculateBridier($winner_rank, $winner_index, $loser_rank, $loser_index)
+function check_version($currentversion, $requiredversion)
+function checkForOldPasswordedGames()
+function checkForUpdates()
+function chooseIconPage($vars)
+function convertSharedHQToScoutingReports($series, $update, $player_1, $player_2_name)
+function drawButtons($empire = array())
+function footer()
+function formatMessage($message)
+function getEconomicPower($player)
+function getMilitaryPower($player)
+function getTeamDiplomacy($game)
+function handleIconUpload($vars, $file)
+function iconList($icon)
+function iconUploadPage($vars)
+function importExplored($ignorant_player, $other_player)
+function inHolidayBreak()
+function login($vars)
+function loginFailed($message)
+function mainPage()
+function messageHeader($message)
+function newEmpireLogin($vars)
+function randomName()
+function recalculateRatios($vars)
+function sanitizeString($string)
+function secondsToString($sec)
+function sendEmpireMessage($empire, $message)
+function seriesParameters($series_id)
+function serverTime()
+function spawnGame($series_name)
+function sqlError($rollback_status)
+function standardHeader($title, $empire = array())
+function utime()
+
+PrettyPrinter per this url
+http://www.prettyprinter.de/module.php?name=PrettyPrinter
+did not maintain if indent
+if ()
+	line // this line was flush.
+else
+{
+}
+*/
 #----------------------------------------------------------------------------------------------------------------------#
 require('server.php');
 require('debug.php');
@@ -10,19 +60,25 @@ require('ship_types.php');  //contains global $ship_types array
 require('history.php');
 require('main/main.php');
 require('game/game.php');
-require('update.php');	
+require('update.php');
 #----------------------------------------------------------------------------------------------------------------------#
 # Set $debug to true to see what was sent to us.
 # Think before doing this, people are possibly playing on the server.
 # This my be useful elsewhere if you need to debug stuff: use this global variable.
-#
-$debug = false;
-if ($debug) //cjp debug 
-{
-   echo 'POST:<pre style="text-align: left; color: red; font-weight: bold;">'; print_r($_POST); echo '</pre>';
-   echo 'GET:<pre style="text-align: left; color: red; font-weight: bold;">'; print_r($_GET); echo '</pre>';
-   echo 'FILES:<pre style="text-align: left; color: red; font-weight: bold;">'; print_r($_FILES); echo '</pre>';	
-}
+#         NOTE: check out debug.php writing to errorlog.html instead
+
+/*if ($debug == true) //cjp debug
+ {
+ echo 'POST:<pre style="text-align: left; color: red; font-weight: bold;">';
+ print_r($_POST);
+ echo '</pre>';
+ echo 'GET:<pre style="text-align: left; color: red; font-weight: bold;">';
+ print_r($_GET);
+ echo '</pre>';
+ echo 'FILES:<pre style="text-align: left; color: red; font-weight: bold;">';
+ print_r($_FILES);
+ echo '</pre>';
+ }*/
 
 #----------------------------------------------------------------------------------------------------------------------#
 
@@ -38,7 +94,7 @@ srand((double)microtime()*1000000);
 // Prevent people from crapping up the database (and their games) by interrupting form processing.
 ignore_user_abort(true);
 
-// Start timing the execution of the user's request. This ends in the footer (see footer()).
+// Start timing the execution of the user's request. This ends up in the footer (see footer()).
 $start_time = utime();
 
 // Get our current memory usage so we can determine how much we consumed during execution.
@@ -46,83 +102,88 @@ $start_time = utime();
 // memory_get_usage() will only be defined if your PHP is compiled with the --enable-memory-limit configuration option.
 if ($server['show_memory_usage']) //local setting
 {
-   if( function_exists('memory_get_usage') ) // but don't blow up
-   {
-     $start_memory = memory_get_usage();
-   }
- }
+	if( function_exists('memory_get_usage') ) // but don't blow up
+	{
+		$start_memory = memory_get_usage();
+	}
+}
 
-// Always check to see if games need updating, since this script does not run continuously and 
+// Always check to see if games need updating, since this script does not run continuously and
 // thus cannot "know" when to update a game.
 // We only do this upon form submissions, and when we're not in the administration screens to alleviate the load a bit.
-if (count($_POST) and $_POST['page'] != 'admin')
+if (count($_POST) and $_POST['page'] != 'admin') {
 	checkForUpdates();
+	checkForTournamentUpdates();
+}
 
 // Check to see how the submitter can be authenticated.
 $authenticated = false;
 $authenticated_as_admin = false;
 if (isset($_POST['name']) and isset($_POST['pass']))
-	{
+{
 	$sql  = 'SELECT name, is_admin FROM empires ';
-	$sql .= 'WHERE name = "'.$_POST['name'].'" ';
-	$sql .= 'AND password = "'.$_POST['pass'].'"';
+	$sql .= 'WHERE name = "'.$mysqli->real_escape_string($_POST['name']).'" ';
+	$sql .= 'AND password = "'.$mysqli->real_escape_string($_POST['pass']).'"';
 	$select = sc_query($sql);
 
 	if ($authenticated = $select->num_rows)
-		{
-		$authenticated_as_admin = mysql_result($select, 0, 1);
-		
-		// Make sure the name is capitalized correctly in the $_POST array from now on 
+	{
+		$authenticated_as_admin = sc_result($select, 0, 1);
+
+		// Make sure the name is capitalized correctly in the $_POST array from now on
 		// by taking the value from the database.
-		$_POST['name'] = mysql_result($select, 0, 0);
-		}
+		$_POST['name'] = sc_result($select, 0, 0);
 	}
+}
 
 #----------------------------------------------------------------------------------------------------------------------#
 if (isset($_GET['seriesParameters']))
 	//pop-up window - sc window untouched. - so do nothing else - just wait for next post.
-	seriesParameters($_GET['seriesParameters']); 
-else 
-{
-	if (isset($_POST['section']))
-	{
-		switch ($_POST['section'])
-		{		
-			case 'login':	login($_POST);			break;
-			case 'admin':	adminAction($_POST);		break;
-			case 'main':	mainAction($_POST, $_FILES);	break;
-			case 'game':	gameAction($_POST);		break;
-			default: 	mainPage(); // This should not happen.
-		}
-	}
+	seriesParameters($_GET['seriesParameters']);
 	else
 	{
-		mainPage(); // User accessed the URL directly.
+		if (isset($_POST['section']))
+		{
+			switch ($_POST['section'])
+			{
+				case 'login':		login($_POST);			break;
+				case 'admin':		adminAction($_POST);		break;
+				case 'main':		mainAction($_POST, $_FILES);	break;
+				case 'game':		gameAction($_POST);		break; //defined in game.php
+				case 'tournaments':	tournamentsAction($_POST);	break;
+				default:    		mainPage(); // This should not happen.
+			}
+		}
+		else
+		{
+			mainPage(); // User accessed the URL directly.
+		}
+		// Processing ends here. Commit whatever we've done.
+		sc_query('COMMIT');  //cjp stop commit on pop-up - adjust nesting
 	}
-	// Processing ends here. Commit whatever we've done.
-	mysql_query('COMMIT');  //cjp stop commit on pop-up - adjust nesting
-}
 
-#----------------------------------------------------------------------------------------------------------------------#
-# Standard header for non-game pages. An empire record can be passed by argument to access some user preferences.
-#
+	#----------------------------------------------------------------------------------------------------------------------#
+	# Standard header for non-game pages. An empire record can be passed by argument to access some user preferences.
+	#
 
-function standardHeader($title, $empire = array())
-{
-	global $server;
-?>
+	function standardHeader($title, $empire = array())
+	{
+		global $server;?>
+
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"> 
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-	<title>SC <? echo $server['version'].' @ '.$server['servername'].': '.$title; ?></title>
+	<title>SC <?php echo $server['version'].' @ '.$server['servername'].': '.$title; ?></title>
 	<script type="text/javascript">
-		var scServerName = '<? echo $server['servername']; ?>';
-		var scServerVersion = '<? echo $server['version']; ?>';
+		var scServerName = '<?php echo $server['servername']; ?>';
+		var scServerVersion = '<?php echo $server['version']; ?>';
 	</script>
 	<script src="sc.js" type="text/javascript"></script>
 	<link rel="stylesheet" href="styles.css" type="text/css">
-<?
+	<link rel="shortcut icon" href="/sc/favicon.ico" type="image/x-icon" />
+<?php
+//2008-04-05 added shortcut icon above
 	if ($empire)
 		{			
 		// Override background style according to the user's profile.
@@ -139,7 +200,7 @@ function standardHeader($title, $empire = array())
 </head>
 <body>
 <form method=post action="sc.php">
-<?
+<?php
 	echo $server['standard_header_text'];
 }
 
@@ -155,6 +216,7 @@ function drawButtons($empire = array())
 		 '<input type=submit name=action value="Game List">'.
 		 '<input type=submit name=action value="Password Games">'.
 		 ($server['custom_series_allowed'] ? '<input type=submit name=action value="Custom Series">' : '').
+		 ($server['tournaments'] ? '<input type=submit name=action value="Tournaments">' : '').
 		 '<input type=submit name=action value="Edit Profile">'.
 		 '<input type=submit name=action value="Stat Viewer">'.
 		 '<input type=submit name=action value="Game History">'.
@@ -179,46 +241,110 @@ function mainPage()
 
 	standardHeader('Login');
 
-	$select_quickStats = sc_query('SELECT COUNT(DISTINCT players.name), COUNT(DISTINCT games.id) FROM players INNER JOIN games ON games.player_count > 0');
-	$select_motd = sc_query('SELECT text FROM messages WHERE type = "motd" LIMIT 1');
-	$motd = mysql_fetch_array($select_motd);
+//	$select_quickStats = sc_mysql_query('SELECT COUNT(DISTINCT players.name), COUNT(DISTINCT games.id) FROM players INNER JOIN games ON games.player_count > 0');
+	$select_quickStats = sc_query
+	('
+		SELECT COUNT(DISTINCT players.name),
+		COUNT(DISTINCT games.id) 
+		FROM players 
+		INNER JOIN games 
+		ON games.player_count > 0
+	');
+	$select_motd = sc_query
+	('
+		SELECT text 
+		FROM messages 
+		WHERE type = "motd" 
+		LIMIT 1'
+	);
+	$motd = sc_fetch_assoc($select_motd);
 ?>
-<input type=hidden name="section" value="login">
+	<input type=hidden name="section" value="login">
 
-<div class=pageTitle>Stellar Crisis v<? echo $server['version'].' @ '.$server['servername']; ?></div>
+	<div class=pageTitle>
+	   Stellar Crisis v<?php echo $server['version'].' @ '.$server['servername']; ?>
+	</div>
 
 <div>
 <img class=spacerule src="images/spacerule.jpg" width="100%">
-<table width="100%" cellspacing=5 style="margin-bottom: 10pt;">
+<table 	width="100%" 
+		cellspacing=5 
+		style="margin-bottom: 10pt;">
 	<tr>
 		<td style=" width: 250pt;">
 			<table>
 				<tr>
 					<th style="text-align: right;">Empire Name:</th>
-					<td><input type="text" name="name" size=20 maxlength=20 value="<? echo $_COOKIE['sc_login']; ?>">
+					<td>
+					<input 	type="text" 
+							name="name" 
+							size=20 
+							maxlength=20 
+							value="<?php echo $_COOKIE['sc_login']; ?>"
+					>
 				</tr>
 				<tr>
 					<th style="text-align: right;">Password:</th>
-					<td><input type="password" name="pass" size=20 maxlength=20>&nbsp;<input type=submit class=submit name="action" value="Login"></td>
+					<td>
+					<input 	type="password" 
+							name="pass" 
+							size=20 
+							maxlength=20
+					>
+					&nbsp;
+					<input 	type="submit"	
+							class="submit" 
+							name="action"  
+							value="Login"
+					>
+					</td>
 				</tr>
 			</table>
 		</td>
-		<th style="text-align: left; vertical-align: top;">Stellar Crisis is the web's first complete multi-player strategy game. Players from all over the world compete to build megalithic galactic empires, develop powerful new technologies, and fight pitched 
-battles in far away star systems. It is free, absolutely and positively, as things should be on the net. It also comes with ABSOLUTELY NO WARRANTY. For more information, please visit the <a href="<? echo $server['sc_room_url']; ?>">Stellar Crisis Room</a>.
+		<th style="text-align: left; vertical-align: top;">
+		Stellar Crisis is the web's first complete multi-player strategy game. 
+		Players from all over the world compete to build megalithic galactic empires, 
+		develop powerful new technologies, and fight pitched battles in far away star
+		systems. It is free, absolutely and positively.
+		It also comes with ABSOLUTELY NO WARRANTY. 
+		For more information, please visit the 
+		<a href="<?php echo $server['sc_wiki_url']; ?>">
+		   Stellar Crisis Wiki
+		</a>.
 		</th>
 	</tr>
 	<tr>
 		<td colspan=2 style="padding-top: 10pt; font-size: 9pt;">
-			If you are a new player, enter the empire name and password you would like to use (you'll be asked to confirm it), and click the button labeled <i>"Login"</i>.
+			If you are a new player, enter the empire name and password you would like
+			to use (you'll be asked to confirm it), and click the button labeled 
+			<i>"Login"</i>.
+		</td>
+	</tr>
+	<tr>
+		<td colspan=2 style="padding-top: 10pt;">
+			RocketEmpires is proud to host the annual Stellar Crisis Open Championship.
+			Since 2011, the Stellar Crisis Open Championship has taken place every year
+			beginning on the last Saturday of July. Registration is free and opens one 
+			week before the tournament begins. To register, login, switch to the
+			tournaments tab, click the view button, and then click register.  <a
+			href="http://scopen.rocketempires.com">Click here to visit the tournament
+			homepage.</a>
 		</td>
 	</tr>
 </table>
 </div>
-<?
+<?php
 	echo stripslashes(urldecode($motd['text']));
 ?>
-<div class=quickStats><? echo mysql_result($select_quickStats, 0, 0).' players are currently in '.mysql_result($select_quickStats, 0, 1); ?> games</div>
-<?	
+<div class=quickStats>
+   <?php echo sc_result($select_quickStats, 0, 0).
+      ' players are currently in '.
+      sc_result($select_quickStats, 0, 1).
+      ' games'; 
+   ?> 
+   
+</div>
+<?php	
 	footer();
 }
 
@@ -232,42 +358,45 @@ function login($vars)
 		return loginFailed('You must enter a name and a password.');
 
 	// Prevent people from faking empire names with extra spaces.
-	$vars['name'] = ereg_replace('[[:space:]]+', ' ', trim($vars['name']) );
+	$vars['name'] = preg_replace('/[[:space:]]+/', ' ', trim($vars['name']) );
 
 	// Filter out bad characters.
-	if (ereg('[\*\\\"\'<>%=,\$'.chr(173).']', $vars['name'].$vars['pass']))
+	if (preg_match('[\*\\\"\'<>%=,\$'.chr(173).']', $vars['name'].$vars['pass']))
 		return loginFailed('Your name and/or password contains illegal characters.');# (*\\"\'&lt;&gt;%=,$).');
 
 	if ($empire = getEmpire($vars['name']))
   	{
-  	   if ($empire['password'] == $vars['pass'])
-    	   {
+		if ($empire['password'] == $vars['pass'])
+		{
     		$sql='UPDATE empires SET last_login = '.time().', ';
-		$sql.='last_ip = "'.$_SERVER['REMOTE_ADDR'].'" ';
-		$sql.='WHERE name = "'.$vars['name'].'"';
+			$sql.='last_ip = "'.$_SERVER['REMOTE_ADDR'].'" ';
+			$sql.='WHERE name = "'.$vars['name'].'"';
     		sc_query($sql);
 
-		// Reset the cookie holding the login name for another 24 hours.
-		setcookie('sc_login', $vars['name'], (time()+86400), '/');
+			// Reset the cookie holding the login name for another 24 hours.
+			setcookie('sc_login', $vars['name'], (time()+86400), '/');
 
-		// Check to see if this is the completion of an empire creation
-		if (ereg('^C', $empire['validation_info']))
-		{
-			list($code, $newpass) = explode('/', $empire['validation_info']);
-			sc_query('UPDATE empires SET password = "'.$newpass.'", validation_info = "" WHERE name = "'.$vars['name'].'"');
-
-			$vars['pass'] = $newpass;
-				
-			sendEmpireMessage($empire, 'Empire created.');
-
-			return chooseIconPage($vars);
-		}
-		else
+			// Check to see if this is the completion of an empire creation
+			if (preg_match('/^C/', $empire['validation_info']))
+			{
+				list($code, $newpass) = explode('/', $empire['validation_info']);
+				sc_query
+				('
+					UPDATE empires 
+					SET password = "'.$newpass.'", 
+					validation_info = "" 
+					WHERE name = "'.$vars['name'].'"
+				');
+				$vars['pass'] = $newpass;
+				sendEmpireMessage($empire, 'Empire created.');
+				return chooseIconPage($vars);
+			}
+			else
      			return gameList($vars);
-    	   }
-    	   else 
-    		return loginFailed('Incorrect password.');
-    	}
+		}
+		else 
+			return loginFailed('Incorrect password.');
+	}
   	else 
 	{
 	   return createEmpire($vars);
@@ -287,20 +416,19 @@ function iconList($icon)
 	$counter = 0;
 
 	echo '<div style="text-align: center;">';
-	
 	for ($i = 1; $i <= $server['icon_count']; $i++)
-		{
+	{
 		if ($counter++ % 20 == 0) echo '<br>';
 		
 		// We draw a white border around the specified $icon.
-		echo '<input style="margin: 1pt;'.($icon == 'alien'.$i.'.gif' ? ' border: 1pt solid white;' : '').'" '.
-			 'type=image src="images/aliens/alien'.$i.'.gif" name="icon_'.$i.'">';
-		}
-		
+		echo '<input style="margin: 1pt;'.
+			($icon == 'alien'.$i.'.gif' ? ' border: 1pt solid white;' : '').'" '.
+			'type=image src="images/aliens/alien'.$i.'.gif" name="icon_'.$i.'">';
+	}
 	echo '</div>';
 }
 
-#----------------------------------------------------------------------------------------------------------------------#
+//#----------------------------------------------------------------------------------------------------------------------#
 
 function newEmpireLogin($vars)
 {
@@ -309,7 +437,11 @@ function newEmpireLogin($vars)
 <input type=hidden name="section" value="login">
 
 <div class=pageTitle>New Empire Login</div>
-<div class=message>An email message containing your temporary password has been sent to <? echo $vars['email']; ?>.<br>Please log in using this password to complete the creation of your empire.</div>
+<div class=message>
+An email message containing your temporary password has been sent to 
+<?php echo $vars['email']; ?>.<br>
+Please log in using this password to complete the creation of your empire.
+</div>
 
 <img class=spacerule src="images/spacerule.jpg" width="100%" alt="spacerule.jpg">
 
@@ -317,14 +449,29 @@ function newEmpireLogin($vars)
 <table style="margin-left: auto; margin-right: auto;">
 	<tr>
 		<th style="text-align: right;">Empire Name:</th>
-		<td><input type=text name="name" size=20 maxlength=20 value="<? echo $cookie_name; ?>"></td>
+		<td>
+		<input 	type="text" 
+				name="name" 
+				size=20 
+				maxlength=20 
+				value="<?php echo $cookie_name; ?>">
+		</td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Password:</th>
-		<td><input type=password name="pass" size=20 maxlength=20>&nbsp;<input type=submit name=action value="Login"></td>
+		<td>
+		<input	type="password" 
+				name="pass" 
+				size=20 
+				maxlength=20>
+		&nbsp;
+		<input	type="submit" 
+				name="action" 
+				value="Login">
+		</td>
 </table>
 </div>
-<?
+<?php
 	footer();
 }
 
@@ -339,7 +486,8 @@ function loginFailed($message)
 <input type=hidden name="section" value="login">
 
 <div class=pageTitle>Login Failed</div>
-<div class=message><? echo $message; ?><br>Please try again.
+<div class=message>
+<?php echo $message; ?><br>Please try again.
 </div>
 
 <img class=spacerule src="images/spacerule.jpg" alt="spacerule.jpg">
@@ -348,14 +496,30 @@ function loginFailed($message)
 <table style="margin-left: auto; margin-right: auto;">
 	<tr>
 		<th style="text-align: right;">Empire Name:</th>
-		<td><input type=text size=20 name="user" maxlength=20 value="<? echo ($_COOKIE['sc_login'] ? $_COOKIE['sc_login'] : ''); ?>"></td>
+		<td>
+		<input	type="text" 
+				size=20 
+				name="user" 
+				maxlength=20 
+				value="<?php echo ($_COOKIE['sc_login'] ? 
+								$_COOKIE['sc_login'] : '');?>">
+		</td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Password:</th>
-		<td><input type=password size=20 name="pass" maxlength=20>&nbsp;<input type=submit name=action value="Login"></td>
+		<td>
+		<input	type="password" 
+				size=20 
+				name="pass" 
+				maxlength=20>
+		&nbsp;
+		<input	type="submit" 
+				name="action" 
+				value="Login">
+		</td>
 </table>
 </div>
-<?
+<?php
 	footer();
 }
 
@@ -372,9 +536,9 @@ function sqlError($rollback_status)
 	$rollback = (($rollback_status or $rollback_status == '') ? '<span class=green>rollback successful</span>' : '<span class=red>rollback failed!</span>');
 ?>
 <div class=pageTitle>MySQL Error</div>
-<div style="text-align: center;">An error occured while processing your request (<b><? echo $rollback; ?></b>).
-<br>Please <a href="mailto:<? echo $server['admin_email']; ?>">contact the administrator</a> about this event.</div>
-<?	
+<div style="text-align: center;">An error occured while processing your request (<b><?php echo $rollback; ?></b>).
+<br>Please <a href="mailto:<?php echo $server['admin_email']; ?>">contact the administrator</a> about this event.</div>
+<?php	
 	die();
 }
 
@@ -390,25 +554,33 @@ function iconUploadPage($vars)
 ?>
 </form>
 <form enctype="multipart/form-data" action="sc.php" method=post>
-<input type=hidden name=name value="<? echo $vars['name']; ?>">
-<input type=hidden name=pass value="<? echo $vars['pass']; ?>">
+<input type=hidden name=name value="<?php echo $vars['name']; ?>">
+<input type=hidden name=pass value="<?php echo $vars['pass']; ?>">
 <input type=hidden name=section value="main">
 <input type=hidden name=page value="iconUpload">
-<div class=pageTitle><? echo $vars['name']; ?>: Upload Custom Icon</div>
-<?
-	echo drawButtons($empire).'<div class=message style="margin-top: 10pt;">Local time and date: '.date('l, F j H:i:s T Y', time()).'</div>'.
-		 empireMissive($empire);
+<div class=pageTitle>
+	<?php echo $vars['name']; ?>: Upload Custom Icon
+</div>
+<?php
+	echo drawButtons($empire).
+		'<div class=message style="margin-top: 10pt;">
+		   Local time and date: '.date('l, F j H:i:s T Y', time()).
+		'</div>'.
+		empireMissive($empire);
 ?>
 <img class=spacerule src="images/spacerule.jpg" width="100%" height=10 alt="spacerule.jpg">
 <div style="text-align: center;">
-	Click on the <span style="color: white;">Browse...</span> button to select an icon and then the <span style="color: white;">Upload</span> button.
-	<br>Icons must be 40 by 40 pixels and weigh no more than 15kB.
+	Click on the <span style="color: white;">Browse...</span> button 
+	to select an icon and then the <span style="color: white;">Upload</span> button.<br>
+	Icons must be 40 by 40 pixels and weigh no more than 15kB.
 </div>
 <div style="text-align: center; margin-top: 10pt;">
-	<input name="iconToUpload" type=file>&nbsp;<input type="submit" value="Upload">
+	<input name="iconToUpload" type=file>
+	&nbsp;
+	<input type="submit" value="Upload">
 </div>
 </form>
-<?
+<?php
 	footer();
 }
 
@@ -422,22 +594,24 @@ function chooseIconPage($vars)
 	
 	standardHeader('Choose Icon', $empire);
 ?>
-<div class=pageTitle><? echo $vars['name']; ?>: Choose Icon</div>
+<div class=pageTitle><?php echo $vars['name']; ?>: Choose Icon</div>
 <div>
 <input type=hidden name=iconChoice value=yes>
-<input type=hidden name=fromEmpireCreation value="<? echo (strlen($vars['createEmpire']) ? 1 : 0); ?>">
-<input type=hidden name=name value="<? echo $vars['name']; ?>">
-<input type=hidden name=pass value="<? echo $vars['pass']; ?>">
+<input type=hidden name=fromEmpireCreation value="<?php echo (strlen($vars['createEmpire']) ? 1 : 0); ?>">
+<input type=hidden name=name value="<?php echo $vars['name']; ?>">
+<input type=hidden name=pass value="<?php echo $vars['pass']; ?>">
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="editProfile">
 
-<? echo drawButtons($empire).serverTime().onlinePlayers().empireMissive($empire); ?>
+<?php echo drawButtons($empire).serverTime().onlinePlayers().empireMissive($empire); ?>
 
 <img class=spacerule src="images/spacerule.jpg" width="100%">
-<div style="text-align: center;">Click on the icon you wish to use to represent your empire.</div>
-<?
+</div>
+<div style="text-align: center;">
+   Click on the icon you wish to use to represent your empire.
+</div>
+<?php
 	iconList($empire['icon']);
-
 	footer();
 }
 
@@ -448,23 +622,29 @@ function handleIconUpload($vars, $file)
 	$empire = $vars['empire_data'];
 
 	if (is_uploaded_file($file['iconToUpload']['tmp_name']))
-		{
+	{
 		if ($file['iconToUpload']['size'] > 15*1024)
+		{
 			sendEmpireMessage($empire, 'This icon file is too large (limit is 15k).');
+		}
 		else
-			{
+		{
 			$filename = str_replace(' ', '_', $empire['name'].'.gif');
-
-			if (copy($file['iconToUpload']['tmp_name'], 'images/aliens/custom/'.$filename))
-				{
-				sc_query('UPDATE empires SET icon = "custom/'.$filename.'" WHERE name = "'.$vars['name'].'"');
-				
+			if (copy($file['iconToUpload']['tmp_name'], 
+				'images/aliens/custom/'.$filename))
+			{
+				sc_query('UPDATE empires SET icon = "custom/'.
+								$filename.
+								'" WHERE name = "'.$vars['name'].'"');
 				sendEmpireMessage($empire, 'Custom icon uploaded successfully.');
-				}
+			}
 			else
-				sendEmpireMessage($empire, 'An error occured while saving your custom icon.');
+			{
+				sendEmpireMessage($empire, 
+					'An error occured while saving your custom icon.');
 			}
 		}
+	}
 	else
 		sendEmpireMessage($empire, 'An error occured while uploading your custom icon.');
 
@@ -478,7 +658,7 @@ function handleIconUpload($vars, $file)
 
 function spawnGame($series_name)
 {
-	global $server;
+	global $server,$mysqli;
 	
 	$series = getSeriesByName($series_name);
 
@@ -501,6 +681,8 @@ function spawnGame($series_name)
 		$values[] = 'max_allies  = '.($series['max_allies'] ? $series['max_allies'] : 'NULL');
 
   		sc_query('INSERT INTO games SET '.implode(', ', $values), __FILE__.'*'.__LINE__);
+  		
+  		return $mysqli->insert_id;
 		}
 }
 
@@ -550,9 +732,9 @@ function recalculateRatios($vars)
 
 	$select = sc_query($query, __FILE__.'*'.__LINE__);
 
-  	$build = (mysql_result($select, 0, 0) ? mysql_result($select, 0, 0) : 0);
-	$maintenance = (mysql_result($select, 0, 1) ? mysql_result($select, 0, 1) : 0);
-	$fuel_use = (mysql_result($select, 0, 2) ? mysql_result($select, 0, 2) : 0);
+  	$build = (sc_result($select, 0, 0) ? sc_result($select, 0, 0) : 0);
+	$maintenance = (sc_result($select, 0, 1) ? sc_result($select, 0, 1) : 0);
+	$fuel_use = (sc_result($select, 0, 2) ? sc_result($select, 0, 2) : 0);
 
 	#########################
 	# Resources counts.
@@ -569,11 +751,11 @@ function recalculateRatios($vars)
 
 	$select = sc_query('SELECT '.implode(',', $fields).' FROM systems WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 
-	$mineral = (mysql_result($select, 0, 0) ? mysql_result($select, 0, 0) : 0);
-  	$fuel = (mysql_result($select, 0, 1) ? mysql_result($select, 0, 1) : 0);
-  	$agriculture = (mysql_result($select, 0, 2) ? mysql_result($select, 0, 2) : 0);
-	$population = (mysql_result($select, 0, 3) ? mysql_result($select, 0, 3) : 0);
-	$max_population = (mysql_result($select, 0, 4) ? mysql_result($select, 0, 4) : 0);
+	$mineral = (sc_result($select, 0, 0) ? sc_result($select, 0, 0) : 0);
+  	$fuel = (sc_result($select, 0, 1) ? sc_result($select, 0, 1) : 0);
+  	$agriculture = (sc_result($select, 0, 2) ? sc_result($select, 0, 2) : 0);
+	$population = (sc_result($select, 0, 3) ? sc_result($select, 0, 3) : 0);
+	$max_population = (sc_result($select, 0, 4) ? sc_result($select, 0, 4) : 0);
 
 	#########################
 	# Trade agreements give a 10% increase per empire.
@@ -648,7 +830,7 @@ function getMilitaryPower($player)
 
 	$select = sc_query('SELECT SUM(br*br) FROM ships WHERE '.implode(' AND ', $conditions));
 
-	return floor( mysql_result($select, 0, 0)/50 );
+	return floor( sc_result($select, 0, 0)/50 );
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -667,7 +849,7 @@ function checkForUpdates()
     	sc_query('UPDATE games SET last_update = UNIX_TIMESTAMP() WHERE update_time > 600');
     
 	// Fix update times for non-weekend-updating games, if we are in the weekend.
-	if (ereg('Sat|Sun', date('D', time())))
+	if (preg_match('/Sat|Sun/i', date('D', time())))
 		sc_query('UPDATE games SET last_update = UNIX_TIMESTAMP() WHERE weekend_updates = "0"');
 	
 	// Fix update times for paused games. This feature is DISABLED for now.
@@ -704,16 +886,14 @@ function checkForUpdates()
 	$next_updateable_game .= 'LIMIT 1';
 	$select = sc_query($next_updateable_game);
 
-	if ($select->num_rows) // if have one row of data then we might get more
-		{
+	if ($select->num_rows) { // if have one row of data then we might get more
 		sc_query('BEGIN'); // start transaction
 
-		while ($select->num_rows) // while we still have one more
-			{
+		while ($select->num_rows) { // while we still have one more
 			// Get the game we need to update and lock that one record FOR UPDATE.
-			$row = mysql_fetch_array($select);
+			$row = sc_fetch_assoc($select);
 			$select_next_game = sc_query('SELECT * FROM games WHERE id = '.$row['id'].' FOR UPDATE');
-			$game = mysql_fetch_array($select_next_game);
+			$game = sc_fetch_assoc($select_next_game);
 
 			// Maybe cache this?
 			$series = getSeries($game['series_id']);
@@ -736,6 +916,165 @@ function checkForUpdates()
 	
 	sc_query('BEGIN'); // COMMIT and process the rest of the user's request.
 }
+
+#----------------------------------------------------------------------------------------------------------------------#
+# This function checks all eligible games to see if they need to be updated. In the case where multiple updates
+# should have occured by now, we update as many times as needed, faking the temporal progression of events by
+# incrementing the time at which the update occured.
+#
+
+function checkForTournamentUpdates()
+{
+	//find running tournaments
+	$sql = 'select * from tournament where starttime < ' . time() . ' AND completed = false';
+	$select = sc_query($sql);
+	
+	while ($tourney = $select->fetch_assoc()) {
+		//are there any games?
+		$sql = 'select count(*) as numberofgames from tournamentgame where tournament = ' . $tourney['id'];
+		$result2 = sc_query($sql);
+		$line = mysql_fetch_assoc($result2);
+		$numberofgames = $line['numberofgames'];
+		
+		if ($numberofgames == 0) {
+			//setup the first round
+			//fetch the series
+			$sql2 = 'select * from series where id = ' . $tourney['series'];
+			$result2 = sc_query($sql2);
+			$series = mysql_fetch_assoc($result2);
+			
+			//find out how many entrants we have
+			$sql2 = 'select te.id as teid, name, e.id as empireid, rand() as r from tournamententrant te, empires e where tournamentid = ' . $tourney['id'] . ' AND te.empireid = e.id order by r';
+			$result2 = sc_query($sql2);
+			
+			$numberOfEntrants = mysql_num_rows($result2);
+						
+			if ($numberOfEntrants % 2 == 0) { //even
+				$i = 0;
+			} else { //odd
+				//first entrant gets a bye
+				$entrant = mysql_fetch_assoc($result2);
+				
+				$sql3 = 'update tournamententrant set byes = 1 where id = ' . $entrant['teid'];
+				sc_query($sql3);
+				$i = 1;
+			}
+			
+			for (;$i + 1 < $numberOfEntrants; $i += 2) {
+				$firstPlayer = mysql_fetch_assoc($result2);
+				$secondPlayer = mysql_fetch_assoc($result2);
+				
+				//setup the sc game
+				$gameid = spawngame($series['name']);
+				$game = getGameByID($gameid);
+				
+				//first player joins
+				$vars['series_data'] = $series;
+				$vars['game_data'] = $game;
+				$vars['name'] = $firstPlayer['name'];
+				joinGame($vars, 0, false, false);
+				
+				//setup bridier
+				$sql3 = "insert ignore into bridier (game_id, series_name, game_number, empire1) values (" . $gameid . ", '" . $series['name'] . "', " . $game['game_number'] .
+					  ", '" . $firstPlayer['name'] . "')";
+				sc_query($sql3);
+				
+				$bridier = mysql_insert_id();
+				
+				$sql3 = 'UPDATE games SET bridier = "'.$bridier.'" WHERE id = '.$game['id'];
+				sc_query($sql3);
+				
+				//second player joins
+				//refresh game
+				$vars['game_data'] = $game = getGameByID($gameid);
+				$vars['name'] = $secondPlayer['name'];
+				joinGame($vars, 0, false, false);
+				
+				//create the tournament game record
+				$sql3 = 'insert into tournamentgame (tournament, game, round, firstempire, secondempire) values (' . $tourney['id'] . ', ' . $gameid . ', ' .
+					  ($currentround + 1) . ", '" . $firstPlayer['name'] . "', '" . $secondPlayer['name'] . "')";
+				sc_query($sql3);
+			}
+		} else {
+			//current round?
+			$sql2 = 'select max(round) as currentround from tournamentgame where tournament = ' . $tourney['id'];
+			$result2 = mysql_query($sql2);
+			$line = mysql_fetch_assoc($result2);
+			$currentround = $line['currentround'];
+			
+			//is the current round over?
+			$sql2 = 'select count(*) as numberofunfinishedgames from tournamentgame where round = ' . $currentround . ' AND tournament = ' . $tourney['id'] . ' AND winner is null';
+			$result2 = mysql_query($sql2);
+			$line = mysql_fetch_assoc($result2);
+			$numberofunfinishedgames = $line['numberofunfinishedgames'];
+			
+			if ($numberofunfinishedgames == 0) {
+				//schedule next round
+				//fetch the series
+				$sql2 = 'select * from series where id = ' . $tourney['series'];
+				$result2 = sc_query($sql2);
+				$series = mysql_fetch_assoc($result2);
+			
+				//find out how many entrants we have
+				$sql2 = 'select te.id as teid, name, e.id as empireid, rand() as r from tournamententrant te, empires e where tournamentid = ' . $tourney['id'] . ' AND te.empireid = e.id AND eliminated = false order by byes asc, r';
+				$result2 = sc_query($sql2);
+			
+				$numberOfEntrants = mysql_num_rows($result2);
+
+				if ($numberOfEntrants % 2 == 0) { //even
+					$i = 0;
+				} else { //odd
+					//first entrant gets a bye
+					$entrant = mysql_fetch_assoc($result2);
+				
+					$sql3 = 'update tournamententrant set byes = byes + 1 where id = ' . $entrant['teid'];
+					sc_query($sql3);
+					$i = 1;
+				}
+			
+				for (;$i + 1 < $numberOfEntrants; $i += 2) {
+					$firstPlayer = mysql_fetch_assoc($result2);
+					$secondPlayer = mysql_fetch_assoc($result2);
+				
+					//setup the sc game
+					$gameid = spawngame($series['name']);
+					$game = getGameByID($gameid);
+				
+					//first player joins
+					$vars['series_data'] = $series;
+					$vars['game_data'] = $game;
+					$vars['name'] = $firstPlayer['name'];
+					joinGame($vars, 0, false, false);
+					
+					//setup bridier
+					$sql3 = "insert ignore into bridier (game_id, series_name, game_number, empire1) values (" . $gameid . ", '" . $series['name'] . "', " . $game['game_number'] .
+						  ", '" . $firstPlayer['name'] . "')";
+					sc_query($sql3);
+					
+					$bridier = mysql_insert_id();
+				
+					$sql3 = 'UPDATE games SET bridier = "'.$bridier.'" WHERE id = '.$game['id'];
+					sc_query($sql3);
+				
+					//second player joins
+					$vars['name'] = $secondPlayer['name'];
+					$vars['game_data'] = $game = getGameByID($gameid);
+					joinGame($vars, 0, true, false);
+					
+					//create the tournament game record
+					$sql3 = 'insert into tournamentgame (tournament, game, round, firstempire, secondempire) values (' . $tourney['id'] . ', ' . $gameid . ', ' .
+						  ($currentround + 1) . ", '" . $firstPlayer['name'] . "', '" . $secondPlayer['name'] . "')";
+					sc_query($sql3);
+				}	
+			}
+		}
+		
+	}
+	
+	
+	sc_query('BEGIN'); // COMMIT and process the rest of the user's request.
+}
+
 
 #----------------------------------------------------------------------------------------------------------------------#
 # Deletes stale passworded games.
@@ -761,7 +1100,7 @@ function checkForOldPasswordedGames()
     $conditions[] = '(series.team_game = "1" AND password1 <> "" AND closed = "0" AND (UNIX_TIMESTAMP()-created_at) > 5*games.update_time)';
 
     $select_staleGames = sc_query('SELECT '.implode(',', $fields).' FROM '.$tables.' WHERE '.implode(' OR ', $conditions));
-  	while ($row = mysql_fetch_array($select_staleGames))
+  	while ($row = sc_fetch_assoc($select_staleGames))
 		{
 		$message = '<span class=red>'.$row['series_name'].' '.$row['game_number'].'</span> was cancelled because ';
 
@@ -771,7 +1110,7 @@ function checkForOldPasswordedGames()
 		$tables = 'empires INNER JOIN players ON empires.name = players.name';
 
 		$select_empires = sc_query('SELECT empires.* FROM '.$tables.' WHERE game_id = '.$row['game_id'].' AND team >= 0');
-		while ($empire = mysql_fetch_array($select_empires)) sendEmpireMessage($empire, $message);
+		while ($empire = sc_fetch_assoc($select_empires)) sendEmpireMessage($empire, $message);
 		
 		// Remove pending Bridier result for cancelled Bridier games.
 		if ($row['bridier']) sc_query('DELETE FROM bridier WHERE game_id = '.$row['game_id']);
@@ -857,15 +1196,21 @@ function importExplored($ignorant_player, $other_player)
 {
 	// First, delete existing Shared HQ data coming from the other player.
 	// The from_shared_hq field contains the player ID of the contributing player.
-	sc_query('DELETE FROM explored WHERE player_id = "'.$ignorant_player['id'].'" AND from_shared_hq = '.$other_player['id']);
+	sc_query('DELETE FROM explored '.
+					'WHERE player_id = "'.$ignorant_player['id'].'" '.
+					'AND from_shared_hq = '.$other_player['id']);
 	
 	// The only thing we're importing is planets that the other player has explored himself. We are excluding intelligence
 	// he obtained from other potential Shared HQ friends. Hence the 'from_shared_hq = 0' condition.
-	$select = sc_query('SELECT * FROM explored WHERE player_id = '.$other_player['id'].' AND from_shared_hq = 0');
-	while ($explored = mysql_fetch_array($select))
+	$select = sc_query(   'SELECT * FROM explored '.
+								'WHERE player_id = '.$other_player['id'].' '.
+								'AND from_shared_hq = 0');
+	while ($explored = sc_fetch_assoc($select))
 		{
 		// First, delete any scouting reports for this planet, or they'll overwrite the explored record on the map.
-		sc_query('DELETE FROM scouting_reports WHERE player_id = '.$ignorant_player['id'].' AND coordinates = "'.$explored['coordinates'].'"');
+		sc_query( 'DELETE FROM scouting_reports '.
+						'WHERE player_id = '.$ignorant_player['id'].' '.
+						'AND coordinates = "'.$explored['coordinates'].'"');
 		
 		$values = array();
 		$values[] = 'series_id = '.$explored['series_id'];
@@ -890,8 +1235,12 @@ function addExploredToFriends($player, $explored_id)
 	// Exit if this ID is somehow invalid.
 	if (!$explored = getExploredByID($explored_id)) return;
 
-	$select = sc_query('SELECT opponent FROM diplomacies WHERE game_id = '.$player['game_id'].' AND empire = "'.$player['name'].'" AND status = "6"');
-	while ($row = mysql_fetch_array($select))
+	$select = sc_query(	'SELECT opponent '.
+								'FROM diplomacies '.
+								'WHERE game_id = '.$player['game_id'].' '.
+								'AND empire = "'.$player['name'].'" '.
+								'AND status = "6"');
+	while ($row = sc_fetch_assoc($select))
 		{
 		$recipient = getPlayer($player['game_id'], $row['opponent']);
 
@@ -923,8 +1272,8 @@ function addExploredToFriends($player, $explored_id)
 
 function convertSharedHQToScoutingReports($series, $update, $player_1, $player_2_name)
 {
-	$player_2 = getPlayer($player_1['game_id'], $player_2_name);
-	
+	$player_2 = getPlayer($player_1['game_id'], $player_2_name); //use name to return row from player table 
+	                                                                                                    //but only use the player_id
 	$fields = array();
 	$fields[] = 'systems.game_number';
 	$fields[] = 'systems.coordinates';
@@ -944,7 +1293,7 @@ function convertSharedHQToScoutingReports($series, $update, $player_1, $player_2
 	$conditions[] = 'explored.from_shared_hq = '.$player_2['id'];
 
 	$select = sc_query('SELECT '.implode(',', $fields).' FROM '.$from.' WHERE '.implode(' AND ', $conditions));
-	while ($system = mysql_fetch_array($select))
+	while ($system = sc_fetch_assoc($select))
 		{
 		$values = array();
 		$values[] = 'player_id = '.$player_1['id'];
@@ -969,7 +1318,7 @@ function convertSharedHQToScoutingReports($series, $update, $player_1, $player_2
 		$conditions[] = 'location = "'.$system['coordinates'].'"';
 		$ship_select = sc_query('SELECT * FROM ships WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__  );
 	
-		while ($ship = mysql_fetch_array($ship_select))
+		while ($ship = sc_fetch_assoc($ship_select))
 			{
 			// Skip this ship if it's building
 			if (!$series['visible_builds'] and $ship['orders'] == 'build')
@@ -1026,7 +1375,7 @@ function getTeamDiplomacy($game)
 		$team_offer[$team] = 0;	// start at surrender-- we'll end up using the *highest* value found
 		
 		$select = sc_query('SELECT offer FROM diplomacies WHERE game_id = '.$game['id'].' AND opponent = "=Team'.$team.'="');
-		while ($diplomacy = mysql_fetch_array($select))
+		while ($diplomacy = sc_fetch_assoc($select))
 			if ($diplomacy['offer'] > $team_offer[$team]) $team_offer[$team] = $diplomacy['offer'];
 		}
 	
@@ -1114,13 +1463,13 @@ function seriesParameters($series_id)
 ?>
 <style type="text/css">th { vertical-align: top; text-align: right; color: white; }</style>
 
-<div style="color: red; font-size: 14pt;"><? echo $series['name']; ?></div>
-<? echo ($series['custom'] == 'yes' ? '<div style="color: white; font-size: 8pt;">Created by '.$series['creator'].'</div>' : ''); ?>
+<div style="color: red; font-size: 14pt;"><?php echo $series['name']; ?></div>
+<?php echo ($series['custom'] == 'yes' ? '<div style="color: white; font-size: 8pt;">Created by '.$series['creator'].'</div>' : ''); ?>
 
 <table cellspacing=10 style="margin-top: 10pt;">
 	<tr>
 		<th>Updates:</th>
-		<td>Every <? echo $update_time.(!$series['weekend_updates'] ? ', no weekend updates' : ''); ?></td>
+		<td>Every <?php echo $update_time.(!$series['weekend_updates'] ? ', no weekend updates' : ''); ?></td>
 	</tr>
 	<tr>
 		<th>Maximum players:</th>
@@ -1140,33 +1489,33 @@ function seriesParameters($series_id)
 	</tr>
 	<tr>
 		<th>Diplomacy:</th>
-		<td><? echo $diplomacy; ?></td>
+		<td><?php echo $diplomacy; ?></td>
 	</tr>
 	<tr>
 		<th>Alliance limit:</th>
-		<td><? echo ($series['max_allies'] ? $series['max_allies'].' allies' : 'none'); ?></td>
+		<td><?php echo ($series['max_allies'] ? $series['max_allies'].' allies' : 'none'); ?></td>
 	</tr>
 	<tr>
 		<th>Win restrictions:</th>
-		<td><? echo $wins; ?></td>
+		<td><?php echo $wins; ?></td>
 	</tr>
-	<trp>
+	<tr>
 		<th>Team game:</th>
-		<td><? echo ($series['team_game'] ? '<span class=green><b>Yes</b></span>' : 'No'); ?></td>
+		<td><?php echo ($series['team_game'] ? '<span class=green><b>Yes</b></span>' : 'No'); ?></td>
 	</tr>
 	<tr>
 		<th>Shared HQ:</th>
-		<td><? echo ($series['diplomacy'] == 6 ? '<span class=blue><b>Yes</b></span>' : 'No'); ?></td></tr>
+		<td><?php echo ($series['diplomacy'] == 6 ? '<span class=blue><b>Yes</b></span>' : 'No'); ?></td></tr>
 	<tr>
 		<th>Average resources:</th>
-		<td><? echo $average_resources; ?></td>
+		<td><?php echo $average_resources; ?></td>
 	</tr>
 	<tr>
 		<th>Cloakers:</th>
-		<td><? echo ($series['build_cloakers_cloaked'] ? 'Built cloaked. '.($series['cloakers_as_attacks'] ? 'Appear as attacks.' : '') : 'Built uncloaked'); ?></td>
+		<td><?php echo ($series['build_cloakers_cloaked'] ? 'Built cloaked. '.($series['cloakers_as_attacks'] ? 'Appear as attacks.' : '') : 'Built uncloaked'); ?></td>
 	</tr>
 </table>
-<?
+<?php
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -1185,7 +1534,7 @@ function sendEmpireMessage($empire, $message)
 
 function serverTime()
 {
-	return '<div class=message style="margin-top: 10pt;">Local time and date: '.date('l, F j H:i:s T Y', time()).'</div>';
+	return '<div class=message style="margin-top: 10pt;">Local time and date: '.date('Y l, F j ,  H:i:s T ', time()).'</div>';
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -1212,12 +1561,11 @@ function utime()
 
 function check_version($currentversion, $requiredversion)
 {
-   list($majorC, $minorC, $editC) = split('[/.-]', $currentversion);
+   list($majorC, $minorC, $editC) = preg_split('[/.-]', $currentversion);
 #  echo "current: " . $majorC . " -- " . $minorC . " -- " . $editC . "<p>";
-   list($majorR, $minorR, $editR) = split('[/.-]', $requiredversion);
+   list($majorR, $minorR, $editR) = preg_split('[/.-]', $requiredversion);
 #  echo "required: " . $majorR . " -- " . $minorR . " -- " . $editR . "<p>";
 
-   
    if ($majorC > $majorR) return true;
    if ($majorC < $majorR) return false;
    // same major - check ninor

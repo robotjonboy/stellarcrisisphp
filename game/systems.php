@@ -409,7 +409,7 @@ function systemsScreen_fromScoutingReport($vars)
 
 function systemsScreen_processing($vars)
 {
-	global $hwX, $hwY;
+	global $hwX, $hwY, $mysqli;
 
 	$series = $vars['series_data'];
 	$game = $vars['game_data'];
@@ -458,7 +458,7 @@ function systemsScreen_processing($vars)
 						'SET '.implode(',', $values).
 						' WHERE id = '.$id.
 						' AND owner = "'.$player['name'].'"');
-		$affected_rows += mysql_affected_rows();
+		$affected_rows += $mysqli->affected_rows;
 		}
 
 	if ($affected_rows)

@@ -246,8 +246,8 @@ function endGame($series, $game, $history, $saved_map)
 			case 'bridier':
 				list($rankdata, $indexdata) = explode('/', $event['info']);
 				$bridier_string .= '<tr align=center><th rowspan=2>'.$event['empire'].'</td><td>Rank</td><td>'.
-								   ereg_replace(',', '</td><td>', $rankdata).'</td></tr><tr align=center><td>Index</td><td>'.
-								   ereg_replace(',', '</td><td>', $indexdata).'</td></tr>';
+								   preg_replace('/,/', '</td><td>', $rankdata).'</td></tr><tr align=center><td>Index</td><td>'.
+								   preg_replace('/,/', '</td><td>', $indexdata).'</td></tr>';
 				break;
 			default:
 				echo 'Bad history record: '.implode('--',$event);
@@ -427,7 +427,7 @@ function endGame($series, $game, $history, $saved_map)
 	else
 		{
 		// All losers!
-		$fields[] = 'result = "no winners"';
+		$fields[] = 'result = "no winner"';
 		$fields[] = 'emps_left = ""';
 		
 		foreach ($all_players as $player)

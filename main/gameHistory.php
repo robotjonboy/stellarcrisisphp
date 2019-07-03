@@ -7,10 +7,11 @@ function gameHistory($vars)
 
 	standardHeader('Game History', $empire);
 	
-	$conditions = (count($vars['conditions']) ? ' WHERE '.implode(' AND ', $vars['conditions']) : '');
+	$conditions = (is_array($vars['conditions']) && count($vars['conditions']) ? ' WHERE '.implode(' AND ', $vars['conditions']) : '');
 	
-	$select = sc_query('SELECT COUNT(id) FROM gamelog '.$conditions);
-	$recorded_games = mysql_result($select, 0, 0);
+	$select = sc_query('SELECT COUNT(id) as c FROM gamelog '.$conditions);
+	$line = $select->fetch_assoc();
+	$recorded_games = $line['c'];
 	
 	if (!isset($vars['first_record']))
 		{
@@ -67,7 +68,7 @@ function gameHistory($vars)
 	</tr>
 <?php
 		$n = 0;
-		while ($oldgame = mysql_fetch_array($select))
+		while ($oldgame = $select->fetch_assoc())
 			{
 			if ($n <= $server['histories_per_page'])
 				{
@@ -78,7 +79,7 @@ function gameHistory($vars)
 					case 'win':			$result = 'Won by ';				break;
 					case 'draw':		$result = 'Declared a draw by ';	break;
 					case 'abandoned':	$result = 'Abandoned by ';			break;
-					case 'no winners':	$result = 'No winners';				break;
+					case 'no winner':	$result = 'No winners';				break;
 					default:			$result = 'Bad result code.';
 					}
 				
@@ -87,7 +88,7 @@ function gameHistory($vars)
 ?>
 	<tr class=top>
 		<td style="font-size: 8pt;">
-			<?phpphp echo '<a href="'.$server['history_read_URL'].strtr($oldgame['name'], " ?'", "___").'.html">'.str_replace(' ', '&nbsp;', $oldgame['name']).'</a>'; ?>
+			<?php echo '<a href="'.$server['history_read_URL'].strtr($oldgame['name'], " ?'", "___").'.html">'.str_replace(' ', '&nbsp;', $oldgame['name']).'</a>'; ?>
 		</td>
 		<td style="font-size: 8pt;"><?php echo $result.$emps_left; ?></td>
 		<td style="font-size: 8pt;"><?php echo $emps_nuked; ?></td>
@@ -198,8 +199,9 @@ function gameHistory_processing($vars)
 		case 'Previous Page':
 			if ($vars['first_record'] == -1)
 				{
-				$select = sc_query('SELECT COUNT(id) FROM gamelog '.$conditions);
-				$recorded_games = mysql_result($select, 0, 0);
+				$select = sc_query('SELECT COUNT(id) as c FROM gamelog '.$conditions);
+				$line = $select->fetch_assoc();
+				$recorded_games = $line['c'];
 				$last_page_count = ($recorded_games % $server['histories_per_page']);
 				$vars['first_record'] = $recorded_games-$last_page_count-$server['histories_per_page']-1;
 				}

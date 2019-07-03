@@ -13,7 +13,7 @@ function tournaments($vars, $message = '')
 		//grab series name
 		$sql2 = 'select id, name from series where id = ' . $tourney['series'];
 		$result2 = sc_query($sql2);
-		$series = mysql_fetch_assoc($result2);
+		$series = $result2->fetch_assoc();
 		$tourney['seriesname'] = $series['name'];
 		
 		$tourneys[$i] = $tourney;
@@ -43,7 +43,7 @@ function tournaments($vars, $message = '')
 ?>
 
 <table><tr><th>View</th><th>Name</th><th>Series</th><th>Description</th><th>Start Time</th><th>Status</th></tr>
-<?phpphp
+<?php
 
 for ($i = 0; $i < $numberOfTournaments; $i++)
 {

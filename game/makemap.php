@@ -60,7 +60,7 @@ function joinGame($vars, $team = 0, $spawngame = true, $returninfoscreen = true)
 		if ($game['bridier'] >= 0)
 			{
 			$bridier_query = sc_query('SELECT * FROM bridier WHERE game_id = '.((int)$game['id']));
-			$bdata = mysql_fetch_array($bridier_query);
+			$bdata = $bridier_query->fetch_assoc();
 			
 			$empire = getEmpire($vars['name']);
 			$opponent = getEmpire($bdata['empire1']);
@@ -226,7 +226,7 @@ function joinTeamGame($vars, $series, &$game, $team)
 	   	$player_query = sc_query('SELECT * FROM players WHERE game_id = '.((int)$game['id']),
 	   	                               __FILE__.'*'.__LINE__);
 
-		while ($player = mysql_fetch_array($player_query))
+		while ($player = $player_query->fetch_assoc())
 			$team_list[$player['team']][] = $player['name'];
 		}
 

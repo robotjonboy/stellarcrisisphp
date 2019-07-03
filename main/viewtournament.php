@@ -1,4 +1,4 @@
-<?
+<?php
 function viewTournament($vars, $message = '')
 {
 	$empire = $vars['empire_data'];
@@ -65,7 +65,7 @@ function viewTournament($vars, $message = '')
 		if (isset($tourneyGame['winner'])) {
 			$sql2 = 'select id, name from empires where id = ' . $tourneyGame['winner'];
 			$result2 = sc_query($sql2);
-			$empire = mysql_fetch_assoc($result2);
+			$empire = $result2->fetch_assoc();
 			
 			$tourneyGame['winnerName'] = $empire['name'];
 		}
@@ -79,13 +79,13 @@ function viewTournament($vars, $message = '')
 	
 	standardHeader('Tournaments', $empire);
 ?>
-<input type=hidden name=name value="<? echo $vars['name']; ?>">
-<input type=hidden name=pass value="<? echo $vars['pass']; ?>">
-<input type=hidden name="empireID" value="<? echo $empire['id']; ?>">
+<input type=hidden name=name value="<?php echo $vars['name']; ?>">
+<input type=hidden name=pass value="<?php echo $vars['pass']; ?>">
+<input type=hidden name="empireID" value="<?php echo $empire['id']; ?>">
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="tournaments">
 
-<?
+<?php
 	// show online players drop box
     	echo "<div class=pageTitle>Tournaments</div>";
 	echo drawButtons($empire); //EmpireName : create a series

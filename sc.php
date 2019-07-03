@@ -241,7 +241,7 @@ function mainPage()
 
 	standardHeader('Login');
 
-//	$select_quickStats = sc_mysql_query('SELECT COUNT(DISTINCT players.name), COUNT(DISTINCT games.id) FROM players INNER JOIN games ON games.player_count > 0');
+//	$select_quickStats = sc_query('SELECT COUNT(DISTINCT players.name), COUNT(DISTINCT games.id) FROM players INNER JOIN games ON games.player_count > 0');
 	$select_quickStats = sc_query
 	('
 		SELECT COUNT(DISTINCT players.name),
@@ -377,7 +377,7 @@ function login($vars)
 			setcookie('sc_login', $vars['name'], (time()+86400), '/');
 
 			// Check to see if this is the completion of an empire creation
-			if (preg_match('^C', $empire['validation_info']))
+			if (preg_match('/^C/', $empire['validation_info']))
 			{
 				list($code, $newpass) = explode('/', $empire['validation_info']);
 				sc_query
@@ -853,7 +853,7 @@ function checkForUpdates()
 		sc_query('UPDATE games SET last_update = UNIX_TIMESTAMP() WHERE weekend_updates = "0"');
 	
 	// Fix update times for paused games. This feature is DISABLED for now.
-	// sc_mysql_query('UPDATE games SET last_update = '.time().' WHERE on_hold = "1" AND closed = "0"');
+	// sc_query('UPDATE games SET last_update = '.time().' WHERE on_hold = "1" AND closed = "0"');
 
 	//the fix update code requires php > 4.1 - check it 
 	if(!check_version(PHP_VERSION, "4.1.0") )//cjp
@@ -925,6 +925,7 @@ function checkForUpdates()
 
 function checkForTournamentUpdates()
 {
+	global $mysqli;
 	//find running tournaments
 	$sql = 'select * from tournament where starttime < ' . time() . ' AND completed = false';
 	$select = sc_query($sql);
@@ -933,7 +934,7 @@ function checkForTournamentUpdates()
 		//are there any games?
 		$sql = 'select count(*) as numberofgames from tournamentgame where tournament = ' . $tourney['id'];
 		$result2 = sc_query($sql);
-		$line = mysql_fetch_assoc($result2);
+		$line = $result2->fetch_assoc();
 		$numberofgames = $line['numberofgames'];
 		
 		if ($numberofgames == 0) {
@@ -941,19 +942,19 @@ function checkForTournamentUpdates()
 			//fetch the series
 			$sql2 = 'select * from series where id = ' . $tourney['series'];
 			$result2 = sc_query($sql2);
-			$series = mysql_fetch_assoc($result2);
+			$series = $result2->fetch_assoc();
 			
 			//find out how many entrants we have
 			$sql2 = 'select te.id as teid, name, e.id as empireid, rand() as r from tournamententrant te, empires e where tournamentid = ' . $tourney['id'] . ' AND te.empireid = e.id order by r';
 			$result2 = sc_query($sql2);
 			
-			$numberOfEntrants = mysql_num_rows($result2);
+			$numberOfEntrants = $result2->num_rows;
 						
 			if ($numberOfEntrants % 2 == 0) { //even
 				$i = 0;
 			} else { //odd
 				//first entrant gets a bye
-				$entrant = mysql_fetch_assoc($result2);
+				$entrant = $result2->fetch_assoc();
 				
 				$sql3 = 'update tournamententrant set byes = 1 where id = ' . $entrant['teid'];
 				sc_query($sql3);
@@ -961,8 +962,8 @@ function checkForTournamentUpdates()
 			}
 			
 			for (;$i + 1 < $numberOfEntrants; $i += 2) {
-				$firstPlayer = mysql_fetch_assoc($result2);
-				$secondPlayer = mysql_fetch_assoc($result2);
+				$firstPlayer = $result2->fetch_assoc();
+				$secondPlayer = $result2->fetch_assoc();
 				
 				//setup the sc game
 				$gameid = spawngame($series['name']);
@@ -979,7 +980,7 @@ function checkForTournamentUpdates()
 					  ", '" . $firstPlayer['name'] . "')";
 				sc_query($sql3);
 				
-				$bridier = mysql_insert_id();
+				$bridier = $mysqli->insert_id;
 				
 				$sql3 = 'UPDATE games SET bridier = "'.$bridier.'" WHERE id = '.$game['id'];
 				sc_query($sql3);
@@ -998,14 +999,14 @@ function checkForTournamentUpdates()
 		} else {
 			//current round?
 			$sql2 = 'select max(round) as currentround from tournamentgame where tournament = ' . $tourney['id'];
-			$result2 = mysql_query($sql2);
-			$line = mysql_fetch_assoc($result2);
+			$result2 = sc_query($sql2);
+			$line = $result2->fetch_assoc();
 			$currentround = $line['currentround'];
 			
 			//is the current round over?
 			$sql2 = 'select count(*) as numberofunfinishedgames from tournamentgame where round = ' . $currentround . ' AND tournament = ' . $tourney['id'] . ' AND winner is null';
-			$result2 = mysql_query($sql2);
-			$line = mysql_fetch_assoc($result2);
+			$result2 = sc_query($sql2);
+			$line = $result2->fetch_assoc();
 			$numberofunfinishedgames = $line['numberofunfinishedgames'];
 			
 			if ($numberofunfinishedgames == 0) {
@@ -1013,19 +1014,19 @@ function checkForTournamentUpdates()
 				//fetch the series
 				$sql2 = 'select * from series where id = ' . $tourney['series'];
 				$result2 = sc_query($sql2);
-				$series = mysql_fetch_assoc($result2);
+				$series = $result2->fetch_assoc();
 			
 				//find out how many entrants we have
 				$sql2 = 'select te.id as teid, name, e.id as empireid, rand() as r from tournamententrant te, empires e where tournamentid = ' . $tourney['id'] . ' AND te.empireid = e.id AND eliminated = false order by byes asc, r';
 				$result2 = sc_query($sql2);
 			
-				$numberOfEntrants = mysql_num_rows($result2);
+				$numberOfEntrants = $result2->num_rows;
 
 				if ($numberOfEntrants % 2 == 0) { //even
 					$i = 0;
 				} else { //odd
 					//first entrant gets a bye
-					$entrant = mysql_fetch_assoc($result2);
+					$entrant = $result2->fetch_assoc();
 				
 					$sql3 = 'update tournamententrant set byes = byes + 1 where id = ' . $entrant['teid'];
 					sc_query($sql3);
@@ -1033,8 +1034,8 @@ function checkForTournamentUpdates()
 				}
 			
 				for (;$i + 1 < $numberOfEntrants; $i += 2) {
-					$firstPlayer = mysql_fetch_assoc($result2);
-					$secondPlayer = mysql_fetch_assoc($result2);
+					$firstPlayer = $result2->fetch_assoc();
+					$secondPlayer = $result2->fetch_assoc();
 				
 					//setup the sc game
 					$gameid = spawngame($series['name']);
@@ -1051,7 +1052,7 @@ function checkForTournamentUpdates()
 						  ", '" . $firstPlayer['name'] . "')";
 					sc_query($sql3);
 					
-					$bridier = mysql_insert_id();
+					$bridier = $mysqli->insert_id;
 				
 					$sql3 = 'UPDATE games SET bridier = "'.$bridier.'" WHERE id = '.$game['id'];
 					sc_query($sql3);

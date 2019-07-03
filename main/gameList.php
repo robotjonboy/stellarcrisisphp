@@ -762,7 +762,7 @@ function bridierEstimate($series, $game, $empire)
 			// Game is for ranking, so estimate win/lose amounts
 			$bridier_query = sc_query('SELECT * FROM bridier WHERE game_id = '.$game['id']);
 			
-			if ($bdata = mysql_fetch_array($bridier_query))
+			if ($bdata = $bridier_query->fetch_assoc())
 				{
 				if ($empire['name'] == $bdata['empire1'])
 					{
