@@ -25,7 +25,7 @@ function messageHistory($vars)
 							'FROM messages '.
 							'WHERE player_id = '.$player['id'].' '.
 							'GROUP BY type');
-	while ($row = mysql_fetch_array($select))
+	while ($row = $select->fetch_assoc())
 	{
 		$selected = false;  //adjusted if to trap blank row tiypes
 		if ($filter <> '' and $row['type'] == $filter) $selected = true; 
@@ -86,7 +86,7 @@ Choose the category of messages you wish to display.
 	if ($select->num_rows)
 		{
 		$tmp_missives = array();
-		while ($row = mysql_fetch_array($select))
+		while ($row = $select->fetch_assoc())
 			{
 			// The message header is handled in messageHeader(), but first we 
 			// adjust the sender and recipient if the player's name is in them.
@@ -140,6 +140,8 @@ Choose the category of messages you wish to display.
 
 function messageHistory_processing($vars)
 {
+	global $mysqli;
+	
 	$player = $vars['player_data'];
 
 	if (isset($vars['deleteMessages']))
@@ -156,7 +158,7 @@ function messageHistory_processing($vars)
 								FROM messages 
 								WHERE id = '.$message_id.' 
 								AND player_id = '.$player['id']);
-				$affected_rows += mysql_affected_rows();
+				$affected_rows += $mysqli->affected_rows;
 				}
 				
 			return sendGameMessage($player, $affected_rows.' message'.($affected_rows != 1 ? 's' : '').' deleted.');

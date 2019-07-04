@@ -6,7 +6,8 @@ function statViewer($vars, $message = '')
 	global $server;
 
 	$select = sc_query('SELECT COUNT(*) AS count from empires');
-	$empire_count = mysql_result($select, 0, 0);
+	$line = $select->fetch_assoc();
+	$empire_count = $line['count'];
 
 	$empire = $vars['empire_data'];
 
@@ -176,7 +177,7 @@ function topTen($vars)
 		<th>Score</th>
 	</tr>
 <?php
-	while ($row = mysql_fetch_array($select))
+	while ($row = $select->fetch_assoc())
 		{
 ?>
 	<tr>
@@ -253,7 +254,7 @@ function bridierScores($vars)
 ?>
 <img class=spacerule src="images/spacerule.jpg" width="100%" height=10 alt="spacerule.jpg">
 <div align=center class=messageBold>
-	<?php echo $active_players.''.(ereg('All', $caption) ? ' ' : ' active ').'player'.($active_players != 1 ? 's' : '').'<br>'.$caption; ?>
+	<?php echo $active_players.''.(preg_match('/All/', $caption) ? ' ' : ' active ').'player'.($active_players != 1 ? 's' : '').'<br>'.$caption; ?>
 </div>
 <?php
 	if ($active_players)
@@ -268,7 +269,7 @@ function bridierScores($vars)
 		<th>Bridier Index</th>
 	</tr>
 <?php
-		while ($row = mysql_fetch_array($select))
+		while ($row = $select->fetch_assoc())
 			{
 			$seconds = (time() - $row['bridier_update']);
 
@@ -341,10 +342,10 @@ function searchEmpire($vars)
 	$fuzzy_search = sc_query('SELECT * FROM empires WHERE name LIKE "%'.$vars['search_name'].'%" ORDER BY name ASC');
 	
 	// If we get one match either way, show it.
-	if (mysql_num_rows($exact_search) == 1 or mysql_num_rows($fuzzy_search) == 1)
+	if ($exact_search->num_rows == 1 or $fuzzy_search->num_rows == 1)
 		{
-		if (!$empire = mysql_fetch_array($exact_search))
-			$empire = mysql_fetch_array($fuzzy_search);
+		if (!$empire = $exact_search->fetch_assoc())
+			$empire = $fuzzy_search->fetch_assoc();
 ?>
 <table border=0 cellpadding=5 style="margin-left: auto; margin-right: auto;">
 	<tr>
@@ -412,9 +413,9 @@ function searchEmpire($vars)
 	else
 		{
 		// Ok, so we have more than one match (or none!), and this would be with the fuzzy query.
-		if (mysql_num_rows($fuzzy_search) > $server['max_search_results'])
-			echo '<div class=messageBold>Too many matching empires ('.mysql_num_rows($fuzzy_search).').</div>';
-		else if ($matches = mysql_num_rows($fuzzy_search))
+		if ($fuzzy_search->num_rows > $server['max_search_results'])
+			echo '<div class=messageBold>Too many matching empires ('.$fuzzy_search->num_rows.').</div>';
+		else if ($matches = $fuzzy_search->num_rows)
 			{
 ?>
 <div class=messageBold>
@@ -426,7 +427,7 @@ function searchEmpire($vars)
 	<tr>
 		<td>
 <?php
-			while ($empire = mysql_fetch_array($fuzzy_search))
+			while ($empire = $fuzzy_search->fetch_assoc())
 				echo  '<input type=submit name=search_name value="'.$empire['name'].'">';
 ?>
 		</td>

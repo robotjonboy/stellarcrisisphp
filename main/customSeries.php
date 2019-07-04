@@ -40,7 +40,7 @@ Once a series has been created, the only control its creator has over it is to k
 	
 	$open_game_exists = array();
 	$select = sc_query('SELECT series.halted, series.id as series_id, COUNT(games.id) AS games_in_progress FROM '.$from.' WHERE '.implode(' AND ', $conditions).' GROUP BY series_id');
-	while ($row = mysql_fetch_array($select))
+	while ($row = $select->fetch_assoc())
 		{
 		$open_game_exists[$row['series_id']] = $row['games_in_progress'];
 		}
@@ -61,7 +61,7 @@ Once a series has been created, the only control its creator has over it is to k
 		
 	ob_start();
 	
-	while ($row = mysql_fetch_array($select))
+	while ($row = $select->fetch_assoc())
 		{
 		if ($last_owner != $row['creator'])
 			{
@@ -391,7 +391,7 @@ function createCustomSeries_processing($vars)
 	$errors = array();
 		
 	if (getSeriesByName($vars['series_name']))												$errors[] = 'That series name is already in use.';
-	if ($vars['series_name'] == '' or ereg('=', $vars['series_name']))						$errors[] = 'Invalid series name.';
+	if ($vars['series_name'] == '' or preg_match('/=/', $vars['series_name']))				$errors[] = 'Invalid series name.';
 	if (badNumericValue($vars['update_time'], 1, -1))										$errors[] = 'Invalid update time.';
 	if (badNumericValue($vars['max_players'], 2, 50))										$errors[] = 'Invalid maximum players (2 to 50 allowed).';
 	if (badNumericValue($vars['systems_per_player'], 3, 50))								$errors[] = 'Invalid systems per player (3 to 50 allowed).';
@@ -555,10 +555,12 @@ function canCreateCustomSeries($empire)
 {
 	global $server;
 	
-	$select = sc_query('SELECT COUNT(*) FROM series WHERE creator = "'.$empire['name'].'"');
+	$select = sc_query('SELECT COUNT(*) as c FROM series WHERE creator = "'.$empire['name'].'"');
+	$line = $select->fetch_assoc();
+	$seriesAlreadyCreated = $line['c'];
 	
 	$allowed_series = floor(($empire['wins']/$server['custom_series_wins_chunk'])*$server['custom_series_per_wins_chunk']);
 	
-	return ($empire['wins'] >= $server['custom_series_wins_chunk'] and mysql_result($select, 0, 0) < $allowed_series);
+	return ($empire['wins'] >= $server['custom_series_wins_chunk'] and $seriesAlreadyCreated < $allowed_series);
 }
 ?>

@@ -472,8 +472,9 @@ function systemsScreen_processing($vars)
 
 function recalculateTargetPopulation($player)
 {
-	$select = sc_query('SELECT SUM(max_population) FROM systems WHERE game_id = '.$player['game_id'].' AND owner = "'.$player['name'].'"');
-	sc_query('UPDATE players SET max_population = '.mysql_result($select, 0, 0).' WHERE id = '.$player['id']);
+	$select = sc_query('SELECT SUM(max_population) as m FROM systems WHERE game_id = '.$player['game_id'].' AND owner = "'.$player['name'].'"');
+	$line = $select->fetch_assoc();
+	sc_query('UPDATE players SET max_population = '.$line['m'].' WHERE id = '.$player['id']);
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
