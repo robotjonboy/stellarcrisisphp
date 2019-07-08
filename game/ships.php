@@ -426,7 +426,7 @@ function fleetsScreen($vars)
 			{
     		$select_ships = sc_query('SELECT * FROM ships WHERE fleet_id = '.$fleet['id'].' ORDER BY type, location, max_br ASC');
 			
-			if (mysql_num_rows($select_ships))
+			if ($select_ships->num_rows)
 				$ship_list = '<tr><th colspan=7 style="vertical-align: top;">'.
 							 '<img class=spaceruleThin style="margin-bottom: 5pt; margin-top: 5pt;" src="images/spacerule.jpg"></th></tr>'.
 							 '<tr><th>Ship Name</th><th>Current BR</th><th>Next BR</th><th>Max BR</th><th>Orders</th><th colspan=2>Type</th></tr>';
@@ -618,7 +618,8 @@ function fleetsScreen($vars)
 
 function fleetsScreen_processing($vars, $ships_processed = false)
 {
-
+	global $mysqli;
+	
 	$series = $vars['series_data'];
 	$game = $vars['game_data'];
 	$player = $vars['player_data'];
@@ -675,7 +676,7 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 					$values[] = 'orders = "fleet"';
 					$values[] = 'order_arguments = "'.$arguments.'"';
 					}
-				else if (ereg($orders, 'close|open'))
+				else if (preg_match($orders, '/close|open/'))
 					{
 					$values[] = 'fleet_id = 0';
 					$values[] = 'orders = "'.$orders.'"';
@@ -724,11 +725,11 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 				switch ($orders)
 					{
 					case 'disband':
-						sc_query('UPDATE ships SET orders = "standby", order_arguments = NULL, fleet_id = 0 WHERE fleet_id = '.$fleet_id);
+						sc_query('UPDATE ships SET orders = "standby", order_arguments = \'\', fleet_id = 0 WHERE fleet_id = '.$fleet_id);
 						sc_query('DELETE FROM fleets WHERE id = '.$fleet_id);
 						break;
 					case 'disbandall':
-						sc_query('UPDATE ships SET orders = "dismantle", order_arguments = NULL, fleet_id = 0 WHERE fleet_id = '.$fleet_id);
+						sc_query('UPDATE ships SET orders = "dismantle", order_arguments = \'\', fleet_id = 0 WHERE fleet_id = '.$fleet_id);
 						sc_query('DELETE FROM fleets WHERE id = '.$fleet_id);
 						break;
 					case 'pickup':
@@ -752,7 +753,7 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 					case 'colonize':
 					case 'terraform':
 					case 'invade':
-						sc_query('UPDATE fleets SET orders = "'.$orders.'", order_arguments = NULL WHERE id = '.$fleet_id);
+						sc_query('UPDATE fleets SET orders = "'.$orders.'", order_arguments = \'\' WHERE id = '.$fleet_id);
 						break;
 					case 'move':
 						$arguments = xlateToGalactic($order_arguments);							
@@ -787,6 +788,7 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 		$field_values[] = 'owner = "'.$vars['name'].'"';
 		$field_values[] = 'location = "'.xlateToGalactic($vars['new_fleet_location']).'"';
 		$field_values[] = 'orders = "standby"';
+		$field_values[] = "order_arguments = ''";
 
 		sc_query('INSERT INTO fleets SET '.implode(',', $field_values));
 
@@ -805,10 +807,11 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 		$field_values[] = 'owner = "'.$vars['name'].'"';
 		$field_values[] = 'location = "'.xlateToGalactic($vars['new_fleet_location']).'"';
 		$field_values[] = 'orders = "standby"';
+		$field_values[] = "order_arguments = ''";
 
 		sc_query('INSERT INTO fleets SET '.implode(',', $field_values));
 		
-		$new_fleet_id = mysql_insert_id();
+		$new_fleet_id = $mysqli->insert_id;
 		
 		$conditions = array();
 		$conditions[] = 'game_id = '.$game['id'];		
@@ -1281,8 +1284,9 @@ function nameFleet()
 		return randomName();
 	else if ($server['fleetNameSource'] != '')
 		{		
-		$select_word_count = sc_query('SELECT COUNT(*) FROM '.$server['fleetNameSource']);
-		$random_id = rand(1, mysql_result($select_word_count, 0, 0));
+		$select_word_count = sc_query('SELECT COUNT(*) as c FROM '.$server['fleetNameSource']);
+		$line = $select_word_count->fetch_assoc();
+		$random_id = rand(1, $line['c']);
 		
 		$select = sc_query('SELECT word FROM '.$server['fleetNameSource'].' WHERE id = '.$random_id);
 		$word = $select->fetch_assoc();

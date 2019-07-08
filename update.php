@@ -571,7 +571,7 @@ function update_game($series, &$game, $update_time)
 		$conditions[] = 'game_id = '.$game['id'];
 		$conditions[] = 'owner = "'.$player['name'].'"';
 		
-		sc_query('UPDATE fleets SET orders = "standby", order_arguments = NULL WHERE '.implode(' AND ', $conditions));
+		sc_query('UPDATE fleets SET orders = "standby", order_arguments = \'\' WHERE '.implode(' AND ', $conditions));
 		}
 
 	$mined = array();
