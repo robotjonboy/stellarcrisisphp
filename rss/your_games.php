@@ -1,4 +1,4 @@
-<?
+<?php
 // your_games.php
 #=----------------------------------------------------------------------------=#
 require('../server.php');
@@ -9,7 +9,7 @@ require('../sql.php');
 // decode passed id into empire
 $player = $_GET['id'];
 $result = sc_query('SELECT * FROM empires');
-while ($row = mysql_fetch_array($result))
+while ($row = $result->fetch_assoc())
 {
 	$code5=md5($row['id'].$row['name'].$row['join_date']);
 	if ($code5 == $player)
@@ -58,7 +58,7 @@ echo				'The webs first complete multi-player strategy game.';
 echo			'</description>';
 
 #	$first=0;
-	while ($row = mysql_fetch_array($result))
+	while ($row = $result->fetch_assoc())
 	{
 		echo '<item>';
 		echo '<title> '.$row['name'].' </title>';

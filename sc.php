@@ -977,12 +977,10 @@ function checkForTournamentUpdates()
 				
 				//setup bridier
 				$sql3 = "insert ignore into bridier (game_id, series_name, game_number, empire1) values (" . $gameid . ", '" . $series['name'] . "', " . $game['game_number'] .
-					  ", '" . $firstPlayer['name'] . "')";
+				", '" . $firstPlayer['name'] . "')";
 				sc_query($sql3);
 				
-				$bridier = $mysqli->insert_id;
-				
-				$sql3 = 'UPDATE games SET bridier = "'.$bridier.'" WHERE id = '.$game['id'];
+				$sql3 = 'UPDATE games SET bridier = 0 WHERE id = '.$game['id'];
 				sc_query($sql3);
 				
 				//second player joins
@@ -993,7 +991,7 @@ function checkForTournamentUpdates()
 				
 				//create the tournament game record
 				$sql3 = 'insert into tournamentgame (tournament, game, round, firstempire, secondempire) values (' . $tourney['id'] . ', ' . $gameid . ', ' .
-					  ($currentround + 1) . ", '" . $firstPlayer['name'] . "', '" . $secondPlayer['name'] . "')";
+					  1 . ", '" . $firstPlayer['name'] . "', '" . $secondPlayer['name'] . "')";
 				sc_query($sql3);
 			}
 		} else {
@@ -1052,9 +1050,7 @@ function checkForTournamentUpdates()
 						  ", '" . $firstPlayer['name'] . "')";
 					sc_query($sql3);
 					
-					$bridier = $mysqli->insert_id;
-				
-					$sql3 = 'UPDATE games SET bridier = "'.$bridier.'" WHERE id = '.$game['id'];
+					$sql3 = 'UPDATE games SET bridier = 0 WHERE id = '.$game['id'];
 					sc_query($sql3);
 				
 					//second player joins

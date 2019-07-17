@@ -83,7 +83,7 @@ function editSeries($vars, $message = '')
 		// and present list of series in dropdown box
 		$select = sc_query('SELECT id, name FROM series ORDER BY name ASC',
 								__FILE__.'*'.__LINE__);
-		while ($series = mysql_fetch_array($select))
+		while ($series = $select->fetch_assoc())
 		{
 			echo '<option value="'.$series['id'].'">'.$series['name']."\n";
 		}
@@ -405,7 +405,7 @@ function editSeries_processing($vars)
 		return editSeries($vars, 'Map compression must be between 0.001 and 0.8.');
 
 	debugecho("09");
-	if (ereg('=', $vars['series_name']))		return editSeries($vars, 'The series name cannot contain an "=".');
+	if (preg_match('/=/', $vars['series_name']))		return editSeries($vars, 'The series name cannot contain an "=".');
 	if ($vars['update_time'] == 0)				return editSeries($vars, 'An invalid update time was entered.');
 	if ($vars['max_players'] < 2)				return editSeries($vars, 'An invalid player maximum was entered.');
 	if ($vars['systems_per_player'] < 3)		return editSeries($vars, 'An invalid systems per player was entered.');

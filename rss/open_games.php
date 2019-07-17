@@ -1,4 +1,4 @@
-<?
+<?php
 #=----------------------------------------------------------------------------=#
 require('../server.php');
 require('../debug.php');
@@ -97,11 +97,11 @@ echo '<?xml version="1.0" encoding="ISO-8859-1" ?>';
 ?>
 <rss version="2.0">
 	<channel>
-		<title>Stellar Crisis: <? echo $server['servername'] ?> - Open games</title>
-		<link>http://<? $server['domainname'] ?>/</link>
+		<title>Stellar Crisis: <?php echo $server['servername'] ?> - Open games</title>
+		<link>http://<?php $server['domainname'] ?>/</link>
 		<description>The web's first complete multi-player strategy game.</description>
-<?
-while ($row = mysql_fetch_array($result))
+<?php
+while ($row = $result->fetch_assoc())
 	{
 	$title = $row['name'].' '.$row['game_number'].' - '.
 			 ($row['update_count'] ? $row['update_count'].' update'.($row['update_count'] > 1 ? 's' : '') : 'new game').
@@ -109,11 +109,11 @@ while ($row = mysql_fetch_array($result))
 ?>
 		<item>
 			<title><?= $title; ?></title>
-			<link>http://<? $server['domainname'] ?>/</link>
+			<link>http://<?php $server['domainname'] ?>/</link>
 			<pubDate><?= date('r', ($row['last_update'] ? $row['last_update'] : $row['created_at'])); ?></pubDate>
 			<description><?= description($row); ?></description>
 		</item>
-<?
+<?php
 	}
 ?>
 	</channel>
