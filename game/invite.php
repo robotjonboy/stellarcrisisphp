@@ -101,7 +101,8 @@ function inviteScreen_processing(&$vars)
 	$player = $vars['player_data'];
 	
 	// Look for invitations to withdraw...
-	if (count($vars['uninvited']))
+	if (array_key_exists('uninvited', $vars) &&
+			is_array($vars['uninvited']) && count($vars['uninvited']))
 		foreach ($vars['uninvited'] as $empire)
 			sc_query('DELETE FROM invitations WHERE game_id = '.((int)$game['id']).
 			               ' AND empire = "'.$mysqli->real_escape_string($empire).'"');

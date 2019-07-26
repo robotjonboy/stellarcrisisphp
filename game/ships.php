@@ -676,7 +676,7 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 					$values[] = 'orders = "fleet"';
 					$values[] = 'order_arguments = "'.$arguments.'"';
 					}
-				else if (preg_match($orders, '/close|open/'))
+				else if (preg_match('/close|open/', $orders))
 					{
 					$values[] = 'fleet_id = 0';
 					$values[] = 'orders = "'.$orders.'"';

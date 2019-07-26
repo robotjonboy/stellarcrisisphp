@@ -255,7 +255,7 @@ function diplomacyScreen_processing($vars)
 		
 		if (!$message)
 			return sendPlayerMissive($player, $player['id'], '', 'game_message', 'Empty message. Nothing was sent.');
-		else if (!count($vars['recipients']))
+		else if (!array_key_exists('recipients', $vars) || !is_array($vars['recipients']) || !count($vars['recipients']))
 			return sendPlayerMissive($player, $player['id'], '', 'game_message', 'No recipients selected. Message not sent.');
 		else
 			{		
