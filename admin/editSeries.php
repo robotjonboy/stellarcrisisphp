@@ -15,7 +15,7 @@ function editSeries($vars, $message = '')
 {
 	//debug print
 	debugecho("**--editSeries---dump of vars--**");
-	while (list($var, $val) = each($vars))
+	foreach ($vars as $var => $val)
 	{
 		debugecho("$var is $val");
 	}
@@ -51,10 +51,10 @@ function editSeries($vars, $message = '')
 	// NOT $empire['empireID'];  BUT  $empire['id'];   OR   $vars['empireID'];
 
 ?>
-	<input type=hidden name="name" value="<? echo $vars['name']; ?>">
-	<input type=hidden name="pass" value="<? echo $vars['pass']; ?>">
-	<input type=hidden name="editSeriesID" value="<? echo $vars['editSeriesID']; ?>">
-	<input type=hidden name="empireID" value="<? echo $empire['id']; ?>">
+	<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
+	<input type=hidden name="pass" value="<?php echo $vars['pass']; ?>">
+	<input type=hidden name="editSeriesID" value="<?php echo $vars['editSeriesID']; ?>">
+	<input type=hidden name="empireID" value="<?php echo $empire['id']; ?>">
 	<input type=hidden name="page" value="editSeries">
 	<input type=hidden name="section" value="admin"> <!--cjp-->
 <?php
@@ -128,33 +128,33 @@ function editSeries($vars, $message = '')
 	<tr>
 		<th style="text-align: right;">Series Name:</th>
 		<td align=left>
-		   <input type=text size=40 maxlength=40 name="series_name" value="<? echo $series['name']; ?>">
+		   <input type=text size=40 maxlength=40 name="series_name" value="<?php echo $series['name']; ?>">
 		</td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Average agriculture:</th>
 		<td align=left>
-		   <input type=text size=5 maxlength=4 name="avg_ag" value="<? echo $series['avg_ag']; ?>">
+		   <input type=text size=5 maxlength=4 name="avg_ag" value="<?php echo $series['avg_ag']; ?>">
 		</td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Average fuel:</th>
 		<td align=left>
-		   <input type=text size=5 maxlength=4 name="avg_fuel" value="<? echo $series['avg_fuel']; ?>">
+		   <input type=text size=5 maxlength=4 name="avg_fuel" value="<?php echo $series['avg_fuel']; ?>">
 		</td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Average minerals:</th>
 		<td align=left>
-		   <input type=text size=5 maxlength=4 name="avg_min" value="<? echo $series['avg_min']; ?>">
+		   <input type=text size=5 maxlength=4 name="avg_min" value="<?php echo $series['avg_min']; ?>">
 		</td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Bridier allowed:</th>
 		<td>
 			<select name="bridier_allowed">
-				<option value=1<? echo ($series['bridier_allowed'] == 1 ? ' selected' : ''); ?>>Yes
-				<option value=0<? echo ($series['bridier_allowed'] == 0 ? ' selected' : ''); ?>>No
+				<option value=1<?php echo ($series['bridier_allowed'] == 1 ? ' selected' : ''); ?>>Yes
+				<option value=0<?php echo ($series['bridier_allowed'] == 0 ? ' selected' : ''); ?>>No
 			</select>
 		</td>
 	</tr>
@@ -162,8 +162,8 @@ function editSeries($vars, $message = '')
 		<th style="text-align: right;">Can draw (2-player games only):</th>
 		<td>
 			<select name="can_draw">
-				<option value=1<? echo ($series['can_draw'] == 1 ? ' selected' : ''); ?>>Yes
-				<option value=0<? echo ($series['can_draw'] == 0 ? ' selected' : ''); ?>>No
+				<option value=1<?php echo ($series['can_draw'] == 1 ? ' selected' : ''); ?>>Yes
+				<option value=0<?php echo ($series['can_draw'] == 0 ? ' selected' : ''); ?>>No
 			</select>
 		</td>
 	</tr>
@@ -171,8 +171,8 @@ function editSeries($vars, $message = '')
 		<th style="text-align: right;">Can surrender (2-player games only):</th>
 		<td>
 			<select name="can_surrender">
-				<option value=1<? echo ($series['can_surrender'] == 1 ? ' selected' : ''); ?>>Yes
-				<option value=0<? echo ($series['can_surrender'] == 0 ? ' selected' : ''); ?>>No
+				<option value=1<?php echo ($series['can_surrender'] == 1 ? ' selected' : ''); ?>>Yes
+				<option value=0<?php echo ($series['can_surrender'] == 0 ? ' selected' : ''); ?>>No
 			</select>
 		</td>
 	</tr>
@@ -180,8 +180,8 @@ function editSeries($vars, $message = '')
 		<th style="text-align: right;">Cloakers appear as attacks:</th>
 		<td>
 			<select name="cloakers_as_attacks">
-				<option value=1<? echo ($series['cloakers_as_attacks'] == 1 ? ' selected' : ''); ?>>Yes
-				<option value=0<? echo ($series['cloakers_as_attacks'] == 0 ? ' selected' : ''); ?>>No
+				<option value=1<?php echo ($series['cloakers_as_attacks'] == 1 ? ' selected' : ''); ?>>Yes
+				<option value=0<?php echo ($series['cloakers_as_attacks'] == 0 ? ' selected' : ''); ?>>No
 			</select>
 		</td>
 	</tr>
@@ -189,10 +189,10 @@ function editSeries($vars, $message = '')
 		<th style="text-align: right;">Cloakers build cloaked:</th>
 		<td>
 			<select name="build_cloakers_cloaked">
-				<option value=1<? 
+				<option value=1<?php 
 				   echo ($series['build_cloakers_cloaked'] == 1 ? ' selected' : ''); ?>>
 				   Yes
-				<option value=0<? echo ($series['build_cloakers_cloaked'] == 0 ? 
+				<option value=0<?php echo ($series['build_cloakers_cloaked'] == 0 ? 
 				   ' selected' : ''); ?>>
 				   No
 			</select>
@@ -201,22 +201,22 @@ function editSeries($vars, $message = '')
 	<tr>
 		<th style="text-align: right;">Creator:</th>
 		<td>
-		   <input type=text size=20 maxlength=20 name="creator" value="<? echo $series['creator']; ?>">
+		   <input type=text size=20 maxlength=20 name="creator" value="<?php echo $series['creator']; ?>">
 		</td>
 </tr>
 	<tr>
 		<th style="text-align: right;">Diplomatic states allowed:</th>
 		<td>
 			<select name="diplomacy">
-				<option value=6<? echo ($series['diplomacy'] == 6 ? ' selected' : ''); ?>>
+				<option value=6<?php echo ($series['diplomacy'] == 6 ? ' selected' : ''); ?>>
 				   All (Shared HQ)
-				<option value=5<? echo ($series['diplomacy'] == 5 ? ' selected' : ''); ?>>
+				<option value=5<?php echo ($series['diplomacy'] == 5 ? ' selected' : ''); ?>>
 				   Up to alliance
-				<option value=4<? echo ($series['diplomacy'] == 4 ? ' selected' : ''); ?>>
+				<option value=4<?php echo ($series['diplomacy'] == 4 ? ' selected' : ''); ?>>
 				   Up to trade
-				<option value=3<? echo ($series['diplomacy'] == 3 ? ' selected' : ''); ?>>
+				<option value=3<?php echo ($series['diplomacy'] == 3 ? ' selected' : ''); ?>>
 				   Up to truce
-				<option value=2<? echo ($series['diplomacy'] == 2 ? ' selected' : ''); ?>>
+				<option value=2<?php echo ($series['diplomacy'] == 2 ? ' selected' : ''); ?>>
 				   War
 			</select>
 		</td>
@@ -225,22 +225,22 @@ function editSeries($vars, $message = '')
 		<th style="text-align: right;">Map compresison:</th>
 		<td align=left>
 		   <input type=text size=5 maxlength=5 name="map_compression" 
-		          value="<? echo $series['map_compression']; ?>">
+		          value="<?php echo $series['map_compression']; ?>">
 		</td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Map type:</th>
 		<td>
 			<select name="map_type">
-				<option value=1<? echo ($series['map_type'] == 'standard' ? ' selected' : ''); ?>>
+				<option value=1<?php echo ($series['map_type'] == 'standard' ? ' selected' : ''); ?>>
 					Classic
-				<option value=2<? echo ($series['map_type'] == 'prebuilt' ? ' selected' : ''); ?>>
+				<option value=2<?php echo ($series['map_type'] == 'prebuilt' ? ' selected' : ''); ?>>
 					Pre-built (random placement)
-				<option value=3<? echo ($series['map_type'] == 'twisted' ? ' selected' : ''); ?>>
+				<option value=3<?php echo ($series['map_type'] == 'twisted' ? ' selected' : ''); ?>>
 					Twisted (2-player or team game only)
-				<option value=4<? echo ($series['map_type'] == 'mirror' ? ' selected' : ''); ?>>
+				<option value=4<?php echo ($series['map_type'] == 'mirror' ? ' selected' : ''); ?>>
 					Mirror (2-player game only)
-				<option value=5<? echo ($series['map_type'] == 'balanced' ? ' selected' : ''); ?>>
+				<option value=5<?php echo ($series['map_type'] == 'balanced' ? ' selected' : ''); ?>>
 					Balanced (2-player game only)
 			</select>
 		</td>
@@ -249,15 +249,15 @@ function editSeries($vars, $message = '')
 		<th style="text-align: right;">Map visible before game start:</th>
 		<td>
 			<select name="map_visible">
-				<option value=1<? echo ($series['map_visible'] == 1 ? ' selected' : ''); ?>>Yes
-				<option value=0<? echo ($series['map_visible'] == 0 ? ' selected' : ''); ?>>No
+				<option value=1<?php echo ($series['map_visible'] == 1 ? ' selected' : ''); ?>>Yes
+				<option value=0<?php echo ($series['map_visible'] == 0 ? ' selected' : ''); ?>>No
 			</select>
 		</td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Maximum players:</th>
 		<td align=left>
-		   <input type=text size=3 maxlength=3 name="max_players" value="<? echo $series['max_players']; ?>">
+		   <input type=text size=3 maxlength=3 name="max_players" value="<?php echo $series['max_players']; ?>">
 		</td>
 	</tr>
 	<tr>
@@ -265,31 +265,31 @@ function editSeries($vars, $message = '')
 		<td>
 			<!-- leave blank if max wins = -1 -->
 			<input type=text size=5 maxlength=7 name="max_wins" 
-			       value="<? echo ($series['max_wins'] != -1 ? $series['max_wins'] : ''); ?>">
+			       value="<?php echo ($series['max_wins'] != -1 ? $series['max_wins'] : ''); ?>">
 			<!-- but check the  "no max box" -->
-			<input type=checkbox name="no_max_wins"<? echo ($series['max_wins'] == -1 ? ' checked' : ''); ?>>
+			<input type=checkbox name="no_max_wins"<?php echo ($series['max_wins'] == -1 ? ' checked' : ''); ?>>
 			   No maximum
 		</td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Minimum wins:</th>
 		<td align=left>
-		   <input type=text size=5 name="min_wins" value="<? echo $series['min_wins']; ?>">
+		   <input type=text size=5 name="min_wins" value="<?php echo $series['min_wins']; ?>">
 		</td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Systems per player:</th>
 		<td align=left>
 		   <input type=text size=3 maxlength=3 name="systems_per_player" 
-		          value="<? echo $series['systems_per_player']; ?>">
+		          value="<?php echo $series['systems_per_player']; ?>">
 		</td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Team game:</th>
 		<td>
 			<select name="team_game">
-				<option value=1<? echo ($series['team_game'] == 1 ? ' selected' : ''); ?>>Yes
-				<option value=0<? echo ($series['team_game'] == 0 ? ' selected' : ''); ?>>No
+				<option value=1<?php echo ($series['team_game'] == 1 ? ' selected' : ''); ?>>Yes
+				<option value=0<?php echo ($series['team_game'] == 0 ? ' selected' : ''); ?>>No
 			</select>
 		</td>
 	</tr>
@@ -297,7 +297,7 @@ function editSeries($vars, $message = '')
 		<th style="text-align: right;">Tech multiple:</th>
 		<td align=left>
 		   <input type=text size=5 maxlength=5 name="tech_multiple" 
-		          value="<? echo $series['tech_multiple']; ?>">
+		          value="<?php echo $series['tech_multiple']; ?>">
 		</td>
 	</tr>
 
@@ -306,17 +306,17 @@ function editSeries($vars, $message = '')
 		<th style="text-align: right;">Update Time:</th>
 		<td>
 			<input type=text size=5 maxlength=5 name="update_time" 
-			       value="<? echo $update_time; ?>">
+			       value="<?php echo $update_time; ?>">
 			<select name="update_time_unit">
-				<option<? echo ($update_time_unit == 'minutes' ? ' selected' : ''); ?>>
+				<option<?php echo ($update_time_unit == 'minutes' ? ' selected' : ''); ?>>
 				   Minutes
-				<option<? echo ($update_time_unit == 'hours' ? ' selected' : ''); ?>>
+				<option<?php echo ($update_time_unit == 'hours' ? ' selected' : ''); ?>>
 				   Hours
-				<option<? echo ($update_time_unit == 'days' ? ' selected' : ''); ?>>
+				<option<?php echo ($update_time_unit == 'days' ? ' selected' : ''); ?>>
 				   Days
 			</select>
 			<input type=checkbox name="weekend_updates" 
-				<? echo ($series['weekend_updates'] == 1 ? ' checked' : ''); ?>
+				<?php echo ($series['weekend_updates'] == 1 ? ' checked' : ''); ?>
 			> Weekend Updates
 		</td>
 	</tr>
@@ -324,10 +324,10 @@ function editSeries($vars, $message = '')
 		<th style="text-align: right;">Visible builds:</th>
 		<td>
 			<select name="visible_builds">
-				<option value=1<? 
+				<option value=1<?php 
 				   echo ($series['visible_builds'] == 1 ? ' selected' : ''); ?>>
 				   Yes
-				<option value=0<? 
+				<option value=0<?php 
 				   echo ($series['visible_builds'] == 0 ? ' selected' : ''); ?>>
 				   No
 			</select>
@@ -355,7 +355,7 @@ function editSeries_processing($vars)
 	//debug print
 	debugecho(""); //throw a <p>
 	debugecho("**--editSeries_processing--dump of vars--**");
-	while (list($var, $val) = each($vars))
+	foreach ($vars as $var => $val)
 	{
 		debugecho("$var is $val");
 	}
@@ -494,7 +494,8 @@ function editSeries_processing($vars)
 	sc_query('UPDATE series SET '.implode(',', $values).' WHERE id = '.$vars['editSeriesID'], __FILE__.'*'.__LINE__);
 
 	debugecho("14: pre sendEmpireMessage");
-	$empire =$vars['empireID'];
+	$empire = [];
+	$empire['id'] = $vars['empireID'];
 	sendEmpireMessage($empire, 'Series <span style="color: red;">'.stripslashes($vars['series_name']).'</span> successfully updated.');
 	debugecho("14: afater sendEmpireMessage");
 
