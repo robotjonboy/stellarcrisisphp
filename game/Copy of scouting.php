@@ -15,7 +15,7 @@ function buildScoutingReport($series, $game, $system, $recipient)
 		{
 		// We need to determine the coordinates of this planet in the recipient's local space.
 		// To do this we need to find his homeworld coordinates in galactic space and his preferred map origin.
-		$select = sc_mysql_query('SELECT coordinates FROM systems WHERE game_id = '.$game['id'].' AND homeworld = "'.$recipient['name'].'"');
+		$select = sc_query('SELECT coordinates FROM systems WHERE game_id = '.$game['id'].' AND homeworld = "'.$recipient['name'].'"');
 		$homeworld = mysql_fetch_array($select);
 
 		list($origin_x, $origin_y) = explode(',', $homeworld['coordinates']);
@@ -41,7 +41,7 @@ function buildScoutingReport($series, $game, $system, $recipient)
 	if (!$series['visible_builds'])
 		$conditions[] = 'orders <> "build"';
 
-	$select = sc_mysql_query('SELECT '.implode(',', $fields).' FROM ships WHERE '.implode(' AND ', $conditions).' GROUP BY owner, type');
+	$select = sc_query('SELECT '.implode(',', $fields).' FROM ships WHERE '.implode(' AND ', $conditions).' GROUP BY owner, type');
 
 	$ship_inventory = array();
 	while ($ship = mysql_fetch_array($select))
@@ -75,7 +75,7 @@ function buildScoutingReport($series, $game, $system, $recipient)
 		$conditions[] = 'type = "Colony"';
 		$conditions[] = 'orders = "build"';
 
-		$select = sc_mysql_query('SELECT COUNT(*) FROM ships WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
+		$select = sc_query('SELECT COUNT(*) FROM ships WHERE '.implode(' AND ', $conditions), __FILE__.'*'.__LINE__);
 		$population_adjustement = (mysql_result($select, 0, 0) ? mysql_result($select, 0, 0) : 0);
 		}
 
@@ -155,7 +155,7 @@ function scoutingScreen($vars)
 	$conditions[] = 'empire = "'.$player['name'].'"';
 	$conditions[] = 'opponent NOT LIKE "=Team_="';
 
-	$select = sc_mysql_query('SELECT * FROM diplomacies WHERE '.implode(' AND ', $conditions).' ORDER BY status, opponent ASC');
+	$select = sc_query('SELECT * FROM diplomacies WHERE '.implode(' AND ', $conditions).' ORDER BY status, opponent ASC');
 
 	$missive_recipients = array();
 	while ($diplomacy = mysql_fetch_array($select))
@@ -165,7 +165,7 @@ function scoutingScreen($vars)
 		$report = 'No planets included in report.';
 	else
 		{
-		if (mysql_num_rows($select))
+		if ($select->num_rows)
 			{
 			$report = '<div class=center>You will send the following scouting report.';
 			
@@ -205,7 +205,7 @@ function scoutingScreen($vars)
 
 	echo $report;
 	
-	if (mysql_num_rows($select))
+	if ($select->num_rows)
 		echo '<div class=center>Send report to:<br><br><select multiple name=missive_to[]>'.
 	 		 $recipient_list.'</select><br><br><input type=submit name=gameAction value="Transmit"></div>';
 
@@ -254,12 +254,12 @@ function scoutingScreen_processing($vars)
 			// Ok, if the recipient has already explored this planet, don't add it to the table. Useless clutter.
 			// He'll still get the message version, though.
 			$query = 'SELECT id FROM explored WHERE player_id = '.$recipient['id'].' AND coordinates = "'.$system['coordinates'].'"';
-			$select = sc_mysql_query($query, __FILE__.'*'.__LINE__);
-			if (!mysql_num_rows($select))
+			$select = sc_query($query, __FILE__.'*'.__LINE__);
+			if (!$select->num_rows)
 				{
 				// First, delete any existing report for this planet.
 				$query = 'DELETE FROM scouting_reports WHERE player_id = '.$recipient['id'].' AND coordinates = "'.$system['coordinates'].'"';
-				sc_mysql_query($query, __FILE__.'*'.__LINE__);
+				sc_query($query, __FILE__.'*'.__LINE__);
 				
 				// AS - 2003.03.30
 				// I encountered a bug where a scouting report had an empty coordinate entered. I don't how this
@@ -282,7 +282,7 @@ function scoutingScreen_processing($vars)
 				if (strlen($ships))				$values[] = 'ships = "'.addslashes($ships).'"';
 				if (strlen($comment))			$values[] = 'comment = "'.addslashes($comment).'"';
 
-				sc_mysql_query('INSERT INTO scouting_reports SET '.implode(',', $values), __FILE__.'*'.__LINE__);
+				sc_query('INSERT INTO scouting_reports SET '.implode(',', $values), __FILE__.'*'.__LINE__);
 				}
 			}
 			
