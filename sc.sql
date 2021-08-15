@@ -261,7 +261,7 @@ CREATE TABLE IF NOT EXISTS `messages` (
   `player_id` int(11) NOT NULL DEFAULT '0',
   `empire_id` int(11) NOT NULL DEFAULT '0',
   `text` mediumtext NOT NULL,
-  `type` enum('instant','motd','private','broadcast','team','update','scout') DEFAULT NULL,
+  `type` enum('instant','motd','private','broadcast','team','update','scout','game_message') DEFAULT NULL,
   `flag` enum('1','0') NOT NULL DEFAULT '0',
   UNIQUE KEY `id` (`id`),
   KEY `player_id` (`player_id`,`flag`,`type`),
