@@ -351,9 +351,9 @@ function createSeries_processing($vars)
 
 	switch ($vars['update_time_unit'])
   		{
-   		case 'Minutes':	$vars['update_time'] *= 60;		break;
-   		case 'Hours':	$vars['update_time'] *= 3600;	break;
-   		case 'Days':	$vars['update_time'] *= 86400;	break;
+   		case '1':	$vars['update_time'] *= 60;		break; #Minutes
+   		case '2':	$vars['update_time'] *= 3600;	break; #Hours
+   		case '3':	$vars['update_time'] *= 86400;	break; #Days
   		}
 
 	$vars['weekend_updates'] = ($vars['weekend_updates'] != '' ? 1 : 0);
