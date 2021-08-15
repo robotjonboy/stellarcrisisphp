@@ -203,7 +203,7 @@ function gameList($vars)
 
 		$order = 'ORDER BY series.update_time, series.name, games.game_number ASC';
 
-		$select = sc_query('SELECT DISTINCT games.* FROM '.$tables.' WHERE '.implode(' AND ', $conditions).' '.$order);
+		$select = sc_query('SELECT DISTINCT games.*, series.update_time, series.name FROM '.$tables.' WHERE '.implode(' AND ', $conditions).' '.$order);
 		while ($game = $select->fetch_assoc())
 			{
 			if ($excluded_games[$game['id']]) continue;
@@ -447,7 +447,7 @@ function passwordGameList($vars)
 
 		$order = 'series.name, games.game_number';
 
-		$select = sc_query('SELECT DISTINCT games.* FROM '.$tables.' WHERE '.implode(' AND ', $conditions).' ORDER BY '.$order);
+		$select = sc_query('SELECT DISTINCT games.*, series.name FROM '.$tables.' WHERE '.implode(' AND ', $conditions).' ORDER BY '.$order);
 		while ($game = $select->fetch_assoc())
 			{
 			$series = getSeries($game['series_id']);
