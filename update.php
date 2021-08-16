@@ -218,7 +218,7 @@ function update_game($series, &$game, $update_time)
 												'ORDER BY status ASC',
 												__FILE__.'*'.__LINE__);
 
-		while ($diplomacy = $diplomacy_select->fetch_assoc)
+		while ($diplomacy = $diplomacy_select->fetch_assoc())
 		{
 			if ( strncmp('=Team', $diplomacy['opponent'], 5) ) // Ignore the team diplomacy settings
 			{
