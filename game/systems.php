@@ -60,7 +60,7 @@ function systemsScreen($vars)
 	}
 	
 	$select = sc_query('SELECT DISTINCT '.implode(',', $fields).
-							' FROM '.$from.
+							', explored.id as exploredid FROM '.$from.
 							' WHERE '.implode(' AND ', $conditions).
 							' ORDER BY explored.id');	
 	while ($system = $select->fetch_assoc())

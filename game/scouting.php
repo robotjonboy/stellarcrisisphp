@@ -22,7 +22,7 @@ function buildScoutingReport($series, $game, $system, $recipient)
 				'WHERE game_id = '.$game['id'].' '.
 				'AND homeworld = "'.$recipient['name'].'"';
 		$select = sc_query($sql);
-		$homeworld = mysql_fetch_array($select);
+		$homeworld = sc_fetch_assoc($select);
 
 		list($origin_x, $origin_y) = explode(',', $homeworld['coordinates']);
 		list($offset_x, $offset_y) = explode(',', $recipient['map_origin']);
@@ -54,7 +54,7 @@ function buildScoutingReport($series, $game, $system, $recipient)
 	$select = sc_query($sql);
 
 	$ship_inventory = array();
-	while ($ship = mysql_fetch_array($select))
+	while ($ship = sc_fetch_assoc($select))
 	{
 		// Initialize the array for the owner if we have no ships for him yet.
 		// This prevents an error with array_key_exists().
@@ -89,11 +89,12 @@ function buildScoutingReport($series, $game, $system, $recipient)
 		$conditions[] = 'type = "Colony"';
 		$conditions[] = 'orders = "build"';
 
-		$sql =  'SELECT COUNT(*) '.
+		$sql =  'SELECT COUNT(*) as c '.
 				'FROM ships '.
 				'WHERE '.implode(' AND ', $conditions);
 		$select = sc_query($sql , __FILE__.'*'.__LINE__);
-		$population_adjustement = (mysql_result($select, 0, 0) ? mysql_result($select, 0, 0) : 0);
+		$result = $select->fetch_assoc();
+		$population_adjustement = result['c'];
 	}
 
 	if ($system['annihilated'])
@@ -271,7 +272,7 @@ function scoutingScreen($vars)
 	$select = sc_query($sql);
 
 	$missive_recipients = array();
-	while ($diplomacy = mysql_fetch_array($select))
+	while ($diplomacy = sc_fetch_assoc($select))
 		$missive_recipients[] = $diplomacy['opponent'];
 
 	if (!count($vars['scouting_systems']))
