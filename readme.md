@@ -32,7 +32,7 @@ Stellar Crisis has a long history of competitive play.  Past competitions includ
 # Upgrade
 These instructions are to upgrade a server that is running code from before the addition of tournaments.
 Run the Following mysql script:
-    alter table games add game_type varchar(3) not null default 'sc2';
+```    alter table games add game_type varchar(3) not null default 'sc2';
     alter table series add `game_type` varchar(3) NOT NULL DEFAULT 'sc2';
     insert into ship_types (type, mobile, version) values ('Jumpgate', '0', 'v3');
     alter table messages change type type
@@ -70,6 +70,7 @@ Run the Following mysql script:
         series int(11) not null,
         completed tinyint(1) not null default 0
     );
+```
 
 # License
 Stellar Crisis PHP is available under The GPL v2.0
