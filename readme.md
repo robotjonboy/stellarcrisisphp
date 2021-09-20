@@ -1,26 +1,26 @@
-#Stellar Crisis PHP
+# Stellar Crisis PHP
 This is the PHP implementation of the classic turn based strategy web game Stellar Crisis.  Stellar Crisis is the web's first complete multi-player strategy game. Players from all over the world compete to build megalithic galactic empires, develop powerful new technologies, and fight pitched battles in far away star systems. It is free, absolutely and positively. It also comes with ABSOLUTELY NO WARRANTY.
 
-#Servers
+# Servers
 Three stellar crisis servers remain.  Two servers run the php code.  The third runs Almonaster, a different implementation of the game.
 http://homeserve.org/sc/sc.php
 http://falcon.almonaster.net
 https://sc.rocketempires.com/sc.php
 
-#Code
+# Code
 In addition to the php software, there are two additional implementations of stellar crisis.
 The original: https://sourceforge.net/projects/sc-original/
 Almonaster: https://github.com/mfeingol/almonaster
 
 There is a fourth implementation from the late 90s called MkII.  I believe it is lost to time.  If anyone has a copy, please reach out.  I would also love a copy of the original code written in perl, before it was converted to pike.  Again, if anyone has a copy, please reach out.
 
-#History
+# History
 Depending on who you ask, Stellar Crisis first appeared in either 1993 or 1995.  The earliest announcement I have been able to find on usenet is from 1995.  The php implementation originated in the early '00s, first appearing on the Iceberg server.  By the late 00s, the Iceberg server was defunct.  Homeserve was started as a replacement.  I acquired a copy of the php code in 2010.  I added a tournament manager, which I have been using to run an annual tournament since 2011.  In 2019, I upgraded the software to run on php7 and newer versions of mysql/mariadb.  This upgrade was substantially more complicated than I anticipated.  In 2021, I implemented Jumpgates (a shiptype introduced in stellar crisis 3 that had never been implemented in the php version of the game).
 
-#Competitive Play
+# Competitive Play
 Stellar Crisis has a long history of competitive play.  Past competitions include Clan Wars, "Olympics," and the Stellar Kings Cup.  The Stellar Crisis Open Championship, began in 2011, continues to be run anually on the Rocket Empires server.  The tournament starts on the last Saturday in July, with registration opening a week before.
 
-#Installation/Configuration
+# Installation/Configuration
 1. Preqrequisites: windows or linux, apache, mysql or mariadb, and php.
 2. Create a database in mysql or mariadb to house the stellar crisis data.  Run the sc.sql script to create the tables and insert the initial data. (eg mysql -u user -p --database=stellarcrisis <sc.sql)
 3. Copy the code into a directory that will be served by apache.  If on shared hosting, this is usually a "public_html" directory.  Optionally, the code may be put into a subfolder (eg publichtml/sc).
@@ -29,7 +29,7 @@ Stellar Crisis has a long history of competitive play.  Past competitions includ
 6. Delete the utility directory, or otherwise make sure it is not accessible to the general public.
 7. If apache is running, you should now be able to navigate to sc.php, login, and create some series.  Have fun!
 
-#Upgrade
+# Upgrade
 These instructions are to upgrade a server that is running code from before the addition of tournaments.
 Run the Following mysql script:
     alter table games add game_type varchar(3) not null default 'sc2';
@@ -71,5 +71,5 @@ Run the Following mysql script:
         completed tinyint(1) not null default 0
     );
 
-#License
+# License
 Stellar Crisis PHP is available under The GPL v2.0
