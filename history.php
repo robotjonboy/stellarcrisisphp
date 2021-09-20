@@ -223,6 +223,12 @@ function endGame($series, $game, $history, $saved_map)
 					 ($consumed == 'yes' ? ') and was consumed in the process' : ')').'.</span>';
 				break;
 
+			case 'send':
+				list($target, $shipname, $consumed) = explode('/', $event['info']);
+				echo '<span class=\'updateJumpgate\'>'.($shipname ? $shipname : 'A jumpgate').' of '.$event['empire'].
+					' was consumed in the process of sending ships to ' . $target . '.';
+				break;
+
 			case 'draw':
 				$draw[] = $event['empire'];
 				

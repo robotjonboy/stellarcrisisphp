@@ -1,4 +1,7 @@
 <?php
+
+require_once('jumpgatefunctions.php');
+
 function debugecho($msg)
 {
 //	$debug=true;
@@ -131,6 +134,50 @@ function editSeries($vars, $message = '')
 		   <input type=text size=40 maxlength=40 name="series_name" value="<?php echo $series['name']; ?>">
 		</td>
 	</tr>
+	<tr>
+    <th style="text-align: right;">Game Type:</th>
+    <td>
+      <select name="game_type">
+        <option value="sc2" <?php echo ($series['game_type'] == 'sc2' ? 'selected' : ''); ?>>sc2</option>
+        <option value="sc3" <?php echo ($series['game_type'] == 'sc3' ? 'selected' : ''); ?>>sc3</option>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <th style="text-align: right;">Jumpgate:</th>
+    <td>
+      <select name="jumpgate_status">
+				<?php $jumpgate_status_options = ['Barred', 'Restricted', 'Unrestricted', 'Available'];
+					foreach ($jumpgate_status_options as $status) {
+						echo '<option value="' . $status . '" ';
+						
+						if (getJumpgateStatus($series) == $status) {
+							echo 'selected';
+						}
+
+						echo '>' . $status . '</option>';
+					}
+				?>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <th style="text-align: right;">Jumpgate Range Multiplier:</th>
+    <td><input type=text size=7 maxlength=7 name="jumpgate_range_multiplier" value="<?php echo getJumpgateShipTypeOptions($series)['range_multiplier']; ?>"/> x BR (Blank indicates infinite range)</td>
+  </tr>
+  <tr>
+    <th style="text-align: right;">Jumpgate Loss:</th>
+    <td><input type=text size=6 maxlength=6 name="jumpgate_loss" value="<?php echo getJumpgateShipTypeOptions($series)['loss'];?>"/></td>
+  </tr>
+  <tr>
+    <th style="text-align: right;">Jumpgate Build Cost:</th>
+    <td><input type=text size=5 maxlength=5 name="jumpgate_build_cost" value="<?php echo getJumpgateShipTypeOptions($series)['build_cost'];?>"/></td>
+  </tr>
+  <tr>
+    <th style="text-align: right;">Jumpgate Maintenance Cost:</th>
+    <td><input type=text size=5 maxlength=5 name="jumpgate_maintenance_cost" value="<?php echo getJumpgateShipTypeOptions($series)['maintenance_cost'];?>"/></td>
+  </tr>
+
 	<tr>
 		<th style="text-align: right;">Average agriculture:</th>
 		<td align=left>
@@ -385,6 +432,8 @@ function editSeries_processing($vars)
 	}
 	debugecho("06: editSeriesID=".$vars['editSeriesID']." passed check");
 
+	$vars['editSeriesID'] = (int)$vars['editSeriesID'];
+
 	$map_types = array(1 => 'standard', 2 => 'prebuilt', 3 => 'twisted', 4 => 'mirror', 5 => 'balanced');
 	$message = '';
 
@@ -392,13 +441,16 @@ function editSeries_processing($vars)
 
 	debugecho("07: starting sanity checks");
 	// Various sanity checks.
+	if ($vars['game_type'] != 'sc3') {
+		$vars['game_type'] = 'sc2';
+	}
 	
 	// Make sure the new series name is not already in use. if changed
 	if ($series['name'] != stripslashes($vars['series_name']) and getSeriesByName($vars['series_name']))
 		return editSeries($vars, 'That series name is already in use.');
 
 	debugecho("08");
-		if ($vars['map_compression'] == '' or sscanf($vars['map_compression'], '%f', $map_compression) == 0)
+	if ($vars['map_compression'] == '' or sscanf($vars['map_compression'], '%f', $map_compression) == 0)
 		$map_compression = 0.001;
 
 	if ($map_compression < 0.001 or $map_compression > 0.8)
@@ -455,6 +507,34 @@ function editSeries_processing($vars)
 	$vars['weekend_updates'] = ($vars['weekend_updates'] != '' ? 1 : 0);
 	$vars['max_wins'] = ($vars['no_max_wins'] != '' ? -1 : $vars['max_wins']);
 
+	if ($vars['jumpgate_status'] != 'Available' && $vars['jumpgate_status'] != 'Unrestricted' && $vars['jumpgate_status'] != 'Restricted') {
+    $vars['jumpgate_status'] = 'Barred';
+  } 
+    
+  if (array_key_exists('jumpgate_range_multiplier', $vars) && strlen(trim($vars['jumpgate_range_multiplier'])) > 0) {
+    $vars['jumpgate_range_multiplier'] = floatval($vars['jumpgate_range_multiplier']);
+  } else {
+    $vars['jumpgate_range_multiplier'] = 'NULL';
+  }   
+      
+  if (array_key_exists('jumpgate_loss', $vars)) {
+    $vars['jumpgate_loss'] = floatval($vars['jumpgate_loss']);
+  }   
+      
+  if (array_key_exists('jumpgate_build_cost', $vars)) {
+    $vars['jumpgate_build_cost'] = intval($vars['jumpgate_build_cost']);
+  }   
+      
+  if (array_key_exists('jumpgate_maintenance_cost', $vars)) {
+    $vars['jumpgate_maintenance_cost'] = intval($vars['jumpgate_maintenance_cost']);
+  }
+
+  if ($vars['game_type'] == 'sc2') {
+    if ($vars['jumpgate_status'] != 'Barred') {
+      return editSeries($vars, 'Jumpgate must be barred in sc2 games.');
+    }
+  }
+
 	debugecho("loading values");
 	// load fields for update
 	$values = array();
@@ -492,6 +572,19 @@ function editSeries_processing($vars)
 	$cjpsql='UPDATE series SET '.implode(',', $values).' WHERE id = '.$vars['editSeriesID'];
 	debugecho($cjpsql);
 	sc_query('UPDATE series SET '.implode(',', $values).' WHERE id = '.$vars['editSeriesID'], __FILE__.'*'.__LINE__);
+
+	$values = array();
+	$values[] = 'status = \'' . $vars['jumpgate_status'] . '\'';
+	$values[] = 'range_multiplier = \'' . $vars['jumpgate_range_multiplier'] . '\'';
+	$values[] = 'loss = \'' . $vars['jumpgate_loss'] . '\'';
+	$values[] = 'build_cost = \'' . $vars['jumpgate_build_cost'] . '\'';
+	$values[] = 'maintenance_cost = \'' . $vars['jumpgate_maintenance_cost'] . '\'';
+	
+	$sql = 'update series_ship_type_options set ' . implode(',', $values) . ' where series_id = ' . $vars['editSeriesID'] . ' AND ship_type = \'Jumpgate\'';
+	sc_query($sql);
+
+	$sql = 'update game_ship_type_options set ' . implode(',', $values) . ' where game_id in (select id from games where series_id = ' . $vars['editSeriesID'] . ' AND player_count = 0) AND ship_type = \'Jumpgate\'';
+	sc_query($sql);
 
 	debugecho("14: pre sendEmpireMessage");
 	$empire = [];

@@ -1122,18 +1122,23 @@ function getValidOrders($series, $game, $ship, $player)
 	
 			list($x,$y) = explode(',', $ship['location']);
 
-			$range = floor($ship['br']*$series['jumpgate_range_multiplier']);
-
-			$min_x = $x-$range;
-			$max_x = $x+$range;
-			$min_y = $y-$range;
-			$max_y = $y+$range;
-	
 			$conditions = array();
 			$conditions[] = 'systems.game_id = '.$game['id'];
 			$conditions[] = 'systems.coordinates <> "'.$ship['location'].'"';
 			$conditions[] = 'systems.annihilated = "0"';
 			$conditions[] = 'explored.empire = "'.$player['name'].'"';
+			
+			$jumpgateRangeMultiplier = getJumpgateRangeMultiplier($game);
+			$range; $min_x; $max_x; $min_y; $max_y;
+
+			if ($jumpgateRangeMultiplier != null && $jumpgateRangeMultiplier > 0) {
+				$range = floor($ship['max_br']*$jumpgateRangeMultiplier);
+
+				$min_x = $x-$range;
+				$max_x = $x+$range;
+				$min_y = $y-$range;
+				$max_y = $y+$range;
+			}
 
 			$query = 'SELECT systems.name, systems.coordinates '.
 					 'FROM systems INNER JOIN explored ON systems.game_id = explored.game_id AND systems.coordinates = explored.coordinates '.
@@ -1142,12 +1147,12 @@ function getValidOrders($series, $game, $ship, $player)
 			$select = sc_query($query);
 
 			while ($system = $select->fetch_assoc())
-				{
+			{
 				list($x,$y) = explode(',', $system['coordinates']);
 				
-				if ($x >= $min_x and $x <= $max_x and $y >= $min_y and $y <= $max_y)
+				if ($jumpgateRangeMultiplier == NULL || ($x >= $min_x and $x <= $max_x and $y >= $min_y and $y <= $max_y))
 					$orders[] = array('send', xlateToLocal($system['coordinates']));
-				}
+			}
 			break;
 		}
 
@@ -1157,6 +1162,18 @@ function getValidOrders($series, $game, $ship, $player)
 	$valid_orders_cache[$ship['location']]['nonbuild'][$ship['type']] = $orders;
 
  	return $valid_orders_cache[$ship['location']]['nonbuild'][$ship['type']];
+}
+
+function getJumpgateRangeMultiplier($game) {
+	$jumpgateRangeMultiplier = NULL;
+
+	if ($game['game_type'] == 'sc3' && array_key_exists('ship_type_options', $game) && is_array($game['ship_type_options']) && !empty($game['ship_type_options'])) {
+		if (array_key_exists('Jumpgate', $game['ship_type_options']) && array_key_exists('range_multiplier', $game['ship_type_options']['Jumpgate'])) {
+			$jumpgateRangeMultiplier = $game['ship_type_options']['Jumpgate']['range_multiplier'];
+		}
+	}
+
+	return $jumpgateRangeMultiplier;
 }
 
 #----------------------------------------------------------------------------------------------------------------------#

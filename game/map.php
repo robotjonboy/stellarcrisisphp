@@ -152,8 +152,10 @@ function mapScreen($vars)
 				// Depending on the state and ownership of the system, draw a different icon for the planet.
 				$icon = '<input type=image src=';
 				
-				if ($system['owner'] == '')
+				if ($system['owner'] == '' && !$system['annihilated'])
 					$icon .= '"images/planet.gif"';
+				else if ($system['annihilated'])
+					$icon .= '"images/annihilated.gif"';
 				else if ($system['owner'] == $name)
 					$icon .= '"images/aliens/'.$empire['icon'].'"';
 				else if ($system['owner'] != '')
@@ -166,8 +168,6 @@ function mapScreen($vars)
 
 					$icon .= '"images/aliens/'.$icons[$system['owner']].'"';
 					}
-				else if ($system['annihilated'])
-					$icon .= '"images/annihilated.gif" name="system:'.xlateToLocal($coordinates).'"';
 
 				$icon .= ' name="system:'.xlateToLocal($coordinates).'" height=40 width=40>';
 

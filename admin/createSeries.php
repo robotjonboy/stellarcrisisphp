@@ -11,7 +11,6 @@ echo "
 <input type=hidden name=\"section\" value=\"admin\">
 <input type=hidden name=\"page\" value=\"createSeries\">";
 
-
 	// show online players drop box
     echo "<div class=pageTitle>Create a New Series</div>";
 	echo drawButtons($empire); //EmpireName : create a series
@@ -28,6 +27,42 @@ echo "
 	<tr>
 		<th style=\"text-align: right;\">Series Name:</th>
 		<td><input type=text size=40 maxlength=40 name=\"series_name\"></td>
+	</tr>
+	<tr>
+		<th style=\"text-align: right;\">Game Type:</th>
+		<td>
+			<select name=\"game_type\">
+				<option value=\"sc2\" selected>sc2</option>
+				<option value=\"sc3\">sc3</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<th style=\"text-align: right;\">Jumpgate:</th>
+		<td>
+			<select name=\"jumpgate_status\">
+				<option value=\"Barred\">Barred</option>
+				<option value=\"Restricted\">Restricted</option>
+				<option value=\"Unrestricted\">Unrestricted</option>
+				<option value=\"Available\">Available</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<th style=\"text-align: right;\">Jumpgate Range Multiplier:</th>
+		<td><input type=text size=7 maxlength=7 name=\"jumpgate_range_multiplier\"/> x BR (Blank indicates infinite range)</td>
+	</tr>
+	<tr>
+		<th style=\"text-align: right;\">Jumpgate Loss:</th>
+		<td><input type=text size=6 maxlength=6 name=\"jumpgate_loss\" value=\"0.25\"/></td>
+	</tr>
+	<tr>
+		<th style=\"text-align: right;\">Jumpgate Build Cost:</th>
+		<td><input type=text size=5 maxlength=5 name=\"jumpgate_build_cost\" value=\"100\"/></td>
+	</tr>
+	<tr>
+		<th style=\"text-align: right;\">Jumpgate Maintenance Cost:</th>
+		<td><input type=text size=5 maxlength=5 name=\"jumpgate_maintenance_cost\" value=\"16\"/></td>
 	</tr>
 	<tr>
 		<th style=\"text-align: right;\">Average agriculture:</th>
@@ -199,7 +234,7 @@ echo "
 
 function createSeries_processing($vars)
 {
-	global $authenticated_as_admin;
+	global $authenticated_as_admin,$mysqli;
 	
 	$map_types = array(1 => 'standard', 2 => 'prebuilt', 3 => 'twisted', 4 => 'mirror', 5 => 'balanced');
 	
@@ -228,6 +263,10 @@ function createSeries_processing($vars)
 		}
 
 	// Various sanity checks.
+
+	if ($vars['game_type'] != 'sc3') {
+		$vars['game_type'] = 'sc2';
+	}
 	
 	$invalid_data = false;
 
@@ -346,6 +385,37 @@ function createSeries_processing($vars)
 		$invalid_data = true;
 		}
 
+	if ($vars['jumpgate_status'] != 'Available' && $vars['jumpgate_status'] != 'Unrestricted' && $vars['jumpgate_status'] != 'Restricted') {
+		$vars['jumpgate_status'] = 'Barred';
+	}
+
+	if (array_key_exists('jumpgate_range_multiplier', $vars) && strlen(trim($vars['jumpgate_range_multiplier'])) > 0) {
+		$vars['jumpgate_range_multiplier'] = floatval($vars['jumpgate_range_multiplier']);
+	} else {
+		$vars['jumpgate_range_multiplier'] = 'NULL';
+	}
+
+	//error_log('jumpgate_range_multiplier: ' . $vars['jumpgate_range_multiplier']);
+
+	if (array_key_exists('jumpgate_loss', $vars)) {
+		$vars['jumpgate_loss'] = floatval($vars['jumpgate_loss']);
+	}
+
+	if (array_key_exists('jumpgate_build_cost', $vars)) {
+		$vars['jumpgate_build_cost'] = intval($vars['jumpgate_build_cost']);
+	}
+
+	if (array_key_exists('jumpgate_maintenance_cost', $vars)) {
+		$vars['jumpgate_maintenance_cost'] = intval($vars['jumpgate_maintenance_cost']);
+	}
+
+	if ($vars['game_type'] == 'sc2') {
+		if ($vars['jumpgate_status'] != 'Barred') {
+			sendEmpireMessage($empire, 'Jumpgate must be barred in sc2 games.');
+			$invalid_data = true;
+		}
+	}
+
 	if ($invalid_data)
 		return createSeries($vars);
 
@@ -361,6 +431,7 @@ function createSeries_processing($vars)
 
 	$values = array();
 	$values[] = 'name = "'.$vars['series_name'].'"';
+	$values[] = 'game_type = "'.$vars['game_type'].'"';
 
 	$values[] = 'average_resources = "'.$vars['avg_min'].'"';
 	$values[] = 'avg_ag = "'.$vars['avg_ag'].'"';
@@ -392,6 +463,19 @@ function createSeries_processing($vars)
 	//echo "<p>".$cjpsql."<p>";
 
 	sc_query('INSERT INTO series SET '.implode(',', $values));
+
+	$values = array();
+	$values[] = 'series_id = ' . $mysqli->insert_id;
+	$values[] = 'ship_type = \'Jumpgate\'';
+	$values[] = 'status = \'' . $vars['jumpgate_status']. '\'';
+	if ($vars['jumpgate_range_multiplier'] != 'NULL') $values[] = 'range_multiplier = ' . $vars['jumpgate_range_multiplier'];
+	$values[] = 'loss = ' . $vars['jumpgate_loss'];
+	$values[] = 'build_cost = ' . $vars['jumpgate_build_cost'];
+	$values[] = 'maintenance_cost = ' . $vars['jumpgate_maintenance_cost'];
+
+	$sql = 'INSERT INTO series_ship_type_options set ' . implode(',', $values);
+	//error_log('sql: ' . $sql);
+	sc_query($sql);
 
 	spawnGame($vars['series_name']);
 

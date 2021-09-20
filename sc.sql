@@ -183,6 +183,7 @@ CREATE TABLE IF NOT EXISTS `gamelog` (
 
 CREATE TABLE IF NOT EXISTS `games` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+	`game_type` varchar(3) NOT NULL DEFAULT 'v2',
   `series_id` int(11) NOT NULL DEFAULT '0',
   `game_number` smallint(6) NOT NULL DEFAULT '0',
   `avg_ag` smallint(6) NOT NULL DEFAULT '0',
@@ -220,7 +221,7 @@ CREATE TABLE IF NOT EXISTS `history` (
   `game_id` int(11) NOT NULL DEFAULT '0',
   `empire` varchar(20) NOT NULL DEFAULT '',
   `coordinates` varchar(12) NOT NULL DEFAULT '',
-  `event` enum('started','bridier','update','Truce','Trade','War','Alliance','empire','unknown','ship to ship','ship to system','destroyed','sighted','minefield','nuked','annihilated','invaded','unsucessfully invaded','colonized','terraformed','opened','closed','joined','nuked out','invaded out','annihilated out','ruins','surrender','draw','won') NOT NULL DEFAULT 'unknown',
+  `event` enum('started','bridier','update','Truce','Trade','War','Alliance','empire','unknown','ship to ship','ship to system','destroyed','sighted','minefield','nuked','annihilated','invaded','unsucessfully invaded','colonized','terraformed','opened','closed','joined','nuked out','invaded out','annihilated out','ruins','surrender','draw','won','send','Shared HQ') NOT NULL DEFAULT 'unknown',
   `info` varchar(255) NOT NULL DEFAULT '',
   `update_no` smallint(6) NOT NULL DEFAULT '0',
   UNIQUE KEY `id` (`id`),
@@ -344,6 +345,7 @@ CREATE TABLE IF NOT EXISTS `scouting_reports` (
 CREATE TABLE IF NOT EXISTS `series` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(40) NOT NULL DEFAULT '',
+	`game_type` varchar(3) NOT NULL DEFAULT 'v2',
   `average_resources` smallint(6) NOT NULL DEFAULT '30',
   `avg_ag` smallint(6) NOT NULL DEFAULT '30',
   `avg_fuel` smallint(6) NOT NULL DEFAULT '30',
@@ -375,6 +377,26 @@ CREATE TABLE IF NOT EXISTS `series` (
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
+
+create table if not exists series_ship_type_options (
+	id int not null primary key auto_increment,
+	series_id int(11) not null,
+	ship_type varchar(20) not null,
+	status varchar(12) not null,
+	range_multiplier decimal(6,3),
+	loss decimal(5,3),
+	build_cost smallint,
+	maintenance_cost smallint);
+
+create table if not exists game_ship_type_options (
+	id int not null primary key auto_increment,
+	game_id int(11) not null,
+	ship_type varchar(20) not null,
+	status varchar(12) not null,
+	range_multiplier decimal(6,3),
+	loss decimal(5,3),
+	build_cost smallint,
+	maintenance_cost smallint);
 
 --
 -- Table structure for table `ships`
@@ -437,7 +459,8 @@ INSERT INTO `ship_types` (`id`, `type`, `mobile`, `version`) VALUES
 (9, 'Doomsday', '1', 'v2'),
 (10, 'Minefield', '0', 'v2'),
 (11, 'Minesweeper', '1', 'v2'),
-(12, 'Engineer', '1', 'v2');
+(12, 'Engineer', '1', 'v2'),
+(13, 'Jumpgate', '0', 'v3');
 
 -- --------------------------------------------------------
 

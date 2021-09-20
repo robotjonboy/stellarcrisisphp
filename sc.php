@@ -679,10 +679,30 @@ function spawnGame($series_name)
 		$values[] = 'update_time  = '.$series['update_time'];
 		$values[] = 'weekend_updates  = "'.$series['weekend_updates'].'"';
 		$values[] = 'max_allies  = '.($series['max_allies'] ? $series['max_allies'] : 'NULL');
+		$values[] = 'game_type = \''.$series['game_type'].'\'';
 
   		sc_query('INSERT INTO games SET '.implode(', ', $values), __FILE__.'*'.__LINE__);
+
+		$game_id = $mysqli->insert_id;
+
+		$result = sc_query('select * from series_ship_type_options where series_id = ' . $series['id']);
+
+		while($line = $result->fetch_assoc()) {
+			$values = array();
+			$values[] = 'game_id = '.$game_id;
+			$values[] = 'ship_type = \''.$line['ship_type'].'\'';
+			$values[] = 'status = \''.$line['status'].'\'';
+			if (array_key_exists('range_multiplier', $line) && strlen(trim($line['range_multiplier'])) > 0) $values[] = 'range_multiplier = '.$line['range_multiplier'];
+			$values[] = 'loss = '.$line['loss'];
+			$values[] = 'build_cost = '.$line['build_cost'];
+			$values[] = 'maintenance_cost = '.$line['maintenance_cost'];
+
+			$sql = 'insert into game_ship_type_options set ' . implode(', ', $values);
+
+			sc_query($sql);
+		}
   		
-  		return $mysqli->insert_id;
+  		return $game_id;
 		}
 }
 
@@ -966,7 +986,7 @@ function checkForTournamentUpdates()
 				$secondPlayer = $result2->fetch_assoc();
 				
 				//setup the sc game
-				$gameid = spawngame($series['name']);
+				$gameid = spawnGame($series['name']);
 				$game = getGameByID($gameid);
 				
 				//first player joins
@@ -1036,7 +1056,7 @@ function checkForTournamentUpdates()
 					$secondPlayer = $result2->fetch_assoc();
 				
 					//setup the sc game
-					$gameid = spawngame($series['name']);
+					$gameid = spawnGame($series['name']);
 					$game = getGameByID($gameid);
 				
 					//first player joins
@@ -1469,6 +1489,9 @@ function seriesParameters($series_id)
 		<td>Every <?php echo $update_time.(!$series['weekend_updates'] ? ', no weekend updates' : ''); ?></td>
 	</tr>
 	<tr>
+		<th>Game Type:</th>
+		<td><?php echo $series['game_type']?></td>
+	<tr>
 		<th>Maximum players:</th>
 		<td><?php echo $series['max_players'].' players'; ?></td>
 	</tr>
@@ -1510,8 +1533,42 @@ function seriesParameters($series_id)
 	<tr>
 		<th>Cloakers:</th>
 		<td><?php echo ($series['build_cloakers_cloaked'] ? 'Built cloaked. '.($series['cloakers_as_attacks'] ? 'Appear as attacks.' : '') : 'Built uncloaked'); ?></td>
-	</tr>
-</table>
+	</tr><?php
+	
+	if ($series['game_type'] == 'sc3') {
+		foreach ($series['ship_type_options'] as $ship_type_options) {
+			if ($ship_type_options['ship_type'] == 'Jumpgate') {?>
+				<tr>
+					<th>Jumpgates:</th>
+					<td><?php echo $ship_type_options['status']; ?></td>
+				</tr>
+				<tr>
+					<th>Jumpgate Range:</th>
+					<td>
+						<?php if (array_key_exists('range_multiplier', $ship_type_options) && strlen(trim($ship_type_options['range_multiplier'])) > 0) {
+							echo $ship_type_options['range_multiplier'] . ' x BR';
+	 					} else {
+							echo 'Infinite';
+						}?>
+					</td>
+				</tr>
+				<tr>
+					<th>Jumpgate Loss:</th>
+					<td><?php echo $ship_type_options['loss']; ?></td>
+				</tr>
+				<tr>
+					<th>Jumpgate Build Cost:</th>
+					<td><?php echo $ship_type_options['build_cost']; ?></td>
+				</tr>
+				<tr>
+					<th>Jumpgate Maintenance Cost:</th>
+					<td><?php echo $ship_type_options['maintenance_cost']; ?></td>
+				</tr>
+			<?php }
+		}
+	}
+
+?></table>
 <?php
 }
 

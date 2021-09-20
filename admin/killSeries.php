@@ -26,7 +26,7 @@ function killSeries($vars)
 
 	$tables = 'series INNER JOIN games ON series.id = games.series_id INNER JOIN players ON games.id = players.game_id';
 	$select = sc_query('SELECT '.implode(',', $fields).' FROM '.$tables.' GROUP BY id, name ORDER BY name');
-	while ($series = mysql_fetch_array($select))
+	while ($series = sc_fetch_assoc($select))
 		echo '<option value="'.$series['id'].'">'.$series['name'].' ('.$series['game_count'].' game'.($series['game_count'] != 1 ? 's' : '').
 			 ', '.$series['player_count'].' player'.($series['player_count'] != 1 ? 's' : '').')';
 ?>
@@ -62,7 +62,7 @@ function killSeries_processing($vars)
 		$conditions[] = 'players.name <> "'.$vars['name'].'"'; // The admin may be in some games and is informed later on. Skip him.
 			
 		$select = sc_query('SELECT DISTINCT empires.* FROM '.$tables.' WHERE '.implode(' AND ', $conditions));
-		while ($empire = mysql_fetch_array($select))
+		while ($empire = sc_fetch_assoc($select))
 			sendEmpireMessage($empire, '<span class=red>'.$series['name'].'</span> has been killed.');
 			
 		// Cleanup.

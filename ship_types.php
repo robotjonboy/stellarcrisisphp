@@ -14,7 +14,19 @@ while ($row = $select->fetch_assoc())
 	if ($row['mobile'])
 		$moving_ships[] = $row['type'];
 	}
+
+$v3_ship_types = array();
+$v3_moving_ships = array();
 	
+$select = sc_query('SELECT * FROM ship_types WHERE version = "v3" ORDER BY type');
+while ($row = $select->fetch_assoc())
+	{
+	$v3_ship_types[$row['type']] = $row;
+	
+	if ($row['mobile'])
+		$v3_moving_ships[] = $row['type'];
+	}
+
 /*
 $ship_types = array(   'Attack', 
 			 'Science', 

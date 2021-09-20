@@ -1,4 +1,6 @@
 <?php
+require_once('update/moveship.php');
+
 #--------------------------------------------------------------------------------------------------------------------#
 # Localize a galactic coordinate to a local one. Used in update_game().
 #
@@ -373,85 +375,16 @@ function update_game($series, &$game, $update_time)
 					$open[ $ship['location'] ][ $ship['id'] ] = $value;
 					$missive[ $ship['location'] ]['neer'] = array();
 					break;
-		                case 'close':
+		    case 'close':
 					$close[ $ship['location'] ][ $ship['id'] ] = $value;
 					$missive[ $ship['location'] ]['neer'] = array();
 					break;
-                		case 'explore':
-		                case 'move':
+        case 'explore':
+		    case 'move':
 					// We treat both moving and exploring here, due to similarity.
-
-					// Update the ship's location.
-					$ship['location'] = $value;
-					
-					if ($field == 'explore' and !explored($player, $value))
-					{
-						// Clean up any previous records. There really shouldn't be any, but while we're testing
-						// the Shared HQ feature we need to be extra carefeul.
-						$conditions = array();
-						$conditions[] = 'player_id = "'.$player['id'].'"';
-						$conditions[] = 'coordinates = "'.$value.'"';
-	
-						sc_query('DELETE FROM explored WHERE '.implode(' AND ', $conditions));
-						
-						$values = array();
-						$values[] = 'series_id = '.$series['id'];
-						$values[] = 'game_number = '.$game['game_number'];
-						$values[] = 'game_id = '.$game['id'];
-						$values[] = 'empire = "'.$player['name'].'"';
-						$values[] = 'player_id = "'.$player['id'].'"';
-						$values[] = 'coordinates = "'.$value.'"';
-						$values[] = 'update_explored = "'.$game['update_count'].'"';
-	
-						sc_query('INSERT INTO explored SET '.implode(',', $values));
-						
-						// Share the wealth, if we have to.
-						if ($series['diplomacy'] == 6)
-							addExploredToFriends($player, $mysqli->insert_id);
-
-						// Remove this planet from the scouting reports if it's there; we don't need it anymore.
-						$conditions = array();
-						$conditions[] = 'player_id = "'.$player['id'].'"';
-						$conditions[] = 'coordinates = "'.$value.'"';
-
-						sc_query('DELETE FROM scouting_reports WHERE '.implode(' AND ', $conditions));
-
-						// Save the coordinates for the update report.
-						$explored_planets[$value] = 1;
-					}
-						
-					$destination = getSystem($game['id'], $value);
-					
-					if ($destination['owner'] != '' and $destination['owner'] != $player['name'])
-					{
-						// So the system belongs to someone else... Did we make first contact?
-						if (!$diplomacy = getDiplomacyWithOpponent($game['id'], $player['name'], $destination['owner']))
-						{
-							// Yup, ship-to-system first contact.
-							$fields = array();
-							$fields[0] = 'series_id = '.$series['id'];
-							$fields[1] = 'game_number = '.$game['game_number'];
-							$fields[2] = 'game_id = '.$game['id'];
-							$fields[3] = 'empire = "'.$player['name'].'"';
-							$fields[4] = 'opponent = "'.$destination['owner'].'"';
-
-							sc_query('INSERT INTO diplomacies SET '.implode(',', $fields));
-
-							$fields[3] = 'empire = "'.$destination['owner'].'"';
-							$fields[4] = 'opponent = "'.$player['name'].'"';
-
-							sc_query('INSERT INTO diplomacies SET '.implode(',', $fields));
-
-							$history[] = array($destination['coordinates'], $player['name'], 'ship to system', $destination['owner']);
-							
-							$missive[$destination['coordinates']]['first_contact'][$player['name']][] = 
-								'You have had first contact with '.$destination['owner'].' in '.$destination['name'].' (*coord*) (ship to system).';
-							
-							$missive[$destination['coordinates']]['first_contact'][$destination['owner']][] = 
-								'You have had first contact with '.$player['name'].' in '.$destination['name'].' (*coord*) (system to ship).';
-						}
-					}
-				break; //case move
+					move($series, $game, $explored_planets, $history, $missive, $player, $ship, 
+						$value, $field);
+					break; //case move
                 	}
 
 			// Process regular orders.
@@ -791,33 +724,87 @@ function update_game($series, &$game, $update_time)
 	// Process stargate orders.
     // send[ (origin) ][ (destination) ] = (ship ID of the stargate)
 	foreach (array_keys($send) as $origin)
-        foreach (array_keys($send[$origin]) as $destination)
-            {
-            if ($stargate = getShipByID($send[$origin][$destination]))
-                {
-				$conditions = array();
-				$conditions[] = 'game_id = '.$game['id'];
-				$conditions[] = 'owner = "'.$stargate['owner'].'"';
-				$conditions[] = 'location = "'.$stargate['location'].'"';
-				$conditions[] = 'FIND_IN_SET(type, "Stargate,Minefield,Satellite") = 0';
-				$sql=	'UPDATE ships '.
-						'SET location = "'.$destination.'" '.
-						'WHERE '.implode(' AND ', $conditions);
-				sc_query($sql, __FILE__.'*'.__LINE__);
+    foreach (array_keys($send[$origin]) as $destination)
+    {
+      if ($stargate = getShipByID($send[$origin][$destination]))
+      {
+				$inRange = true;
 
-				// Transport any fleets present in this location as well. The ships will have moved already.
-				$conditions = array();
-				$conditions[] = 'game_id = '.$game['id'];
-				$conditions[] = 'owner = "'.$stargate['owner'].'"';
-				$conditions[] = 'location = "'.$stargate['location'].'"';
-				$sql=	'UPDATE fleets '.
-						'SET location = "'.$destination.'" '.
-						'WHERE '.implode(' AND ', $conditions);
-				sc_query($sql, __FILE__.'*'.__LINE__);
+				if ($stargate['type'] == 'Jumpgate') {
+					//check range
+					$jumpgateRangeMultiplier = getJumpgateRangeMultiplier($game);
+
+		      if ($jumpgateRangeMultiplier != null && $jumpgateRangeMultiplier > 0) {
+    		    $range = floor($stargate['br']*$jumpgateRangeMultiplier);
+
+						list($x, $y) = explode(",", $stargate['location']);
+        		
+						$min_x = $x-$range;
+		        $max_x = $x+$range;
+    		    $min_y = $y-$range;
+        		$max_y = $y+$range;
+
+						list($x, $y) = explode(",", $destination);
+
+						if ($x > $max_x || $x < $min_x || $y > $max_y || $y < $min_y) {
+							$inRange = false;
+						}
+      		}
 				}
-        	}
 
-	// Process nukes.
+				if ($inRange) {
+					$conditions = array();
+					$conditions[] = 'game_id = '.$game['id'];
+					$conditions[] = 'owner = "'.$stargate['owner'].'"';
+					$conditions[] = 'location = "'.$stargate['location'].'"';
+					$conditions[] = 'FIND_IN_SET(type, "Stargate,Minefield,Satellite,Jumpgate") = 0';
+					$sql=	'UPDATE ships '.
+							'SET location = "'.$destination.'" '.
+							'WHERE '.implode(' AND ', $conditions);
+					sc_query($sql, __FILE__.'*'.__LINE__);
+
+					// Transport any fleets present in this location as well. The ships will have moved already.
+					$conditions = array();
+					$conditions[] = 'game_id = '.$game['id'];
+					$conditions[] = 'owner = "'.$stargate['owner'].'"';
+					$conditions[] = 'location = "'.$stargate['location'].'"';
+					$sql=	'UPDATE fleets '.
+							'SET location = "'.$destination.'" '.
+							'WHERE '.implode(' AND ', $conditions);
+					sc_query($sql, __FILE__.'*'.__LINE__);
+
+					checkForFirstContact($series, $game, $stargate['owner'], $destination, $history, $missive);
+
+					if ($stargate['type'] == 'Jumpgate') {
+						//process jumpgate loss
+
+						$jumpgate_loss = $game['ship_type_options']['Jumpgate']['loss'];
+						//error_log('jumpgate_loss: ' . $jumpgate_loss);
+						if ($jumpgate_loss > 0) {
+							if ($jumpgate_loss >= $stargate['br'] || ($stargate['max_br'] - $jumpgate_loss) < $jumpgate_loss) {
+								//ship consumed
+								$sql = 'DELETE FROM ships where id = ' . $stargate['id'];
+								sc_query($sql);
+
+								$action = array();
+			      	  $action['type'] = 'send';
+      			  	$action['target'] = $destination;
+	        			$action['vessel'] = ($stargate['name'] ? $stargate['name'].' of '.$stargate['owner'] : 'a jumpgate of ' . $stargate['owner']);
+  	      			$action['consumed'] = TRUE;
+
+    	          $missive[$stargate['location']]['send'][] = $action;
+      	  			$history[] = array($stargate['location'], $stargate['owner'], 'send', $destination.'/'.$stargate['name'].'/'.'yes');
+							} else {
+								$sql = 'UPDATE ships set br = br - \'' . $jumpgate_loss . '\', max_br = max_br - \'' . $jumpgate_loss . '\' where id = ' . $stargate['id'];
+								sc_query($sql);
+							}
+						}
+					}
+				}
+	    }
+		}
+
+		// Process nukes.
     foreach (array_keys($nuke) as $location)
         {
         $system = getSystem($game['id'], $location, __FILE__.'*'.__LINE__);
@@ -1506,6 +1493,16 @@ function update_game($series, &$game, $update_time)
 
 					$buffered_missive[$player['id']]['engineers'][] = $missive_update;
 					}
+
+			//gates consumed
+			if (array_key_exists('send', $missive[$location]) && count($missive[$location]['send']) > 0 )
+				foreach ($missive[$location]['send'] as $action )
+				{
+					$missive_update = '<font class="gateConsumed">The effort to send ships to ' . localize($action['target'],$player['name'],$homeworlds) . ' has consumed ' . $action['vessel'] . '</font>';
+
+					$buffered_missive[$player['id']]['jumpgates'][] = $missive_update;
+				}
+
 			}
 		} //if(is_array($missive))
 
@@ -1529,7 +1526,7 @@ function update_game($series, &$game, $update_time)
 		$last_type = '';
 		
 		$message_types = array( 'techWaiting', 'diplomaticStatus', 'builds', 'dismantling', 'exploration', 'destruction', 
-								'sightings', 'first_contact', 'actions', 'engineers', 'general' );
+								'sightings', 'first_contact', 'actions', 'engineers', 'general', 'jumpgates' );
 		
 		#foreach (array_keys($buffered_missive[$player_id]) as $type)
 		foreach ($message_types as $type)

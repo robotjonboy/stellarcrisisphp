@@ -157,7 +157,20 @@ function getEmpireByID($id)
 function getSeries($id)
 {
 	$select = sc_query('SELECT * FROM series WHERE id = '.((int)$id));
-    return $select->fetch_assoc();
+
+	$series = $select->fetch_assoc();
+
+	if ($series['game_type'] == 'sc3') {
+		$result = sc_query('select * from series_ship_type_options where series_id = ' . $series['id']);
+
+		$series['ship_type_options'] = [];
+
+		while ($line = $result->fetch_assoc()) {
+			$series['ship_type_options'][$line['ship_type']] = $line;
+		}
+	}
+  
+  return $series;
 }
 
 #--------------------------------------------------------------------------------------------------------------------#
@@ -169,7 +182,20 @@ function getSeriesByName($name)
 	global $mysqli;
 	
 	$select = sc_query('SELECT * FROM series WHERE name = "'.$mysqli->real_escape_string($name).'"');
-    return $select->fetch_assoc();
+
+	$series = $select->fetch_assoc();
+
+	if ($series['game_type'] == 'sc3') {
+		$result = sc_query('select * from series_ship_type_options where series_id = ' . $series['id']);
+
+		$series['ship_type_options'] = [];
+
+		while ($line = $result->fetch_assoc()) {
+			$series['ship_type_options'][$line['ship_type']] = $line;
+		}
+	}
+    
+	return $series;
 }
 
 #--------------------------------------------------------------------------------------------------------------------#
@@ -180,7 +206,20 @@ function getGame($series_id, $game_number)
 {
 	$select = sc_query('SELECT * FROM games WHERE series_id = "'.((int)$series_id).
 	                         '" AND game_number = '.((int)$game_number));
-    return $select->fetch_assoc();
+
+	$game = $select->fetch_assoc();
+
+	if ($game['game_type'] == 'sc3') {
+		$result = sc_query('select * from game_ship_type_options where game_id = ' . $game['id']);
+	
+		$game['ship_type_options'] = [];
+
+		while ($line = $result->fetch_assoc()) {
+			$game['ship_type_options'][$line['ship_type']] = $line;
+		}
+	}
+
+  return $game;
 }
 
 #--------------------------------------------------------------------------------------------------------------------#
@@ -190,7 +229,20 @@ function getGame($series_id, $game_number)
 function getGameByID($game_id)
 {
 	$select = sc_query('SELECT * FROM games WHERE id = '.((int)$game_id));
-    return $select->fetch_assoc();
+
+  $game = $select->fetch_assoc();
+
+  if ($game['game_type'] == 'sc3') {
+    $result = sc_query('select * from game_ship_type_options where game_id = ' . $game['id']);
+
+    $game['ship_type_options'] = [];
+
+    while ($line = $result->fetch_assoc()) {
+      $game['ship_type_options'][$line['ship_type']] = $line;
+    }
+  }
+  
+  return $game;
 }
 
 #--------------------------------------------------------------------------------------------------------------------#
@@ -269,6 +321,7 @@ function eraseGame($game_id)
 	sc_query('DELETE FROM diplomacies WHERE game_id = '.$game_id);
 	sc_query('DELETE FROM explored WHERE game_id = '.$game_id);
 	sc_query('DELETE FROM fleets WHERE game_id = '.$game_id);
+	sc_query('DELETE FROM game_ship_type_options where game_id = '.$game_id);
 	sc_query('DELETE FROM games WHERE id = '.$game_id);
 	sc_query('DELETE FROM history WHERE game_id = '.$game_id);
 	sc_query('DELETE FROM invitations WHERE game_id = '.$game_id);

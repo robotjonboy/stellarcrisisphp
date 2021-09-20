@@ -8,7 +8,7 @@ function gameList($vars)
 	$invite_games = '';
 	$empty_games = '';
     
-    ##################################
+  ##################################
 	# Listing of the player's games. #
 	##################################
 
@@ -1021,11 +1021,11 @@ function playerList($gameID, $empire)
 				and $current_team != $row['team'])
 			{
 				$current_team = $row['team'];
-				$player_list .= '<div style="background-color: #003; 
+				$player_list .= '<div style="color: #000000; background-color: #ADD8E6; 
 									width=50; padding: 2pt; 
 									font-size: 8pt; 
-									text-align: left">'.
-								$row['name'].
+									text-align: left">Team '.
+								$row['team'].
 								'</div>';
 				#$player_list .= '<tr><td colspan=2 style="background-color: #000033; text-align: center;">Team '.$current_team.'</td></tr>';
 			}

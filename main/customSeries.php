@@ -172,7 +172,7 @@ function customSeries_processing($vars)
 				#echo 'DELETE FROM series WHERE id = '.$series_id.' AND creator = "'.$vars['name'].'"';
 				sc_query('DELETE FROM series WHERE id = '.$series_id.' AND creator = "'.$vars['name'].'"');
 				
-				if (mysql_affected_rows())
+				if ($mysqli->affected_rows)
 					{
 					#echo 'DELETE FROM games WHERE series_id = '.$series_id.' AND player_count = 0';
 					sc_query('DELETE FROM games WHERE series_id = '.$series_id.' AND player_count = 0');
@@ -218,6 +218,15 @@ function createCustomSeries($vars)
 		<td><input type=text size=40 maxlength=40 name="series_name" value="<?php echo $vars['series_name']; ?>"></td>
 	</tr>
 	<tr>
+		<th style="text-align: right;">Game Type:</th>
+		<td>
+			<select name="game_type">
+				<option value="sc2">sc2</option>
+				<option value="sc3">sc3</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
 		<th style="text-align: right;">Update Time:</th>
 		<td>
 			<input type=text size=5 maxlength=5 name="update_time" value="<?php echo $vars['update_time']; ?>">
@@ -229,6 +238,33 @@ function createCustomSeries($vars)
 			<input type=checkbox name="weekend_updates" checked> Weekend Updates
 		</td>
 	</tr>
+	<tr>
+    <th style="text-align: right;">Jumpgate:</th>
+    <td>
+      <select name="jumpgate_status">
+        <option <?php echo ($vars['jumpgate_status'] == 'Barred' ? 'selected' : ''); ?> value="Barred">Barred</option>
+        <option <?php echo ($vars['jumpgate_status'] == 'Restricted' ? 'selected' : ''); ?> value="Restricted">Restricted</option>
+        <option <?php echo ($vars['jumpgate_status'] == 'Unrestricted' ? 'selected' : ''); ?> value="Unrestricted">Unrestricted</option>
+        <option <?php echo ($vars['jumpgate_status'] == 'Available' ? 'selected' : ''); ?> value="Available">Available</option>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <th style="text-align: right;">Jumpgate Range Multiplier:</th>
+    <td><input type=text size=7 maxlength=7 name="jumpgate_range_multiplier" value="<?php echo $vars['jumpgate_range_multiplier'];?>"/> x BR (Blank indicates infinite range)</td>
+  </tr>
+  <tr>
+    <th style="text-align: right;">Jumpgate Loss:</th>
+    <td><input type=text size=6 maxlength=6 name="jumpgate_loss" value="<?php echo $vars['jumpgate_loss']; ?>"/></td>
+  </tr>
+  <tr>
+    <th style="text-align: right;">Jumpgate Build Cost:</th>
+    <td><input type=text size=5 maxlength=5 name="jumpgate_build_cost" value="<?php echo $vars['jumpgate_build_cost']; ?>"/></td>
+  </tr>
+  <tr>
+    <th style="text-align: right;">Jumpgate Maintenance Cost:</th>
+    <td><input type=text size=5 maxlength=5 name="jumpgate_maintenance_cost" value="<?php echo $vars['jumpgate_maintenance_cost']; ?>"/></td>
+  </tr>
 	<tr>
 		<th style="text-align: right;">Diplomatic states allowed:</th>
 		<td>
@@ -375,7 +411,7 @@ function createCustomSeries($vars)
 
 function createCustomSeries_processing($vars)
 {
-	global $server;
+	global $server, $mysqli;
 
 	$map_types = array(1 => 'standard', 2 => 'prebuilt', 3 => 'twisted', 4 => 'mirror', 5 => 'balanced');
 		
@@ -389,6 +425,10 @@ function createCustomSeries_processing($vars)
 	
 	$messages = array();
 	$errors = array();
+
+	if ($vars['game_type'] != 'sc3') {
+		$vars['game_type'] = 'sc2';
+	}
 		
 	if (getSeriesByName($vars['series_name']))												$errors[] = 'That series name is already in use.';
 	if ($vars['series_name'] == '' or preg_match('/=/', $vars['series_name']))				$errors[] = 'Invalid series name.';
@@ -423,11 +463,41 @@ function createCustomSeries_processing($vars)
 	else if ($vars['map_type'] == 5 and $vars['max_players'] > 2)
 		$errors[] = 'Balanced map not allowed in games with more than two players.';
 
+	if ($vars['jumpgate_status'] != 'Available' && $vars['jumpgate_status'] != 'Unrestricted' && 
+			$vars['jumpgate_status'] != 'Restricted') {
+		$vars['jumpgate_status'] = 'Barred';
+	}
+
+	if (array_key_exists('jumpgate_range_multiplier', $vars) && 
+			strlen(trim($vars['jumpgate_range_multiplier'])) > 0) {
+    $vars['jumpgate_range_multiplier'] = floatval($vars['jumpgate_range_multiplier']);
+  } else {
+    $vars['jumpgate_range_multiplier'] = 'NULL';
+  }
+
+	if (array_key_exists('jumpgate_loss', $vars)) {
+    $vars['jumpgate_loss'] = floatval($vars['jumpgate_loss']);
+  }
+
+  if (array_key_exists('jumpgate_build_cost', $vars)) {
+    $vars['jumpgate_build_cost'] = intval($vars['jumpgate_build_cost']);
+  }
+
+  if (array_key_exists('jumpgate_maintenance_cost', $vars)) {
+    $vars['jumpgate_maintenance_cost'] = intval($vars['jumpgate_maintenance_cost']);
+  }
+    
+  if ($vars['game_type'] == 'sc2') {
+    if ($vars['jumpgate_status'] != 'Barred') {
+      $errors[] = 'Jumpgate must be barred in sc2 games.';
+    }
+  }
+
 	if ($errors)
-		{
+	{
 		sendEmpireMessage($empire, implode('<br>', $errors));
 		return createCustomSeries($vars);
-		}
+	}
 
 	switch ($vars['update_time_unit'])
   		{
@@ -442,6 +512,7 @@ function createCustomSeries_processing($vars)
 
 	$values = array();
 	$values[] = 'name = "'.$vars['series_name'].'"';
+	$values[] = 'game_type = "'.$vars['game_type'].'"';
 	$values[] = 'update_time = "'.$vars['update_time'].'"';
 	$values[] = 'weekend_updates = "'.$vars['weekend_updates'].'"';
 	$values[] = 'diplomacy = "'.$vars['diplomacy'].'"';
@@ -467,6 +538,19 @@ function createCustomSeries_processing($vars)
 	$values[] = 'creator = "'.$empire['name'].'"';
 
 	sc_query('INSERT INTO series SET '.implode(',', $values));
+
+	$values = array();
+  $values[] = 'series_id = ' . $mysqli->insert_id;
+  $values[] = 'ship_type = \'Jumpgate\'';
+  $values[] = 'status = \'' . $vars['jumpgate_status']. '\'';
+  if ($vars['jumpgate_range_multiplier'] != 'NULL') $values[] = 'range_multiplier = ' . $vars['jumpgate_range_multiplier'];
+  $values[] = 'loss = ' . $vars['jumpgate_loss'];
+  $values[] = 'build_cost = ' . $vars['jumpgate_build_cost'];
+  $values[] = 'maintenance_cost = ' . $vars['jumpgate_maintenance_cost'];
+
+  $sql = 'INSERT INTO series_ship_type_options set ' . implode(',', $values);
+  //error_log('sql: ' . $sql);
+  sc_query($sql);
 
 	spawnGame($vars['series_name']);
 

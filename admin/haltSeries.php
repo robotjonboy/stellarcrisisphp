@@ -20,7 +20,7 @@ function haltSeries($vars)
 <select name="seriesToHalt" onChange="document.forms[0].halt.disabled = (document.forms[0].seriesToHalt.value == 0)">
 	<option value="">Halt series...
 <?php
-	while ($series = mysql_fetch_array($select))
+	while ($series = $select->fetch_assoc())
 		echo '<option value="'.$series['id'].'">'.$series['name'];	
 ?>
 </select>
@@ -48,7 +48,7 @@ function haltSeries_processing($vars)
 
 		// First kill off any games that have no one in it...
 		$select = sc_query('SELECT * FROM games WHERE series_id = '.$series['id'].' AND player_count = 0');
-		while ($game = mysql_fetch_array($select)) eraseGame($game['id']);
+		while ($game = $select->fetch_assoc()) eraseGame($game['id']);
 	
 		// ...and decrease the game count so that when we resume the series we start back where we were.
 		sc_query('UPDATE series SET game_count = (game_count-1) WHERE id = '.$series['id']);

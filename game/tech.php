@@ -6,6 +6,7 @@ function techScreen($vars)
 	$techs_waiting = techsWaiting($vars);
 	$tech_level = number_format($vars['player_data']['tech_level'], 4, '.', ' ');
 	$current_br = ($vars['player_data']['tech_level'] > 0.0 ? floor(sqrt($vars['player_data']['tech_level'])) : 0);
+	$game = $vars['game_data'];
 
 	gameHeader($vars, 'Tech');
 ?>
@@ -35,6 +36,18 @@ function techScreen($vars)
 			else echo '<input type=button disabled value="'.$type.'">';
 			}
 		}
+
+	if ($game['game_type'] == 'sc3' && array_key_exists('ship_type_options', $game) && is_array($game['ship_type_options']) && !empty($game['ship_type_options'])) {
+		foreach ($game['ship_type_options'] as $ship_type_options) {
+			if ($ship_type_options['status'] == 'Unrestricted' && !in_array($ship_type_options['ship_type'], explode(' ', $vars['player_data']['techs']))) {
+				if (!($x++ % 5)) echo '<br>';
+
+				//We'll show disabled buttons if the player can't develop anything.
+				if ($techs_waiting > 0) echo '<input type=submit name="newTech" value="'.$ship_type_options['ship_type'].'">';
+				else echo '<input type=button disabled value="'.$ship_type_options['ship_type'].'">';
+			}
+		}
+	}
 ?>
 		</td>
 	</tr>
@@ -56,7 +69,7 @@ function techScreen_processing($vars)
 		{
 		if (!techsWaiting($vars))
 			return sendGameMessage($player, 'You have no tech developments left.');
-		else if (!in_array($vars['newTech'], array_keys($ship_types)) or in_array($vars['newTech'], explode(' ', $player['techs'])))
+		else if (!validTechChoice($vars))
 			return sendGameMessage($player, 'Invalid tech choice.');
 		else
 			{
@@ -66,5 +79,30 @@ function techScreen_processing($vars)
 		}
 
 	return false;
+}
+
+function validTechChoice($vars)
+{
+	global $ship_types;
+
+	$player = $vars['player_data'];
+	$game = $vars['game_data'];
+
+	$result = false;
+
+	if (in_array($vars['newTech'], array_keys($ship_types)) && !in_array($vars['newTech'], explode(' ', $player['techs']))) {
+		$result = true;
+	} else if ($game['game_type'] == 'sc3' && array_key_exists('ship_type_options', $game) && is_array($game['ship_type_options']) && !empty($game['ship_type_options'])) {
+    foreach ($game['ship_type_options'] as $ship_type_options) {
+      if ($ship_type_options['status'] == 'Unrestricted' && !in_array($ship_type_options['ship_type'], explode(' ', $vars['player_data']['techs']))) {
+				if ($vars['newTech'] == $ship_type_options['ship_type']) {
+					$result = true;
+					break;
+				}
+      }
+    }
+  }
+
+	return $result;
 }
 ?>

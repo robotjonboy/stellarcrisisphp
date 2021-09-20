@@ -140,7 +140,7 @@ function buildScreen_processing($vars)
 				
 			if (!in_array($ship_type, explode(' ', $player['techs'])))
 				{
-				$outbuild[] = 'You have not developped the '.$ship_type.' tech.';
+				$outbuild[] = 'You have not developed the '.$ship_type.' tech.';
 				continue;
 				}
 						
@@ -174,6 +174,11 @@ function buildScreen_processing($vars)
 				case 'Engineer':
 					$build_cost += 100;
 					$maintenance_cost += 16;
+					$fuel_cost += 32;
+					break;
+				case 'Jumpgate':
+					$build_cost += $game['ship_type_options']['Jumpgate']['build_cost'];
+					$maintenance_cost += $game['ship_type_options']['Jumpgate']['maintenance_cost'];
 					$fuel_cost += 32;
 					break;
 				case 'Minefield':

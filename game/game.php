@@ -173,7 +173,7 @@ function gameAction($vars)
 	sc_query('BEGIN');
 	
 	// Refetch these; they may have changed somewhere above.
-  	$vars['series_data'] = $series = getSeries($vars['series_id']); // Can this really change?
+  $vars['series_data'] = $series = getSeries($vars['series_id']); // Can this really change?
 	$vars['player_data'] = $player = getPlayer($game['id'], $vars['name']);
 	$vars['game_data'] = $game = getGameByID($game['id']);
 
