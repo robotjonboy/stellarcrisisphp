@@ -334,7 +334,7 @@ function mainPage()
 </table>
 </div>
 <?php
-	echo stripslashes(urldecode($motd['text']));
+	echo (array_key_exists('text', $motd) && !is_null($motd['text')) ? stripslashes(urldecode($motd['text'])) : '';
 ?>
 <div class=quickStats>
    <?php echo sc_result($select_quickStats, 0, 0).

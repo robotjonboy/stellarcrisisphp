@@ -17,6 +17,26 @@ a:hover
 	text-decoration: none;
 	}
 
+input[type=text] {
+	background-color: white;
+}
+
+input[type=password] {
+	background-color: white;
+}
+
+select {
+  background-color: white;
+}
+
+select option {
+  background-color: white;
+}
+
+textarea {
+ background-color: white;
+}
+
 tr.top td
 	{
 	vertical-align: top;	

@@ -8,7 +8,7 @@
 #             change it to http://helium/sc/errorlog.html
 # and examine the last entry. remember to refresh after each test.
 
-function sc_errorHandler($errno, $errstr, $errfile, $errline, $errctx)
+function sc_errorHandler($errno, $errstr, $errfile, $errline)
 {	
 	// We know about this warning. When a deadlock is encountered, a query won't be able to get a result.
 	// We re-issue these queries and they eventually get processed so we don't need to know about this warning.
@@ -16,7 +16,7 @@ function sc_errorHandler($errno, $errstr, $errfile, $errline, $errctx)
 	if ($errno == 2 and preg_match('/Unable to save result set/i', $errstr)) return;
 		
 	if ($errno != E_NOTICE)
-		reportError($errno, $errstr, $errfile, $errline, $errctx);
+		reportError($errno, $errstr, $errfile, $errline);
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -25,7 +25,7 @@ function sc_errorHandler($errno, $errstr, $errfile, $errline, $errctx)
 # informative) one to maintain code compatibility).
 #
 
-function reportError($error_number, $error_string, $file, $line, $context)
+function reportError($error_number, $error_string, $file, $line)
 {
 	global $server;
 	
@@ -39,33 +39,15 @@ function reportError($error_number, $error_string, $file, $line, $context)
 			  '</td></tr>'.
 			  '***ERROR_REPORT***</table></div></body></html>';
 
-	if (versionCheck('4.3.0'))
-		$backtrace = debug_backtrace();
-	else
-		{
-		// Fake backtrace so that we don't split the code below.
-		$backtrace = array(0 => array('line' => $line,
-									  'file' => $file,
-									  'function' => 'unknown',
-									  'args' => array(0 => 'unknown - debug_backtrace() unavailable',
-													  1 => $error_number,
-													  2 => $error_string)));
-		}
+	ob_start();
+	debug_print_backtrace();
+	$backtrace = ob_get_contents();
+	ob_end_clean();
 
-	for ($index = count($backtrace)-1; $index >= 0; $index--)
-		{
-		// Skip some functions; we know about them.
-		if (preg_match('/errorHandler|reportError|trigger_error/i', $backtrace[$index]['function'])) continue;
-
-		$arguments = ($backtrace[$index]['args'] ? htmlspecialchars(implode(', ', $backtrace[$index]['args'])) : '');
-
-		$error_report .= '<tr><td class=greyBox>'.
-						 '<div class=function>'.$backtrace[$index]['function'].'&nbsp;'.
-						 '(&nbsp;<span class=arguments>'.$arguments.'</span>&nbsp;)</div>'.
-						 '<div>Line <span class=bold>'.$backtrace[$index]['line'].'</span> of file '.
-						 '<span class=bold>'.$backtrace[$index]['file'].'</span></div>'.
-						 '</td></tr>';
-		}
+	$error_report = '<tr><td class=greyBox>'.
+					 '<div>'.$backtrace.
+					 '</div>'.
+					 '</td></tr>';
 
 	$buffer = str_replace('***ERROR_REPORT***', $error_report, $buffer);
 	
@@ -133,12 +115,12 @@ echo "
 			mail($server['admin_email'], 'SC @ '.$server['servername'].' - Error report', $message, $headers);
 			}
 		else if ($server['error_log_type'] == 'file')
-			cjp_error_log($buffer, 3, 'errorlog.html');
+			cjp_error_log($buffer, 3, 'errorlog.html', $error_number);
 #			error_log($buffer, 3, $server['error_log_path']);
 		}
 }
 //adapeted from 1&1 code
-   function cjp_error_log($errmsg, $desttype, $errorfile) 
+   function cjp_error_log($errmsg, $desttype, $errorfile, $errno) 
    {
      $time=date("d M Y H:i:s"); 
      // Get the error type from the error number 
@@ -152,13 +134,17 @@ echo "
                          128  => "Compile Warning",
                          256  => "User Error",
                          512  => "User Warning",
-                         1024 => "User Notice");
+                         1024 => "User Notice",
+												 8192 => "Deprecated");
       $errlevel=$errortype[$errno];
  
       //Write error to log file (CSV format) 
       $errfile=fopen($errorfile,"a"); 
-      fputs($errfile,$errmsg); 
-      fclose($errfile);
+      
+			if ($errfile) {
+				fputs($errfile,$errmsg); 
+	      fclose($errfile);
+			}
  /*
       if($errno!=2 && $errno!=8)
      {

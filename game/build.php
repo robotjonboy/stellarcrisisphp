@@ -80,7 +80,7 @@ function buildScreen($vars)
 	<tr>
 		<td><?php echo $tech; ?></td>
 		<th><select name="builds[<?php echo $tech; ?>][count]"><?php echo implode('', $build_counts); ?></select></th>
-		<th><input name="builds[<?php echo $tech; ?>][name]" size=15 maxlength=20></th>
+		<th><input type=text name="builds[<?php echo $tech; ?>][name]" size=15 maxlength=20></th>
 		<th><select name="builds[<?php echo $tech; ?>][br]"><?php echo implode('', $br_list); ?></select></th>
 		<th><select name="builds[<?php echo $tech; ?>][location]"><?php echo implode('', $build_at); ?></select></th>
 	</tr>
@@ -159,7 +159,7 @@ function buildScreen_processing($vars)
 				{
 				case 'Colony':
 					// Population cost for colony ships. We substract this later.
-					$departing_colonists[$system['id']] += $build_count;
+					$departing_colonists[$system['id']] = (array_key_exists($system['id'], $departing_colonists) ? $departing_colonists[$system['id']] : 0) + $build_count;
 				case 'Science':
 				case 'Cloaker':
 				case 'Doomsday':

@@ -7,7 +7,7 @@ function gameHistory($vars)
 
 	standardHeader('Game History', $empire);
 	
-	$conditions = (is_array($vars['conditions']) && count($vars['conditions']) ? ' WHERE '.implode(' AND ', $vars['conditions']) : '');
+	$conditions = (array_key_exists('conditions', $vars) && is_array($vars['conditions']) && count($vars['conditions'])) ? ' WHERE '.implode(' AND ', $vars['conditions']) : '';
 	
 	$select = sc_query('SELECT COUNT(id) as c FROM gamelog '.$conditions);
 	$line = $select->fetch_assoc();
@@ -26,7 +26,7 @@ function gameHistory($vars)
 	else
 		$limit = $vars['first_record'].', '.($server['histories_per_page']+1);
 	
-	if (!$vars['result'])
+	if (!array_key_exists('result', $vars) || !$vars['result'])
 		$vars['result'] = 'All';
 
 	$select = sc_query('SELECT * FROM gamelog'.$conditions.' ORDER BY id DESC LIMIT '.$limit);
@@ -126,11 +126,11 @@ function gameHistory($vars)
 		<td colspan=2>Empire Name:</td>
 	</tr>
 	<tr>
-		<td><input type=text name=gamename value="<?php echo stripslashes($vars['gamename']); ?>" size=25 maxlength=30></td>
-		<td colspan=2><input type=text name=empirename value="<?php echo stripslashes($vars['empirename']); ?>" size=20 maxlength=20></td>
+		<td><input type=text name=gamename value="<?php echo (array_key_exists('gamename', $vars) && !is_null($vars['gamename'])) ? stripslashes($vars['gamename']) : ''; ?>" size=25 maxlength=30></td>
+		<td colspan=2><input type=text name=empirename value="<?php echo (array_key_exists('empirename', $vars) && !is_null($vars['empirename'])) ? stripslashes($vars['empirename']) : ''; ?>" size=20 maxlength=20></td>
 	</tr>
 	<tr>
-		<td><input type=checkbox name=bridier_only <?php echo ($vars['bridier_only'] ? 'checked' : ''); ?>>Bridier games only</td>
+		<td><input type=checkbox name=bridier_only <?php echo ((array_key_exists('bridier_only', $vars) && $vars['bridier_only']) ? 'checked' : ''); ?>>Bridier games only</td>
 		<td>
 			<input type=radio name=result value="Win"<?php echo ($vars['result'] == 'Win' ? ' checked' : ''); ?>>Games won
 			<input type=radio name=result value="Lose"<?php echo ($vars['result'] == 'Lose' ? ' checked' : ''); ?>>Games lost
@@ -162,7 +162,7 @@ function gameHistory_processing($vars)
 	$conditions = array();
 
 	if ($vars['gamename'])		$conditions[] = 'name REGEXP "'.$vars['gamename'].'"';
-	if ($vars['bridier_only'])	$conditions[] = 'bridier = "yes"';
+	if (array_key_exists('bridier_only', $vars) && $vars['bridier_only'])	$conditions[] = 'bridier = "yes"';
 	
 	// If the empire name was specified, we add conditions for game results.
 	if ($vars['empirename'])

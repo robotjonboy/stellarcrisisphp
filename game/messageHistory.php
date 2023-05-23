@@ -4,7 +4,7 @@ function messageHistory($vars)
 	$series = $vars['series_data'];
 	$game = $vars['game_data'];
 	$player = $vars['player_data'];
-	$filter = (($vars['filterHistory'] or $vars['deleteMessages']) ? 
+	$filter = (((array_key_exists('filterHistory', $vars) && $vars['filterHistory']) or (array_key_exists('deleteMessages', $vars) && $vars['deleteMessages'])) ? 
 					$vars['message_history_filter'] : 
 					'');
 
@@ -54,7 +54,7 @@ Choose the category of messages you wish to display.
 				All (<?php echo $total_messages; ?>)
 	</select>&nbsp;
 	<input	type='checkbox' 
-		name=reverse_order<?php echo ($vars['reverse_order'] ? ' checked' : ''); ?>>
+		name=reverse_order<?php echo (array_key_exists('reverse_order', $vars) && $vars['reverse_order'] ? ' checked' : ''); ?>>
 		Reverse order&nbsp;
    <input type=submit name=filterHistory value="Go">
 </div>
@@ -66,8 +66,8 @@ Choose the category of messages you wish to display.
 	}
 	
 	// set default display filter
-	echo "<center>".$vars['message_history_filter']."</center>";
-	if ($vars['message_history_filter'] == "" )
+	echo "<center>".(array_key_exists('message_history_filter', $vars) ? $vars['message_history_filter'] : '')."</center>";
+	if (!array_key_exists('message_history_filter', $vars) || $vars['message_history_filter'] == "" )
 		$filter="broadcast";
 
 	$conditions = array();
@@ -76,7 +76,7 @@ Choose the category of messages you wish to display.
 	if ($filter == 'Instant') $conditions[] = 'type = ""';
 	else if ($filter != 'all') $conditions[] = 'type = "'.$filter.'"';
 
-	$order = ($vars['reverse_order'] ? 'ASC' : 'DESC');
+	$order = (array_key_exists('reverse_order', $vars) && $vars['reverse_order'] ? 'ASC' : 'DESC');
 
 	$select = sc_query('SELECT * 
 								FROM messages 
@@ -90,7 +90,7 @@ Choose the category of messages you wish to display.
 			{
 			// The message header is handled in messageHeader(), but first we 
 			// adjust the sender and recipient if the player's name is in them.
-			$row['recipient'] = str_replace($player['name'], 'you', $row['recipient']);
+			$row['recipient'] = array_key_exists('recipient', $row) && isset($row['recipient']) ? str_replace($player['name'], 'you', $row['recipient']) : '';
 			
 			if ($row['sender'] == $player['name']) $row['sender'] = 'You';
 

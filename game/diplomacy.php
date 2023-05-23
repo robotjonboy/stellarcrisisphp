@@ -119,6 +119,8 @@ function diplomacyScreen($vars)
 	// Now get team diplomacy settings for team games
 	if ($series['team_game']) $team_offer = getTeamDiplomacy($game);
 	
+	$recipient_list = '';
+
 	// No diplomacy in blood games.
 	if ($series['diplomacy'] != 2)
 		$recipient_list = (count($missive_recipients) > 0 ? '<option>' : '').implode('<option>', $missive_recipients);
@@ -134,6 +136,7 @@ function diplomacyScreen($vars)
 		$select = sc_query('SELECT name, ip FROM players WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
 		while ($row = $select->fetch_assoc()) $ip_addresses[$row['ip']][] = $row['name'];
 
+		$multi_empers_count = 0;
 		foreach (array_keys($ip_addresses) as $key)
 			if ( count($ip_addresses[$key]) > 1 )
 				{
@@ -141,7 +144,7 @@ function diplomacyScreen($vars)
 				$multi_empers_count += count($ip_addresses[$key]);
 				}
 
-		if ($multi_empers_count)
+		if (isset($multi_empers_count) && $multi_empers_count)
 			echo '<div class=messageBold>'.$multi_empers_count.' players currently do not have unique IP addresses'.
 				 '<br>('.implode(') - (', $multi_empers).')</div>'.
 				 '<img class=spacerule src="images/spacerule.jpg" width="100%" height=10 alt="spacerule.jpg">';

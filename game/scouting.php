@@ -94,7 +94,7 @@ function buildScoutingReport($series, $game, $system, $recipient)
 				'WHERE '.implode(' AND ', $conditions);
 		$select = sc_query($sql , __FILE__.'*'.__LINE__);
 		$result = $select->fetch_assoc();
-		$population_adjustement = result['c'];
+		$population_adjustement = $result['c'];
 	}
 
 	if ($system['annihilated'])

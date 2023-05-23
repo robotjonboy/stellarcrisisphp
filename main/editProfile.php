@@ -95,19 +95,18 @@ function editProfile_processing($vars)
 	
 	$empire = $vars['empire_data'];
 
-	if ($vars['iconUpload'])
+	if (array_key_exists('iconUpload', $vars) && $vars['iconUpload'])
 		return iconUploadPage($vars);
-	else if ($vars['chooseIcon'])
+	else if (array_key_exists('chooseIcon', $vars) && $vars['chooseIcon'])
 		return chooseIconPage($vars);
-	else if ($vars['pass_new'] == $vars['pass_check'])
-		{
-		for ($icon = 1; $icon <= $server['icon_count']; $icon++) if ($vars['icon_'.$icon.'_x'] != '') break;
+	else if ((array_key_exists('iconChoice', $vars) && $vars['iconChoice']) || !array_key_exists('iconUpload', $vars) || !$vars['iconUpload'] || $vars['pass_new'] == $vars['pass_check']) {
+		for ($icon = 1; $icon <= $server['icon_count']; $icon++) if (array_key_exists('icon_'.$icon.'_x', $vars) && $vars['icon_'.$icon.'_x'] != '') break;
 	
 		$values = array();
 
-		if ($vars['iconChoice'])
+		if (array_key_exists('iconChoice', $vars) && $vars['iconChoice'])
 			$values[] = 'icon = "alien'.$icon.'.gif"';
-		else if (!$vars['iconUpload'])
+		else if (!array_key_exists('iconUpload', $vars) || !$vars['iconUpload'])
 			{
 			$values[] = 'password = "'.$vars['pass_new'].'"';
 			$values[] = 'real_name = "'.$vars['real_name'].'"';
@@ -140,17 +139,17 @@ function editProfile_processing($vars)
 			else
 				$values[] = 'email = "'.$vars['email'].'"';
 					
-			$values[] = 'email_visible = "'.($vars['show_email'] ? 1 : 0).'"';
+			$values[] = 'email_visible = "'.(array_key_exists('show_email', $vars) && $vars['show_email'] ? 1 : 0).'"';
 			$values[] = 'comment = "'.addslashes($vars['comment']).'"';
 			$values[] = 'auto_update = "'.($vars['auto_update'] ? 1 : 0).'"';
 			$values[] = 'show_coordinates = "'.($vars['show_coordinates'] ? 1 : 0).'"';
-			$values[] = 'show_icons = "'.($vars['show_icons'] ? 1 : 0).'"';
+			$values[] = 'show_icons = "'.(array_key_exists('show_icons', $vars) && $vars['show_icons'] ? 1 : 0).'"';
 			$values[] = 'draw_background = "'.($vars['draw_background'] ? 1 : 0).'"';
 			$values[] = 'custom_bg_url = '.($vars['custom_bg_url'] ? '"'.str_replace(' ', '%20', $vars['custom_bg_url']).'"' : 'NULL');
 			$values[] = 'background_attachment = "'.$vars['background_attachment'].'"';
 			$values[] = 'list_ships_by_system = "'.($vars['list_ships_by'] == "Location" ? 1 : 0).'"';
 
-			if ($vars['old_origin'] != $vars['new_origin'])
+			if (array_key_exists('new_origin', $vars) && $vars['old_origin'] != $vars['new_origin'])
 				{
 				if (sscanf($vars['map_origin'], '%d,%d', $x, $y) == 2)
 					{
@@ -170,12 +169,12 @@ function editProfile_processing($vars)
 			$vars['empire_data'] = getEmpire($vars['name']);
 			}
 
-		if ($vars['fromEmpireCreation'])
+		if (array_key_exists('fromEmpireCreation', $vars))
 			{
 			sendEmpireMessage($empire, 'Welcome to Stellar Crisis, '.$vars['name'].'.');
 			return gameList($vars);
 			}
-		else if ($message)
+		else if (isset($message) && $message)
 			sendEmpireMessage($empire, $message);
 		}
   	else

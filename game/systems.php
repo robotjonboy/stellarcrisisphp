@@ -7,8 +7,8 @@ function systemsScreen($vars)
 	$game = $vars['game_data'];
 	$player = $vars['player_data'];
 	$empire = $vars['empire_data'];
-	$coordinates = $vars['zoomed_planet'];
-	$cjp_check_all = $vars['cjp_check_all'];
+	$coordinates = array_key_exists('zoomed_planet', $vars) ? $vars['zoomed_planet'] : null;
+	$cjp_check_all = array_key_exists('cjp_check_all', $vars) ? $vars['cjp_check_all'] : null;
 	
 	// If the system we want to show has not been explored, it's probably from a scouting report.
 	// Go to the related screen instead.
@@ -22,7 +22,7 @@ function systemsScreen($vars)
 	gameHeader($vars, 'Systems');
 	ratios($player);
 	echo '<div><table width="100%" border=0 style="text-align: center;">';
-	echo "*******".$vars['cjp_check_all'].$cjp_check_all;
+	echo "*******".(array_key_exists('cjp_check_all', $vars) ? $vars['cjp_check_all'] : '').$cjp_check_all;
 
 	$x = 0; // Used to track how many lines we've fetched.
 	$ship_inventory = shipInventory($series, $player);
@@ -194,7 +194,7 @@ function systemsScreen($vars)
 								'</span>';
 
 		$population = ($system['population']+
-								$population_adjustment[$system['coordinates']]);
+								(array_key_exists($system['coordinates'], $population_adjustment) ? $population_adjustment[$system['coordinates']] : 0));
 
 		if ($system['homeworld'] == $empire['name'])
 		{
@@ -417,7 +417,7 @@ function systemsScreen_processing($vars)
 	$empire = $vars['empire_data'];
 		
 	// Only go in here if the requested map origin is different from the old one.
-	if ($vars['old_origin'] != $vars['system_origin'])
+	if (array_key_exists('system_origin', $vars) && $vars['old_origin'] != $vars['system_origin'])
 		{
 		if (sscanf($vars['system_origin'], "%d,%d", $x, $y) == 2)
 			{

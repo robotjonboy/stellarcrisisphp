@@ -7,7 +7,7 @@ function mapScreen($vars)
 	$game = $vars['game_data'];
 	$player = $vars['player_data'];
 	$empire = $vars['empire_data'];
-	$zoomed_planet = $vars['zoomed_planet'];
+	$zoomed_planet = array_key_exists('zoomed_planet', $vars) ? $vars['zoomed_planet'] : false;
 	
 	// Is this a mini-map zoom request?
 	if ($zoomed_planet != '')
@@ -126,7 +126,7 @@ function mapScreen($vars)
 	// Top row; jumps going north.
 	for ($x = $x_min; $x <= $x_max; $x++)
 		$map .= '<th>'.
-				($jump_presence[$x.','.($y_max+1)][$x.','.$y_max] ? '<img src="images/vert.gif" height=10 width=1>' : '').
+				((array_key_exists($x.','.($y_max+1), $jump_presence) && array_key_exists($x.','.$y_max, $jump_presence[$x.','.($y_max+1)]) && $jump_presence[$x.','.($y_max+1)][$x.','.$y_max]) ? '<img src="images/vert.gif" height=10 width=1>' : '').
 				'</th><td></td>';
 		
 	$map .= '</tr>';
@@ -136,7 +136,7 @@ function mapScreen($vars)
     	$map .= '<tr><td>';
     	
     	// First column; jumps going west. After this, we only check for jumps going east.
-		if ($jump_presence[($x_min-1).','.$y][$x_min.','.$y])
+		if (array_key_exists(($x_min-1).','.$y, $jump_presence) && array_key_exists($x_min.','.$y, $jump_presence[($x_min-1).','.$y]) && $jump_presence[($x_min-1).','.$y][$x_min.','.$y])
 			$map .= '<img src="images/horz.gif" width=10 height=1>';
 			
 		$map .= '</td>';
@@ -156,11 +156,11 @@ function mapScreen($vars)
 					$icon .= '"images/planet.gif"';
 				else if ($system['annihilated'])
 					$icon .= '"images/annihilated.gif"';
-				else if ($system['owner'] == $name)
+				else if ($system['owner'] == $empire['name'])
 					$icon .= '"images/aliens/'.$empire['icon'].'"';
 				else if ($system['owner'] != '')
 					{
-					if (!$icons[$system['owner']])
+					if (!(array_key_exists($system['owner'], $icons) && $icons[$system['owner']]))
 						{
 						$other_empire = getEmpire($system['owner']);
 						$icons[$system['owner']] = $other_empire['icon'];
@@ -196,7 +196,7 @@ function mapScreen($vars)
 					}
 
 				// Cache the result of the query; we don't want to determine the same thing a thousand times over...
-				if (!$colors_for_owner[$system['owner']])
+				if (!(isset($colors_for_owner) && is_array($colors_for_owner) && array_key_exists($system['owner'], $colors_for_owner) && $colors_for_owner[$system['owner']]))
 					$colors_for_owner[$system['owner']] = systemNameColor($player, $system['owner']);
 
 				if ($system['explored'] == 'no')
@@ -215,7 +215,7 @@ function mapScreen($vars)
 					    $system['name'].($empire['show_coordinates'] ? ' ('.xlateToLocal($coordinates).')' : '').
 					    '</td></tr></table><td>';
 
-				if ($jump_presence[($x+1).','.$y][$coordinates])
+				if (array_key_exists(($x+1).','.$y, $jump_presence) && array_key_exists($coordinates, $jump_presence[($x+1).','.$y]) && $jump_presence[($x+1).','.$y][$coordinates])
 					$map .= '<img src="images/horz.gif" width=10 height=1>';
 				
 				$map .= '</td>';
@@ -224,7 +224,7 @@ function mapScreen($vars)
       			{
       			$map .= '<td></td><td>';
 
-				if ($jump_presence[($x+1).','.$y][$coordinates])
+				if (array_key_exists(($x+1).','.$y, $jump_presence) && array_key_exists($coordinates, $jump_presence[($x+1).','.$y]) && $jump_presence[($x+1).','.$y][$coordinates])
 					$map .= '<img src="images/horz.gif" width=10 height=1>';
 				
 				$map .= '</td>';
@@ -234,7 +234,7 @@ function mapScreen($vars)
    		$map .= '</tr><tr><td></td>';
 	
 		for ($x = $x_min; $x <= $x_max; $x++)
-			$map .= '<th>'.($jump_presence[$x.','.($y-1)][$x.','.$y] ? '<img src="images/vert.gif" height=10 width=1>' : '').'</th><td></td>';
+			$map .= '<th>'.((array_key_exists($x.','.($y-1), $jump_presence) && array_key_exists($x.','.$y, $jump_presence[$x.','.($y-1)]) && $jump_presence[$x.','.($y-1)][$x.','.$y]) ? '<img src="images/vert.gif" height=10 width=1>' : '').'</th><td></td>';
 			
 		$map .= '</tr>';
   		}
@@ -258,7 +258,7 @@ function mapScreen_processing(&$vars)
 	// Don't need coordinate translation here because systemScreen is set up to handle local coordinate input.
 	foreach (array_keys($vars) as $key)
 		{
-		list($system, $coordinates) = explode(":", $key);
+		list($system, $coordinates) = str_contains($key, ":") ? explode(":", $key) : array($key, null);
 
 		if ($system == 'system')
 			{
@@ -278,6 +278,7 @@ function mapScreen_processing(&$vars)
 
 function miniMapScreen($vars)
 {
+	$map = '';
 	$minimap_data = array();
 
 	$series = $vars['series_data'];
@@ -336,6 +337,7 @@ function miniMapScreen($vars)
 	$map .= '<td></td></tr>';
 
 	// Actual building of the map.
+	$border_colors = [];
 	for ($y = $y_max; $y >= $y_min; $y--)
 		{
 		$map_chunk = '<tr><td>'.($y-$hwY).'</td>';
@@ -355,11 +357,11 @@ function miniMapScreen($vars)
 				// The system was annihilated...
 				if ($annihilated) $image = 'images/annihilated.gif';
 				else if ($system_owner == '') $image = 'images/planet.gif';
-				else if ($system_owner == $name) $image = 'images/aliens/'.$empire['icon'].'';
+				else if ($system_owner == $vars['name']) $image = 'images/aliens/'.$empire['icon'].'';
 				else
 					{
 					// Cache the result of the query; we don't want to determine the same thing a thousand times over...
-					if (!$icon_cache[$system_owner])
+					if (!isset($icon_cache) || !is_array($icon_cache) || !array_key_exists($system_owner, $icon_cache) || !$icon_cache[$system_owner])
 						{
 						$other_empire = getEmpire($system_owner);
 						$icon_cache[$system_owner] = $other_empire['icon'];
@@ -371,7 +373,7 @@ function miniMapScreen($vars)
 				$icon = '<input type=image src="'.$image.'" width=20 height=20 name="system:'.$local_coordinates.'">';
 				
 				// Cache results, again.
-				if (!$border_colors[$system_owner])
+				if (!array_key_exists($system_owner, $border_colors) || !$border_colors[$system_owner])
 					$border_colors[$system_owner] = systemNameColor($player, $system_owner);
 
 				if (!$explored) $border = ' style="border: 1pt solid #505050;"';
@@ -423,7 +425,7 @@ function systemNameColor($player, $planet_owner)
 
 	$diplomacy = getDiplomacyWithOpponent($player['game_id'], $player['name'], $planet_owner);
 				
-	switch ($diplomacy['status'])
+	switch ((is_array($diplomacy) && array_key_exists('status', $diplomacy)) ? $diplomacy['status'] : '')
 		{
 		case '': case 2:	return 'red'; // Players haven't met yet, or they're at war
 		case 3:				return 'pink'; // Truce

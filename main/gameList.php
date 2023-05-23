@@ -28,6 +28,8 @@ function gameList($vars)
 							' FROM '.$tables.
 							' WHERE '.$conditions.' '.
 							$order);
+
+	$last_series_id = null;
 	while ($row = $select->fetch_assoc())
 		{
 		$game = getGameByID($row['game_id']);
@@ -206,7 +208,7 @@ function gameList($vars)
 		$select = sc_query('SELECT DISTINCT games.*, series.update_time, series.name FROM '.$tables.' WHERE '.implode(' AND ', $conditions).' '.$order);
 		while ($game = $select->fetch_assoc())
 			{
-			if ($excluded_games[$game['id']]) continue;
+			if (isset($excluded_games) && is_array($excluded_games) && array_key_exists($game['id'], $excluded_games) && $excluded_games[$game['id']]) continue;
 			
 			$series = getSeries($game['series_id']);
 			$series_header = seriesDescription($series);
@@ -272,7 +274,7 @@ function gameList($vars)
 					 '<option value="3">Minimum +3<option value="4">Minimum +4'.
 					 '<option value="5">Minimum +5</select>&nbsp';
 
-			if (!$open_game_exists[$row['series_id']])
+			if (!isset($open_game_exists) || !array_key_exists($row['series_id'], $open_game_exists))
 				echo '<input type=submit name="create['.$row['game_id'].']" value="Open Game">&nbsp';
 				
 			echo '<input type=submit name="createp['.$row['game_id'].']" value="Password Game"></td></tr>';
@@ -596,7 +598,7 @@ function gameList_processing($vars)
 		return gameList($vars);
 		}
 
-	if (preg_match('/(create|createp)/', $action) and $game['num_players'])
+	if (preg_match('/(create|createp)/', $action) and (array_key_exists('num_players', $game) && $game['num_players']))
 		{
 		// This will happen with out-of-date game lists.
 		sendEmpireMessage($empire, 'Sorry, that game was started by someone else.');
@@ -710,7 +712,7 @@ function loginGame($vars)
 	if ($series['team_game'])
 	    return loginTeamGame($vars);
 	
-	if ($vars['gamePassword'][$game['id']] != $game['password1'])
+	if (array_key_exists('gamePassword', $vars) && is_array($vars['gamePassword']) && array_key_exists($game['id'], $vars['gamePassword']) && $vars['gamePassword'][$game['id']] != $game['password1'])
 		{
 		sendEmpireMessage($empire, 'Incorrect password for <span class=red>'.$series['name'].' '.$game['game_number'].'</span>.');
         return passwordGameList($vars);
@@ -931,6 +933,7 @@ function seriesDescription($series)
 				   ($series['creator'] != 'admin' ? '<div style="font-size: 7pt;">Created by '.$series['creator'].'</div>' : '').'</th>'.
 				   '<td colspan=5 style="text-align: left;">'.($series['team_game'] ? '<span class=green><b>Team game.</b></span> ' : '').
 				   ($series['diplomacy'] == 6 ? '<span class=blue><b>Shared HQ.</b></span> ' : '').
+					 ($series['visible_builds'] ? '<span class=blue><b>Visible Builds.</b></span> ' : '').
 				   'Updates every '.$update_time.', '.($series['weekend_updates'] ? '' : 'no weekend updates, ').
 				   $series['max_players'].' players, '.$series['systems_per_player'].' systems per player. '.
 				   $map_text.( !$series['map_visible'] ? 'Map hidden until game starts. ' : '' ).

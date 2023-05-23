@@ -8,7 +8,7 @@ http://falcon.almonaster.net
 https://sc.rocketempires.com/sc.php
 
 #Code
-In addition to the php software, there are two additional implementations of stellar crisis.
+In addition to the php software, there are two other implementations of stellar crisis.
 The original: https://sourceforge.net/projects/sc-original/
 Almonaster: https://github.com/mfeingol/almonaster
 
@@ -18,7 +18,7 @@ There is a fourth implementation from the late 90s called MkII.  I believe it is
 Depending on who you ask, Stellar Crisis first appeared in either 1993 or 1995.  The earliest announcement I have been able to find on usenet is from 1995.  The php implementation originated in the early '00s, first appearing on the Iceberg server.  By the late 00s, the Iceberg server was defunct.  Homeserve was started as a replacement.  I acquired a copy of the php code in 2010.  I added a tournament manager, which I have been using to run an annual tournament since 2011.  In 2019, I upgraded the software to run on php7 and newer versions of mysql/mariadb.  This upgrade was substantially more complicated than I anticipated.  In 2021, I implemented Jumpgates (a shiptype introduced in stellar crisis 3 that had never been implemented in the php version of the game).
 
 #Competitive Play
-Stellar Crisis has a long history of competitive play.  Past competitions include Clan Wars, "Olympics," and the Stellar Kings Cup.  The Stellar Crisis Open Championship, began in 2011, continues to be run anually on the Rocket Empires server.  The tournament starts on the last Saturday in July, with registration opening a week before.
+Stellar Crisis has a long history of competitive play.  Past competitions include Clan Wars, "Olympics," and the Stellar Kings Cup.  The Stellar Crisis Open Championship, began in 2011, continues to be run annually on the Rocket Empires server.  The tournament starts on the last Saturday in July, with registration opening a week before.
 
 #Installation/Configuration
 1. Preqrequisites: windows or linux, apache, mysql or mariadb, and php.

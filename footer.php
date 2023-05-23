@@ -1,4 +1,6 @@
 <?php
+# file: footer.php
+
 global $server, $start_time, $start_memory;
 
 # Page footer; appended to pages sent back to the user.
@@ -9,7 +11,7 @@ global $server, $start_time, $start_memory;
 	<div><img class=spacerule src="images/spacerule.jpg" alt="spacerule.jpg"></div>
  	<div style="font-weight: bold;"><a href="<? echo $server['sc_wiki_url']; ?>">Help</a> is available.</div>
 <?php
-if ($server['discussion_board'])
+if (array_key_exists('discussion_board', $server))
 	echo '<div style="margin: 5pt;">Ideas, questions, talk? We have a <a href="'.$server['discussion_board'].'">discussion board</a>.</div>';
 ?>
 	<div><img src="images/sclogo_neo.gif" alt="sclogo_neo.gif"></div>

@@ -1499,9 +1499,9 @@ function assignResources( $series, &$chain, $home, $indexes )
 	    	if (--$count > 1)
 	    		{
 				// Average value is multiplied by 2 so that any given planet can have from 0 to 2*avg resource
-	      		$min_t  -= $chain[$ixa]['mineral']     = rand(0, $min_t*2/$count);
-	      		$ag_t   -= $chain[$ixa]['agriculture'] = rand(0, $ag_t*2/$count);
-	      		$fuel_t -= $chain[$ixa]['fuel'] 	   = rand(0, $fuel_t*2/$count);
+	      		$min_t  -= $chain[$ixa]['mineral']     = rand(0, intval(round($min_t*2/$count)));
+	      		$ag_t   -= $chain[$ixa]['agriculture'] = rand(0, intval(round($ag_t*2/$count)));
+	      		$fuel_t -= $chain[$ixa]['fuel'] 	   = rand(0, intval(round($fuel_t*2/$count)));
 	    		}
 	    	else
 	    		{
@@ -1680,7 +1680,7 @@ function saveMap( $series, $game, $map )
 		
 		sc_query('INSERT INTO systems SET '.implode(', ', $values), __FILE__.'*'.__LINE__);
 		
-		$player = getPlayer($game['id'], $name);
+		//$player = getPlayer($game['id'], $name);
 		
 		// set the explored array while we're at it
 		// note: initial player names have been surrounded with equal sign characters to prevent sneaky

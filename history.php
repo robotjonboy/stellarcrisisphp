@@ -119,7 +119,7 @@ function endGame($series, $game, $history, $saved_map)
 				echo $event['empire'].' joined the game';
 
 				if ($event['coordinates'])
-					$owner_history[$event['coordinates']][$update] = $player_list[$event['empire']];
+					$owner_history[$event['coordinates']][$update] = array_key_exists($event['empire'], $player_list) ? $player_list[$event['empire']] : null;
 				
 				if ($event['info'])
 					echo ' as part of '.$event['info'];

@@ -393,10 +393,11 @@ function update_game($series, &$game, $update_time)
 				case 'standby':
 					break;
 				case 'build':
+					if ((!array_key_exists($ship['location'], $built_ships) || !array_key_exists($ship['type'], $built_ships[ $ship['location'] ]))) $built_ships[ $ship['location']][$ship['type']] = 0;
 					$built_ships[ $ship['location'] ][ $ship['type'] ]++;
 					break;
 				case 'dismantle':
-					$dismantled_ships[ $ship['type'] ]++;
+					$dismantled_ships[ $ship['type'] ] = array_key_exists($ship['type'], $dismantled_ships) ? $dismantled_ships[ $ship['type'] ] + 1 : 1;
 					$ignore_this_ship = 1;
 					sc_query('DELETE FROM ships WHERE id = '.$ship['id']);
 					break;
@@ -634,7 +635,7 @@ function update_game($series, &$game, $update_time)
 					{
 					// If we get here, this ship is toast.
 					$missive[$system['coordinates']]['dest'][$ship_owner][] = $ship['name'];
-					$destroyed[$system['coordinates']][$ship_owner][$ship['type']] += 1;
+					$destroyed[$system['coordinates']][$ship_owner][$ship['type']] = array_key_exists($ship['type'], $destroyed[$system['coordinates']][$ship_owner]) ? $destroyed[$system['coordinates']][$ship_owner][$ship['type']] + 1 : 1;
 
 					// Some of the destructive power has been used up; adjust it.
 					$dest -= pow((float)$ship['br'], 2) * $fuel_ratio;

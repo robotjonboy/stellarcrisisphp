@@ -188,7 +188,7 @@ function gameAction($vars)
   	// After processing, we go to the page the user requested.
 	switch ($vars['gameAction'])
 		{
-		case 'Info':				return infoScreen($vars, $message);
+		case 'Info':				return infoScreen($vars, isset($message) ? $message : '');
 		case 'Change Password':
 		case 'Change Passwords':
 		case 'Set Password':
@@ -208,7 +208,7 @@ function gameAction($vars)
 	 	case 'Mini-Map':			if ($map_allowed) return miniMapScreen($vars);
 	 	case 'Diplomacy':			return diplomacyScreen($vars);
 	 	case 'Message History':		return messageHistory($vars);
-	 	case 'Notes':				return notesScreen($vars, $message);
+	 	case 'Notes':				return notesScreen($vars, isset($message) ? $message : '');
         
         // This is currenlty disabled due to abuse.
 		/*case 'Pause game':
@@ -349,7 +349,7 @@ function gameHeader($vars, $title)
 				{
 				// The message header is handled in messageHeader(), but first we 
 				// adjust the sender and recipient if the player's name is in them.
-				$row['recipient'] = str_replace($player['name'], 'you', $row['recipient']);
+				$row['recipient'] = (array_key_exists('recipient', $row) && !is_null($row['recipient'])) ? str_replace($player['name'], 'you', $row['recipient']) : '';
 				
 				if ($row['sender'] == $player['name'])
 					$row['sender'] = 'You';
@@ -428,7 +428,7 @@ function gameHeader($vars, $title)
   		}
 
 	// Can set passwords when just one player.
-	if ($game['player_count'] == 1 and $game['game_password'] == '' and $title != 'Set Passwords')
+	if ($game['player_count'] == 1 and (!array_key_exists('game_password', $game) || $game['game_password'] == '') and $title != 'Set Passwords')
 		{
 		if ($series['team_game'])
 			$password_button = '<input type=submit name=gameAction value="'.($game['password1'] == '' ? 'Set' : 'Change').' Passwords">';
@@ -496,9 +496,9 @@ echo '<body'.($empire['auto_update'] ? ' onLoad="setTimeout('.$gotoDoc.','.($tim
 		 '<input type=submit name=gameAction value=Ships><input type=submit name=gameAction value=Fleets>'.
 		 '<input type=submit name=gameAction value=Build>'.$map_buttons.$mini_map.
 		 '<input type=submit name=gameAction value=Diplomacy><input type=submit name=gameAction value="Message History">'.
-		 '<input type=submit name="gameAction" value="Notes">'.$end_turn_button.$quit_button.$exit_button.$on_hold_button.
-		 ($invite_button ? '<div style="text-align: center; margin-top: 5pt;"">'.$invite_button.'</div>' : '').'</div>'.
-		 ($missive ? $missive : '').'<img class=spacerule src="images/spacerule.jpg" width="100%" height=10 alt="spacerule.jpg">'.$missive_history;
+		 '<input type=submit name="gameAction" value="Notes">'.$end_turn_button.$quit_button.$exit_button.(isset($on_hold_button) ? $on_hold_button : '').
+		 (isset($invite_button) && $invite_button ? '<div style="text-align: center; margin-top: 5pt;"">'.$invite_button.'</div>' : '').'</div>'.
+		 (isset($missive) ? $missive : '').'<img class=spacerule src="images/spacerule.jpg" width="100%" height=10 alt="spacerule.jpg">'.(isset($missive_history) ? $missive_history : '');
 }
 
 #----------------------------------------------------------------------------------------------------------------------#

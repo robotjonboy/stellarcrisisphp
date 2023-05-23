@@ -105,7 +105,7 @@ view of things.
 
 #OTHER
 1.  Some use of color to indicate status
-2.  Custom games let peope create their own series which are then available to anyone to
+2.  Custom games let people create their own series which are then available to anyone to
 start under the custom games tab.
 3.  You can see who is online and send them messages which they will see when they exit
 games and return to main menu.

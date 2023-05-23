@@ -19,19 +19,20 @@ function mainAction($vars, $file)
 	$empire = getEmpire($vars['name']);
 	$vars['empire_data'] = $empire;
 	
-	switch ($vars['action'])
-		{
-		case 'Password Games':	return passwordGameList($vars);
-		case 'Custom Series':	return customSeries($vars);
-		case 'Edit Profile':	return editProfile($vars);
-		case 'Stat Viewer':	return statViewer($vars);
-		case 'Game List':		return gameList($vars);
-		case 'Game History':	return gameHistory($vars);
-		case 'Administration':	return mainPage_admin($vars);
-		case 'Tournaments':	return tournaments($vars);
-		case 'Logout':		return mainPage();
-		case 'View':		return viewTournament($vars);
+	if (array_key_exists('action', $vars)) {
+		switch ($vars['action']) {
+			case 'Password Games':	return passwordGameList($vars);
+			case 'Custom Series':	return customSeries($vars);
+			case 'Edit Profile':	return editProfile($vars);
+			case 'Stat Viewer':	return statViewer($vars);
+			case 'Game List':		return gameList($vars);
+			case 'Game History':	return gameHistory($vars);
+			case 'Administration':	return mainPage_admin($vars);
+			case 'Tournaments':	return tournaments($vars);
+			case 'Logout':		return mainPage();
+			case 'View':		return viewTournament($vars);
 		}
+	}
 		
 	switch ($vars['page'])
 		{

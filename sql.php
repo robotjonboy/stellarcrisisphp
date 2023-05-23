@@ -126,7 +126,9 @@ function getDiplomacyWithOpponent($game_id, $name, $opponent)
 	$conditions[] = 'opponent = "'.$mysqli->real_escape_string($opponent).'"';
 
 	$select = sc_query('SELECT * FROM diplomacies WHERE '.implode(' AND ', $conditions));
-	return $select->fetch_assoc();
+	$result = $select->fetch_assoc();
+
+	return $result;
 }
 
 #--------------------------------------------------------------------------------------------------------------------#
@@ -232,7 +234,7 @@ function getGameByID($game_id)
 
   $game = $select->fetch_assoc();
 
-  if ($game['game_type'] == 'sc3') {
+  if ($game && $game['game_type'] == 'sc3') {
     $result = sc_query('select * from game_ship_type_options where game_id = ' . $game['id']);
 
     $game['ship_type_options'] = [];

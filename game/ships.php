@@ -47,7 +47,7 @@ function shipsScreen($vars)
 			   '<td>'.number_format($ship['max_br'], 1, '.', '').'</td>'.
 			   '<td>'.xlateToLocal($ship['location']).'</td>'.
 			   '<td><select name="ship_orders['.$ship['id'].']">'.$orders.'</select></td>'.
-			   '<td>'.($ship['morpher'] ? '<i>'.$ship['type'].'</i>' : $ship['type']).'</td>'.
+			   '<td>'.((array_key_exists('morpher', $ship) && $ship['morpher']) ? '<i>'.$ship['type'].'</i>' : $ship['type']).'</td>'.
 			   '</tr>';
 
 		if ($ship['orders'] == 'build')
@@ -80,9 +80,9 @@ function shipsScreen($vars)
 
 		foreach ($valid_fleet_orders as $orders)
 			{
-			list($orders, $arguments) = explode(':', $orders);
+			list($orders, $arguments) = str_contains($orders, ":") ? explode(':', $orders) : array($orders, null);
 			
-			$order_arguments = (strstr($arguments, ',') ? xlateToGalactic($arguments) : $arguments);
+			$order_arguments = (isset($arguments) && strstr($arguments, ',') ? xlateToGalactic($arguments) : $arguments);
 			$selected = ($orders.':'.$order_arguments == $fleet['orders'].':'.$fleet['order_arguments']);
 
 			$option = '<option'.($selected ? ' selected' : '');
@@ -125,16 +125,19 @@ function shipsScreen($vars)
 
 		$select_ships = sc_query('SELECT '.implode(',', $fields).' FROM ships WHERE fleet_id = '.$fleet['id']);
 		$line = $select_ships->fetch_assoc();
-		$fleetStrength = sqrt($line['fleetStrength']);
-		$fleetNextStrength = sqrt($line['fleetNextStrength']);
-		$fleetMaxStrength = sqrt($line['fleetMaxStrength']);
+		$fleetStrength = isset($line['fleetStrength']) ? sqrt($line['fleetStrength']) : 0;
+		$fleetNextStrength = isset($line['fleetNextStrength']) ? sqrt($line['fleetNextStrength']) : 0;
+		$fleetMaxStrength = isset($line['fleetMaxStrength']) ? sqrt($line['fleetMaxStrength']) : 0;
 		$ship_count = $line['shipCount'];
 		
 		if ($fleetMaxStrength != 0)
-			{
+		{
 			$current_brcolor = brColor($fleetStrength, $fleetMaxStrength);
 			$next_brcolor = brColor($fleetNextStrength, $fleetMaxStrength);
-			}
+		} else {
+			$current_brcolor = '';
+			$next_brcolor = '';
+		}
 			
 		$fleetStrength = number_format($fleetStrength, 3, '.', '');
 		$fleetNextStrength = number_format($fleetNextStrength, 3, '.', '');
@@ -376,9 +379,11 @@ function fleetsScreen($vars)
 		$fleet_orders = '';
 		foreach ($valid_fleet_orders as $orders)
 			{
-			list($orders, $arguments) = explode(':', $orders);
+			$orderArray = explode(':', $orders);
+			$orders = $orderArray[0];
+			$arguments = array_key_exists(1, $orderArray) ? $orderArray[1] : null;
 
-			$order_arguments = (strstr($arguments, ',') ? xlateToGalactic($arguments) : $arguments);
+			$order_arguments = ((isset($arguments) && strstr($arguments, ',')) ? xlateToGalactic($arguments) : $arguments);
 			$selected = ($orders.':'.$order_arguments == $fleet['orders'].':'.$fleet['order_arguments']);
 
 			$option = '<option'.($selected ? ' selected' : '');
@@ -490,9 +495,9 @@ function fleetsScreen($vars)
 			$ship_list .= '</td></tr>';
 			}
 
-		$fleet_br = sqrt($fleetStrength);
-		$fleet_nextbr = sqrt($fleetNextStrength);
-		$fleet_maxbr = sqrt($fleetMaxStrength);
+		$fleet_br = isset($fleetStrength) ? sqrt($fleetStrength) : 0;
+		$fleet_nextbr = isset($fleetNextStrength) ? sqrt($fleetNextStrength) : 0;
+		$fleet_maxbr = isset($fleetMaxStrength) ? sqrt($fleetMaxStrength) : 0;
 
 		$brcolor = '';
 		$next_brcolor = '';
@@ -541,7 +546,7 @@ function fleetsScreen($vars)
 	</tr>
 </table>
 <?php
-		$fleet_list .= ob_get_contents();
+		$fleet_list = isset($fleet_list) ? $fleet_list . ob_get_contents() : ob_get_contents();
 		ob_end_clean();
 		
 		$fleet_ids[] = $fleet['id'];
@@ -601,11 +606,11 @@ function fleetsScreen($vars)
 <?php
 		}
 	else
-		echo '<div class=messageBold>You have no ships to gather in fleets.</div>'.$new_fleet;
+		echo '<div class=messageBold>You have no ships to gather in fleets.</div>'.(isset($new_fleet) ? $new_fleet : '');
 	
 	echo '<input type=hidden name=fleet_ids value="'.implode(' ', $fleet_ids).'">'.
 		 '<input type=hidden name=ship_ids value="'.implode(' ', $ship_ids).'">'.
-		 '<div style="margin-top: 10pt;">'.$fleet_list.'</div>';
+		 '<div style="margin-top: 10pt;">'.(isset($fleet_list) ? $fleet_list : '').'</div>';
 
 	footer();
 }
@@ -775,7 +780,7 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 		return sendGameMessage($player, 'Fleet collapsed.');
 		}
 
-	if ($vars['new_fleet:create'])
+	if (array_key_exists('new_fleet:create', $vars) && $vars['new_fleet:create'])
 		{
 		$vars['new_fleet_name'] = ($vars['new_fleet_name'] == '' ? nameFleet() : $vars['new_fleet_name']);
 
@@ -794,7 +799,7 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 
 		return sendGameMessage($player, 'Fleet created.');
 		}
-	else if ($vars['new_fleet:create_and_gather'])
+	else if (array_key_exists('new_fleet:create_and_gather', $vars) && $vars['new_fleet:create_and_gather'])
 		{
 		$vars['new_fleet_name'] = ($vars['new_fleet_name'] == '' ? nameFleet() : $vars['new_fleet_name']);
 
@@ -826,7 +831,7 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 			
 		return sendGameMessage($player, 'Fleet created and ships gathered.');
 		}
-	else if ($vars['new_fleet:cancel'])
+	else if (array_key_exists('new_fleet:cancel', $vars) && $vars['new_fleet:cancel'])
 		return sendGameMessage($player, 'Fleet creation cancelled.');
 }
 
@@ -853,6 +858,9 @@ function getFleetOrders($player, $fleet)
 	// Diplomatic status the player has with the owner of the planet where this fleet is.
 	$diplomacy = getDiplomacyWithOpponent($fleet['game_id'], $fleet['owner'], $system['owner']);
 	
+	if (is_array($diplomacy)) $diplomacyStatus = $diplomacy['status'];
+	else $diplomacyStatus = 7; //unknown, but works fo rour purposes here
+	
 	$orders = array();
    	$orders[] = 'standby';
 	$orders[] = 'pickup';
@@ -872,8 +880,8 @@ function getFleetOrders($player, $fleet)
 
 	// What this basically does is determine if a given ship type is present in the fleet, thus allowing a "global" order to be given to all ships.
 	$fields = array();
-	$fields[] = 'SUM(IF(cloaked = "0" AND "'.$diplomacy['status'].'" = 2, 1, 0)) AS can_nuke';
-	$fields[] = 'SUM(IF(type = "Troopship" AND "'.$diplomacy['status'].'" = 2, 1, 0)) AS can_invade';
+	$fields[] = 'SUM(IF(cloaked = "0" AND "'.$diplomacyStatus.'" = 2, 1, 0)) AS can_nuke';
+	$fields[] = 'SUM(IF(type = "Troopship" AND "'.$diplomacyStatus.'" = 2, 1, 0)) AS can_invade';
 	$fields[] = 'SUM(IF(type = "Colony" AND "'.$system['owner'].'" = "" AND "'.$system['annihilated'].'" = "0", 1, 0)) AS can_colonize';
 	$fields[] = 'SUM(IF(type = "Terraformer" AND owner = "'.$system['owner'].'" AND '.$system['agriculture'].' < '.max($system['mineral'], $system['fuel']).', 1, 0)) AS can_terraform';
 
@@ -1001,7 +1009,7 @@ function getValidOrders($series, $game, $ship, $player)
 
 			// If the system is not explored and the ship is a science ship, the ship can explore it.
 			foreach ($jumps as $jump)
-				if (!$explored[$jump] and $ship['type'] == 'Science')
+				if (!(array_key_exists($jump, $explored) && $explored[$jump]) and $ship['type'] == 'Science')
 				{
 					$orders[] = array('explore', xlateToLocal($jump));
 				}
@@ -1013,7 +1021,7 @@ function getValidOrders($series, $game, $ship, $player)
 		}
 	
 	// Special case for Morphers. We use a special field, since their type can change.
-	if ($ship['morpher'])
+	if (array_key_exists('morpher', $ship) && $ship['morpher'])
 		{
 		// We list all of the player's tech, except the current one.
 		// The Morpher tech is included; maybe the player wants it for some reason.
@@ -1103,7 +1111,7 @@ function getValidOrders($series, $game, $ship, $player)
 											  'WHERE game_id = '.$game['id'].' AND coordinates <> "'.$ship['location'].'" AND owner = "'.$friend.'")';
 					}
 					
-				if (count($queries_for_friends))
+				if (isset($queries_for_friends) && count($queries_for_friends))
 					$query_for_friends = implode(' UNION ', $queries_for_friends);
 				}
 

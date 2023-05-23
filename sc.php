@@ -9,7 +9,6 @@ function addExploredToFriends($player, $explored_id)
 function array_random($array)
 function array_remove($remove_value, $array)
 function calculateBridier($winner_rank, $winner_index, $loser_rank, $loser_index)
-function check_version($currentversion, $requiredversion)
 function checkForOldPasswordedGames()
 function checkForUpdates()
 function chooseIconPage($vars)
@@ -52,6 +51,7 @@ else
 }
 */
 #----------------------------------------------------------------------------------------------------------------------#
+require('scfunctions.php');
 require('server.php');
 require('debug.php');
 require('sql.php');
@@ -89,7 +89,7 @@ error_reporting(E_ALL ^ E_NOTICE);
 set_error_handler('sc_errorHandler');
 
 // Seed the pseudo-random number generator.
-srand((double)microtime()*1000000);
+srand((int)((double)microtime()*1000000));
 
 // Prevent people from crapping up the database (and their games) by interrupting form processing.
 ignore_user_abort(true);
@@ -111,7 +111,7 @@ if ($server['show_memory_usage']) //local setting
 // Always check to see if games need updating, since this script does not run continuously and 
 // thus cannot "know" when to update a game.
 // We only do this upon form submissions, and when we're not in the administration screens to alleviate the load a bit.
-if (count($_POST) and $_POST['page'] != 'admin') {
+if (sc_post('page') != 'admin') {
 	checkForUpdates();
 	checkForTournamentUpdates();
 }
@@ -119,11 +119,11 @@ if (count($_POST) and $_POST['page'] != 'admin') {
 // Check to see how the submitter can be authenticated.
 $authenticated = false;
 $authenticated_as_admin = false;
-if (isset($_POST['name']) and isset($_POST['pass']))
+if (strlen(sc_post('name')) and strlen(sc_post('pass')))
 {
 	$sql  = 'SELECT name, is_admin FROM empires ';
-	$sql .= 'WHERE name = "'.$mysqli->real_escape_string($_POST['name']).'" ';
-	$sql .= 'AND password = "'.$mysqli->real_escape_string($_POST['pass']).'"';
+	$sql .= 'WHERE name = "'.$mysqli->real_escape_string(sc_post('name')).'" ';
+	$sql .= 'AND password = "'.$mysqli->real_escape_string(sc_post('pass')).'"';
 	$select = sc_query($sql);
 
 	if ($authenticated = $select->num_rows)
@@ -142,22 +142,16 @@ if (isset($_GET['seriesParameters']))
 	seriesParameters($_GET['seriesParameters']); 
 else 
 {
-	if (isset($_POST['section']))
-	{
-		switch ($_POST['section'])
-		{		
-			case 'login':		login($_POST);			break;
-			case 'admin':		adminAction($_POST);		break;
-			case 'main':		mainAction($_POST, $_FILES);	break;
-			case 'game':		gameAction($_POST);		break; //defined in game.php
-			case 'tournaments':	tournamentsAction($_POST);	break;
-			default:    		mainPage(); // This should not happen.
-		}
+	switch (sc_post('section'))
+	{		
+		case 'login':		login($_POST);			break;
+		case 'admin':		adminAction($_POST);		break;
+		case 'main':		mainAction($_POST, $_FILES);	break;
+		case 'game':		gameAction($_POST);		break; //defined in game.php
+		case 'tournaments':	tournamentsAction($_POST);	break;
+		default:    		mainPage(); // This should not happen.
 	}
-	else
-	{
-		mainPage(); // User accessed the URL directly.
-	}
+
 	// Processing ends here. Commit whatever we've done.
 	sc_query('COMMIT');  //cjp stop commit on pop-up - adjust nesting
 }
@@ -280,7 +274,7 @@ function mainPage()
 							name="name" 
 							size=20 
 							maxlength=20 
-							value="<?php echo $_COOKIE['sc_login']; ?>"
+							value="<?php echo sc_cookie('sc_login'); ?>"
 					>
 				</tr>
 				<tr>
@@ -334,7 +328,9 @@ function mainPage()
 </table>
 </div>
 <?php
-	echo stripslashes(urldecode($motd['text']));
+	if (is_array($motd) && array_key_exists('text', $motd) && isset($motd['text'])) {
+		echo stripslashes(urldecode($motd['text']));
+	}
 ?>
 <div class=quickStats>
    <?php echo sc_result($select_quickStats, 0, 0).
@@ -499,10 +495,9 @@ function loginFailed($message)
 		<td>
 		<input	type="text" 
 				size=20 
-				name="user" 
+				name="name" 
 				maxlength=20 
-				value="<?php echo ($_COOKIE['sc_login'] ? 
-								$_COOKIE['sc_login'] : '');?>">
+				value="<?php echo sc_cookie('sc_login'); ?>">
 		</td>
 	</tr>
 	<tr>
@@ -597,7 +592,7 @@ function chooseIconPage($vars)
 <div class=pageTitle><?php echo $vars['name']; ?>: Choose Icon</div>
 <div>
 <input type=hidden name=iconChoice value=yes>
-<input type=hidden name=fromEmpireCreation value="<?php echo (strlen($vars['createEmpire']) ? 1 : 0); ?>">
+<input type=hidden name=fromEmpireCreation value="<?php echo (array_key_exists('createEmpire', $vars) && strlen($vars['createEmpire']) ? 1 : 0); ?>">
 <input type=hidden name=name value="<?php echo $vars['name']; ?>">
 <input type=hidden name=pass value="<?php echo $vars['pass']; ?>">
 <input type=hidden name="section" value="main">
@@ -678,7 +673,7 @@ function spawnGame($series_name)
 		$values[] = 'last_update  = '.$last_update;
 		$values[] = 'update_time  = '.$series['update_time'];
 		$values[] = 'weekend_updates  = "'.$series['weekend_updates'].'"';
-		$values[] = 'max_allies  = '.($series['max_allies'] ? $series['max_allies'] : 'NULL');
+		$values[] = 'max_allies  = '.((array_key_exists('max_allies', $series) && $series['max_allies']) ? $series['max_allies'] : 'NULL');
 		$values[] = 'game_type = \''.$series['game_type'].'\'';
 
   		sc_query('INSERT INTO games SET '.implode(', ', $values), __FILE__.'*'.__LINE__);
@@ -692,7 +687,7 @@ function spawnGame($series_name)
 			$values[] = 'game_id = '.$game_id;
 			$values[] = 'ship_type = \''.$line['ship_type'].'\'';
 			$values[] = 'status = \''.$line['status'].'\'';
-			if (array_key_exists('range_multiplier', $line) && strlen(trim($line['range_multiplier'])) > 0) $values[] = 'range_multiplier = '.$line['range_multiplier'];
+			if (array_key_exists('range_multiplier', $line) && isset($line['range_multiplier']) && strlen(trim($line['range_multiplier'])) > 0) $values[] = 'range_multiplier = '.$line['range_multiplier'];
 			$values[] = 'loss = '.$line['loss'];
 			$values[] = 'build_cost = '.$line['build_cost'];
 			$values[] = 'maintenance_cost = '.$line['maintenance_cost'];
@@ -811,7 +806,7 @@ function recalculateRatios($vars)
 	$values[] = 'max_population = '.$max_population;
 	$values[] = 'mineral_ratio = '.($mineral_use ? $mineral/$mineral_use : 'NULL');
 	$values[] = 'fuel_ratio = '.($fuel_use ? $fuel/$fuel_use : 'NULL');
-	$values[] = 'agriculture_ratio = '.($population ? $agriculture/$population : 'NULL');
+	$values[] = 'agriculture_ratio = '.($population ? $agriculture/$population : 1);
 	$values[] = 'tech_development = '.$tech_development;
 	
 	sc_query('UPDATE players SET '.implode(',', $values).' WHERE id = '.$player['id'], __FILE__.'*'.__LINE__);
@@ -874,14 +869,6 @@ function checkForUpdates()
 	
 	// Fix update times for paused games. This feature is DISABLED for now.
 	// sc_query('UPDATE games SET last_update = '.time().' WHERE on_hold = "1" AND closed = "0"');
-
-	//the fix update code requires php > 4.1 - check it 
-	if(!check_version(PHP_VERSION, "4.1.0") )//cjp
-	{
-	   echo 'Current PHP version: ' . PHP_VERSION . ' is too low for this code!<p>';
-	   echo 'Upgrade to at lease 4.1.0<p>';
-	   die('Cannot run this code.<p>');
-	}
 
 	// Fix update times for non-filled/non-closed team games.
 	$tables = 'games INNER JOIN series ON games.series_id = series.id';
@@ -1491,6 +1478,11 @@ function seriesParameters($series_id)
 	<tr>
 		<th>Game Type:</th>
 		<td><?php echo $series['game_type']?></td>
+	</tr>
+	<tr>
+		<th>Visible Builds:</th>
+		<td><?php echo $series['visible_builds'] ? 'Yes' : 'No'; ?></td>
+	</tr>
 	<tr>
 		<th>Maximum players:</th>
 		<td><?php echo $series['max_players'].' players'; ?></td>
@@ -1513,7 +1505,7 @@ function seriesParameters($series_id)
 	</tr>
 	<tr>
 		<th>Alliance limit:</th>
-		<td><?php echo ($series['max_allies'] ? $series['max_allies'].' allies' : 'none'); ?></td>
+		<td><?php echo (array_key_exists('max_allies', $series) ? $series['max_allies'].' allies' : 'none'); ?></td>
 	</tr>
 	<tr>
 		<th>Win restrictions:</th>
@@ -1545,7 +1537,7 @@ function seriesParameters($series_id)
 				<tr>
 					<th>Jumpgate Range:</th>
 					<td>
-						<?php if (array_key_exists('range_multiplier', $ship_type_options) && strlen(trim($ship_type_options['range_multiplier'])) > 0) {
+						<?php if (array_key_exists('range_multiplier', $ship_type_options) && !is_null($ship_type_options['range_multiplier']) && strlen(trim($ship_type_options['range_multiplier'])) > 0) {
 							echo $ship_type_options['range_multiplier'] . ' x BR';
 	 					} else {
 							echo 'Infinite';
@@ -1607,26 +1599,3 @@ function utime()
 
 	return number_format($microseconds+(double)$seconds, 6, '', '');
 }
-
-#=--------------------------------------------------------------------------------------=#
-//cjp added function
-# Compares versions of software
-# versions must must use the correct format ' x.y.z... ' where (x, y, z) are numbers in [0-9]
-
-function check_version($currentversion, $requiredversion)
-{
-   list($majorC, $minorC, $editC) = preg_split('[/.-]', $currentversion);
-#  echo "current: " . $majorC . " -- " . $minorC . " -- " . $editC . "<p>";
-   list($majorR, $minorR, $editR) = preg_split('[/.-]', $requiredversion);
-#  echo "required: " . $majorR . " -- " . $minorR . " -- " . $editR . "<p>";
-
-   if ($majorC > $majorR) return true;
-   if ($majorC < $majorR) return false;
-   // same major - check ninor
-   if ($minorC > $minorR) return true;
-   if ($minorC < $minorR) return false;
-   //and same minor
-   if ($editC  >= $editR)  return true;
-   return false;
-}
-?>
