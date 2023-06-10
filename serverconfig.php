@@ -14,8 +14,8 @@ $server['mysql_database'] = 'sc';
 $server['show_memory_usage'] = true;
 
 /* universal */
-$server['version'] = '2.8.8';
-$server['faq_url'] = 'http://homeserve.org/05SCFAQ/SC.FAQ.frames.html';
+$server['version'] = '3.0.1 ';
+$server['faq_url'] = 'https://scopen.rocketempires.com/beginnerresources.html';
 $server['sc_room_url'] = '../sc_room/SC_main.shtml';
 $server['sc_wiki_url'] = '../pmwiki/pmwiki.php';
 
