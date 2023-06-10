@@ -1396,7 +1396,7 @@ function messageHeader($message)
 
 	// This condition here should be temporary, as the 'recipient' field was introduced later on for
 	// private messages and scouting reports. It can be removed for new servers.
-	$recipient = ($message['recipient'] ? 'to '.$message['recipient'].' ' : '');
+	$recipient = ((array_key_exists('recipient', $message) && $message['recipient']) ? 'to '.$message['recipient'].' ' : '');
 
 	switch ($message['type'])
 		{

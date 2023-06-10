@@ -111,7 +111,7 @@ function createEmpire_processing($vars)
 		$values[] = 'last_login = '.time();
 		$values[] = 'last_ip = "'.$HTTP_SERVER_VARS['REMOTE_ADDR'].'"';
 		$values[] = 'join_date = "'.time().'"';
-		$values[] = 'tos_accepted = "'.($vars['accept_tos'] ? 1 : 0).'"';
+		$values[] = 'tos_accepted = "'.((array_key_exists('accept_tos', $vars) && $vars['accept_tos']) ? 1 : 0).'"';
 		$values[] = 'comment = "'.$mysqli->real_escape_string($vars['comment']).'"';
 		
 		if ($server['require_valid_email'])
