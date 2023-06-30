@@ -51,7 +51,7 @@ function createEmpire($vars, $message = '')
 
 function createEmpire_processing($vars)
 {
-	global $server, $authenticated, $HTTP_SERVER_VARS, $mysqli;
+	global $server, $authenticated, $mysqli;
 
 	// If the person reloads the screen resulting from empire creation, go to the game list instead of triggering
 	// a duplicate insert error.
@@ -109,7 +109,7 @@ function createEmpire_processing($vars)
 		$values[] = 'max_economic_power = 0';
 		$values[] = 'max_military_power = 0';
 		$values[] = 'last_login = '.time();
-		$values[] = 'last_ip = "'.$HTTP_SERVER_VARS['REMOTE_ADDR'].'"';
+		$values[] = 'last_ip = "'.$_SERVER['REMOTE_ADDR'].'"';
 		$values[] = 'join_date = "'.time().'"';
 		$values[] = 'tos_accepted = "'.((array_key_exists('accept_tos', $vars) && $vars['accept_tos']) ? 1 : 0).'"';
 		$values[] = 'comment = "'.$mysqli->real_escape_string($vars['comment']).'"';
