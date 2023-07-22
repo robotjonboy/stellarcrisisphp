@@ -214,7 +214,7 @@ function drawButtons($empire = array())
 		 '<input type=submit name=action value="Edit Profile">'.
 		 '<input type=submit name=action value="Stat Viewer">'.
 		 '<input type=submit name=action value="Game History">'.
-		 ($empire['is_admin'] ? '<input type=submit name=action value="Administration">' : '').
+		 ((array_key_exists('is_admin', $empire) && $empire['is_admin']) ? '<input type=submit name=action value="Administration">' : '').
 		 '<input type=submit name=action value="Logout"></div>';
 }
 
