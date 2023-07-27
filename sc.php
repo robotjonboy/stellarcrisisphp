@@ -181,7 +181,7 @@ function standardHeader($title, $empire = array())
 	if ($empire)
 		{			
 		// Override background style according to the user's profile.
-		if ($empire['draw_background'])
+		if (array_key_exists('draw_background', $empire) && $empire['draw_background'])
 			{
 			echo '<style type="text/css">body { '.
 				 ($empire['custom_bg_url'] ? 'background: url("'.$empire['custom_bg_url'].'"); background-color: black; ' : '').
