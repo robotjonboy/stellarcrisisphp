@@ -107,7 +107,7 @@ if ($tourney['started']) {
 	{
 		echo '<tr><td>' . $currentRoundGames[$i]['firstempire'] . '</td>';
 		echo '<td>' . $currentRoundGames[$i]['secondempire'] . '</td>';
-		echo '<td>' . $currentRoundGames[$i]['winnerName'] . '</td></tr>';
+		echo '<td>' . ((array_key_exists('winnerName', $currentRoundGames[$i])) ? $currentRoundGames[$i]['winnerName'] : '' ) . '</td></tr>';
 	} ?>
 	</table>
 	<h3>Previous Games</h3>
