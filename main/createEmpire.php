@@ -91,7 +91,7 @@ function createEmpire_processing($vars)
 			}
 		}
 	
-	if ($vars['cancelCreation'])
+	if (array_key_exists('cancelCreation', $vars) && $vars['cancelCreation'])
 	    return mainPage();
 
 	if ($vars['pass'] == $vars['pass_check'])
