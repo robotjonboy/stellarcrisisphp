@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS `explored` (
   `player_id` int(11) NOT NULL DEFAULT '0',
   `update_explored` smallint(6) NOT NULL DEFAULT '0',
   `from_shared_hq` int(11) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`game_id`,`empire`,`coordinates`),
+  PRIMARY KEY (`player_id`,`coordinates`),
   UNIQUE KEY `id` (`id`),
   KEY `series_id` (`series_id`,`game_number`),
   KEY `player_id` (`player_id`,`coordinates`)

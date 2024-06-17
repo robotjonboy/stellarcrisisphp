@@ -61,10 +61,9 @@ $fields[] = 'player_id int(11) NOT NULL default "0"';
 $fields[] = 'coordinates varchar(12) NOT NULL default ""';
 $fields[] = 'update_explored smallint(6) NOT NULL default "0"';
 $fields[] = 'from_shared_hq enum("0","1") NOT NULL default "0"';
-$fields[] = 'PRIMARY KEY  (game_id,empire,coordinates)';
+$fields[] = 'PRIMARY KEY  (player_id,coordinates)';
 $fields[] = 'UNIQUE KEY id (id)';
 $fields[] = 'KEY series_id (series_id,game_number)';
-$fields[] = 'KEY player_id (player_id,coordinates)';
 
 mysql_query('CREATE TABLE explored ('.implode(',', $fields).') TYPE=MyISAM;') or die('SQL CREATE error for table "explored".');
 
