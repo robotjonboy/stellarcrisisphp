@@ -8,6 +8,7 @@ require('haltSeries.php');
 require('killGame.php');
 require('killSeries.php');
 require('resumeSeries.php');
+require('spawnOpenGames.php');
 require('addTournament.php');
 #----------------------------------------------------------------------------------------------------------------------#
 
@@ -44,6 +45,7 @@ function adminAction($vars)
 		case 'killSeries':		killSeries_processing($vars);		break;
 		case 'haltSeries':		haltSeries_processing($vars);		break;
 		case 'resumeSeries':	resumeSeries_processing($vars);		break;
+		case 'spawnOpenGames':	spawnOpenGames_processing($vars);	break;
 		case 'dbClean':			dbClean_processing($vars);			break;
 		case 'editMessage':		editMessage_processing($vars);		break;
 		case 'importProdData':	importProdData_processing($vars);	break;
@@ -84,6 +86,7 @@ function mainPage_admin($vars)
 	<option value=\"editSeries\">Edit series
 	<option value=\"haltSeries\">Halt series
 	<option value=\"resumeSeries\">Resume series
+	<option value=\"spawnOpenGames\">Spawn open games
 	<option value=\"killSeries\">Kill series
 	<option value=\"killGame\">Kill game
 	<option value=\"dbClean\">Database cleanup
@@ -112,6 +115,7 @@ function mainPage_admin_processing($vars)
 		case 'editSeries':		return editSeries($vars);
 		case 'haltSeries':		return haltSeries($vars);
 		case 'resumeSeries':	return resumeSeries($vars);
+		case 'spawnOpenGames':	return spawnOpenGames($vars);
 		case 'killSeries':		return killSeries($vars);
 		case 'killGame':		return killGame($vars);
 		case 'dbClean':			return dbClean($vars);
