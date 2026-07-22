@@ -43,7 +43,11 @@ if ($server['show_memory_usage']) //local setting
    }
  }
 
-echo round((utime()-$start_time)/1000).' ms';
+// utime() and $start_time come from sc.php; skip if this file was hit directly.
+if (function_exists('utime') && isset($start_time))
+{
+	echo round((utime()-$start_time)/1000).' ms';
+}
 ?>
 </div>
 </form>
