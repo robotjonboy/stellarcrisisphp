@@ -227,6 +227,7 @@ function buildScoutingReport($series, $game, $system, $recipient)
 				'</table>';
 		//end of $report
 		
+	$ships = '';
 	if (count($ship_inventory))
 	{
 		$lines = array();
