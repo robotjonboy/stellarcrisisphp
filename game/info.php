@@ -52,7 +52,7 @@ function infoScreen($vars)
 		<th colspan=6 style="text-align: center;">
 			<div class=tableTitle>Game Information</div>
 			<div style="font-size: 8pt; margin-bottom: 10pt;">
-				<a href="#" onClick="window.open('sc.php?seriesParameters=<?php echo $series['id']; ?>','seriesParameters<?php echo $series['id']; ?>','height=500,width=600,scrollbars=yes');return false;">Series parameters</a>
+				<a href="sc.php?seriesParameters=<?php echo $series['id']; ?>">Series parameters</a>
 			</div>
 		</th>
 	</tr>

@@ -34,12 +34,9 @@ function gameList($vars)
 		{
 		$game = getGameByID($row['game_id']);
 
-		$popup = 'onClick="window.open(\'sc.php?seriesParameters='.$row['id'].'\',\'seriesParameters'.$row['id'].'\',\'height=500,width=600,scrollbars=yes\')"';
 		$series_description_link = '<a style="text-decoration: none; 
 										color: red;" 
-										href="javascript:void(0)" '.
-										$popup.
-									'>'.
+										href="sc.php?seriesParameters='.$row['id'].'">'.
 									$row['name'].
 									'</a>';
 									($row['creator'] != 'admin' ? 
@@ -865,32 +862,79 @@ function sendMessage_processing($vars)
 {
 	global $authenticated;
 	
-	if ($authenticated)
+	if (!$authenticated)
+		return loginFailed('Identity check failed.');
+
+	$empire = getEmpire($vars['name']);
+	$vars['empire_data'] = $empire;
+
+	if (isset($vars['cancelInstantMessage']))
 		{
-		$header_args = array();
-		$header_args['sender'] = $vars['name'];
-		$header_args['type'] = 'instant';
-		$header_args['time'] = time();
-			
-		$message = '<table width=50% border=0 cellspacing=0 cellpadding=0 style="margin-left: auto; margin-right: auto;">'.
-				   '<tr><td>'.
-				   messageHeader($header_args).
-				   htmlentities($vars['message']).
-				   '</td></tr></table>';
-
-		$recipient = getEmpire($vars['recipient']);
-
-		$values = array();
-		$values[] = 'time = '.time();
-		$values[] = 'sender = "'.$vars['name'].'"';
-		$values[] = 'empire_id = "'.$recipient['id'].'"';
-		$values[] = 'text = "'.addslashes($message).'"';
-		$values[] = 'type = "instant"';
-		
-		sc_query('INSERT INTO messages SET '.implode(',', $values));
+		$vars['page'] = 'gameList';
+		return gameList($vars);
 		}
 
-	echo '<body onLoad="window.close()">';
+	if (!isset($vars['sendInstantMessage']))
+		return instantMessageCompose($vars);
+
+	$message_text = isset($vars['message']) ? trim($vars['message']) : '';
+	if ($message_text === '')
+		{
+		sendEmpireMessage($empire, 'Message was empty; nothing sent.');
+		return instantMessageCompose($vars);
+		}
+
+	$header_args = array();
+	$header_args['sender'] = $vars['name'];
+	$header_args['type'] = 'instant';
+	$header_args['time'] = time();
+		
+	$message = '<table width=50% border=0 cellspacing=0 cellpadding=0 style="margin-left: auto; margin-right: auto;">'.
+			   '<tr><td>'.
+			   messageHeader($header_args).
+			   htmlentities($message_text).
+			   '</td></tr></table>';
+
+	$recipient = getEmpire($vars['recipient']);
+
+	$values = array();
+	$values[] = 'time = '.time();
+	$values[] = 'sender = "'.$vars['name'].'"';
+	$values[] = 'empire_id = "'.$recipient['id'].'"';
+	$values[] = 'text = "'.addslashes($message).'"';
+	$values[] = 'type = "instant"';
+	
+	sc_query('INSERT INTO messages SET '.implode(',', $values));
+
+	sendEmpireMessage($empire, 'Message sent to '.$vars['recipient'].'.');
+	$vars['page'] = 'gameList';
+	return gameList($vars);
+}
+
+#----------------------------------------------------------------------------------------------------------------------#
+
+function instantMessageCompose($vars)
+{
+	$empire = isset($vars['empire_data']) ? $vars['empire_data'] : getEmpire($vars['name']);
+	$recipient = isset($vars['recipient']) ? $vars['recipient'] : '';
+
+	standardHeader('Send Message', $empire);
+?>
+<div class=pageTitle><?php echo htmlspecialchars($vars['name']); ?>: Send Message</div>
+<img class=spacerule src="images/spacerule.jpg" width="100%" height=10 alt="spacerule.jpg">
+<input type=hidden name="name" value="<?php echo htmlspecialchars($vars['name']); ?>">
+<input type=hidden name="pass" value="<?php echo htmlspecialchars($vars['pass']); ?>">
+<input type=hidden name="section" value="main">
+<input type=hidden name="page" value="instantMessage">
+<input type=hidden name="recipient" value="<?php echo htmlspecialchars($recipient); ?>">
+<div class=center>You will send the following message to <b><?php echo htmlspecialchars($recipient); ?></b>:</div>
+<div class=center style="margin-top: 10pt;"><textarea class="fluidTextarea" name=message rows=8 cols=60></textarea></div>
+<div class="buttonBar" style="margin-top: 10pt;">
+	<input type=submit name=sendInstantMessage value="Send">
+	<input type=submit name=cancelInstantMessage value="Cancel">
+</div>
+<?php
+	footer();
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -927,9 +971,7 @@ function seriesDescription($series)
 	else
 		$average_resources = $series['average_resources'].' average resources';
 
-	$description = '<tr><th width=150 style="text-align: left; color: red;"><a style="text-decoration: none; color: red;" href="javascript:void(0)" '.
-				   'onClick="window.open(\'sc.php?seriesParameters='.$series['id'].'\',\'seriesParameters'.$series['id'].'\','.
-				   '\'height=500,width=600,scrollbars=yes\')">'.$series['name'].'</a>'.
+	$description = '<tr><th width=150 style="text-align: left; color: red;"><a style="text-decoration: none; color: red;" href="sc.php?seriesParameters='.$series['id'].'">'.$series['name'].'</a>'.
 				   ($series['creator'] != 'admin' ? '<div style="font-size: 7pt;">Created by '.$series['creator'].'</div>' : '').'</th>'.
 				   '<td colspan=5 style="text-align: left;">'.($series['team_game'] ? '<span class=green><b>Team game.</b></span> ' : '').
 				   ($series['diplomacy'] == 6 ? '<span class=blue><b>Shared HQ.</b></span> ' : '').

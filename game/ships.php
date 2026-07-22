@@ -40,14 +40,14 @@ function shipsScreen($vars)
 		$next_br = number_format($next_br, 3, '.', '');
 		$current_br = ($ship['orders'] == 'build' ? '---' : '<span style="color: '.$current_brcolor.';">'.number_format($ship['br'], 3, '.', '').'</span>');
 
-    	$row = '<tr class=center>'.
-			   '<td><input type=text name="ship_name['.$ship['id'].']" value="'.stripslashes($ship['name']).'" size=15 maxlength=20></td>'.
-			   '<td>'.$current_br.'</td>'.
-			   '<td><span style="color: '.$next_brcolor.';">'.$next_br.'</span></td>'.
-			   '<td>'.number_format($ship['max_br'], 1, '.', '').'</td>'.
-			   '<td>'.xlateToLocal($ship['location']).'</td>'.
-			   '<td><select name="ship_orders['.$ship['id'].']">'.$orders.'</select></td>'.
-			   '<td>'.((array_key_exists('morpher', $ship) && $ship['morpher']) ? '<i>'.$ship['type'].'</i>' : $ship['type']).'</td>'.
+    	$row = '<tr class="center shipRow">'.
+			   '<td data-label="Name"><input type=text name="ship_name['.$ship['id'].']" value="'.stripslashes($ship['name']).'" size=15 maxlength=20></td>'.
+			   '<td data-label="Current BR">'.$current_br.'</td>'.
+			   '<td data-label="Next BR"><span style="color: '.$next_brcolor.';">'.$next_br.'</span></td>'.
+			   '<td data-label="Max BR">'.number_format($ship['max_br'], 1, '.', '').'</td>'.
+			   '<td data-label="Location">'.xlateToLocal($ship['location']).'</td>'.
+			   '<td data-label="Orders"><select name="ship_orders['.$ship['id'].']">'.$orders.'</select></td>'.
+			   '<td data-label="Type">'.((array_key_exists('morpher', $ship) && $ship['morpher']) ? '<i>'.$ship['type'].'</i>' : $ship['type']).'</td>'.
 			   '</tr>';
 
 		if ($ship['orders'] == 'build')
@@ -148,14 +148,14 @@ function shipsScreen($vars)
 		$select_ships = sc_query('SELECT type, COUNT(*) as count FROM ships WHERE fleet_id = '.$fleet['id'].' GROUP BY type');
 		while ($row = $select_ships->fetch_assoc()) $ship_inventory[$row['type']] = $row['count'];
 		
-		$fleets .= '<tr class=center>'.
-				   '<td><input type=text name="fleet_name['.$fleet['id'].']" value="'.stripslashes($fleet['name']).'" size=15 maxlength=20></td>'.
-				   '<td><span style="color: '.$current_brcolor.';">'.$fleetStrength.'</span></td>'.
-				   '<td><span style="color: '.$next_brcolor.';">'.$fleetNextStrength.'</span></td>'.
-				   '<td>'.$fleetMaxStrength.'</td>'.
-				   '<td>'.xlateToLocal($fleet['location']).'</td>'.
-				   '<td><select name="fleet_orders['.$fleet['id'].']">'.$fleet_orders.'</select></td>'.
-				   '<td>Fleet</td>'.
+		$fleets .= '<tr class="center shipRow">'.
+				   '<td data-label="Name"><input type=text name="fleet_name['.$fleet['id'].']" value="'.stripslashes($fleet['name']).'" size=15 maxlength=20></td>'.
+				   '<td data-label="Current BR"><span style="color: '.$current_brcolor.';">'.$fleetStrength.'</span></td>'.
+				   '<td data-label="Next BR"><span style="color: '.$next_brcolor.';">'.$fleetNextStrength.'</span></td>'.
+				   '<td data-label="Max BR">'.$fleetMaxStrength.'</td>'.
+				   '<td data-label="Location">'.xlateToLocal($fleet['location']).'</td>'.
+				   '<td data-label="Orders"><select name="fleet_orders['.$fleet['id'].']">'.$fleet_orders.'</select></td>'.
+				   '<td data-label="Type">Fleet</td>'.
 				   '</tr>';
 
 		if (count($ship_inventory))
@@ -171,7 +171,7 @@ function shipsScreen($vars)
 			$fleets .= '<tr><td></td><td colspan=5 align=left><span class=whiteBold>No ships</span></td></tr>';
 		}
 
-	$table = '<table width="100%"><tr><th>Name</th><th>Current BR</th><th>Next BR</th>'.
+	$table = '<table class="shipsTable" width="100%"><tr class="shipsTableHeader"><th>Name</th><th>Current BR</th><th>Next BR</th>'.
 			 '<th>Max BR</th><th>Location</th><th>Orders</th><th>Type</th></tr>'.$builds;
 
 	if ($builds and $ships)
@@ -434,7 +434,7 @@ function fleetsScreen($vars)
 			if ($select_ships->num_rows)
 				$ship_list = '<tr><th colspan=7 style="vertical-align: top;">'.
 							 '<img class=spaceruleThin style="margin-bottom: 5pt; margin-top: 5pt;" src="images/spacerule.jpg"></th></tr>'.
-							 '<tr><th>Ship Name</th><th>Current BR</th><th>Next BR</th><th>Max BR</th><th>Orders</th><th colspan=2>Type</th></tr>';
+							 '<tr class="shipsTableHeader"><th>Ship Name</th><th>Current BR</th><th>Next BR</th><th>Max BR</th><th>Orders</th><th colspan=2>Type</th></tr>';
 				 
 			while ($ship = $select_ships->fetch_assoc())
 				{
@@ -452,13 +452,13 @@ function fleetsScreen($vars)
 				$brcolor = brColor($ship['br'], $ship['max_br']);
 				$next_brcolor = brColor($next_br, $ship['max_br']);
 
-				$ship_list .= '<tr class=center>'.
-							  '<td><input type=text name="ship_name['.$ship['id'].']" value="'.stripslashes($ship['name']).'" size=15 maxlength=20></td>'.
-							  '<td><span style="color: '.$brcolor.';">'.number_format($ship['br'],  3, '.', '').'</span></td>'.
-							  '<td><span style="color: '.$next_brcolor.';">'.number_format($next_br,  3, '.', '').'</span></td>'.
-							  '<td>'.number_format($ship['max_br'], 3, '.', '').' </td>'.
-							  '<td><select name="ship_orders['.$ship['id'].']">'.$ship_orders.'</select></td>'.
-							  '<td colspan=2>'.$ship['type'].'</td></tr>';
+				$ship_list .= '<tr class="center shipRow">'.
+							  '<td data-label="Ship Name"><input type=text name="ship_name['.$ship['id'].']" value="'.stripslashes($ship['name']).'" size=15 maxlength=20></td>'.
+							  '<td data-label="Current BR"><span style="color: '.$brcolor.';">'.number_format($ship['br'],  3, '.', '').'</span></td>'.
+							  '<td data-label="Next BR"><span style="color: '.$next_brcolor.';">'.number_format($next_br,  3, '.', '').'</span></td>'.
+							  '<td data-label="Max BR">'.number_format($ship['max_br'], 3, '.', '').' </td>'.
+							  '<td data-label="Orders"><select name="ship_orders['.$ship['id'].']">'.$ship_orders.'</select></td>'.
+							  '<td data-label="Type" colspan=2>'.$ship['type'].'</td></tr>';
 
 				$ship_ids[] = $ship['id'];
 				}
@@ -510,33 +510,34 @@ function fleetsScreen($vars)
 		
 		ob_start();
 ?>
-<table width="100%" border=1>
+<table class="shipsTable fleetBlock" width="100%" border=1>
 	<tr class=center>
 		<td>
-			<table width="100%" border=0 cellpadding=0>
-				<tr>
+			<table class="shipsTable" width="100%" border=0 cellpadding=0>
+				<tr class="shipsTableHeader">
 					<th>Fleet Name</th>
 					<th>Current BR</th>
 					<th>Next BR</th>
 					<th>Max BR</th>
 					<th>Orders</th>
 					<th>Location</th>
-					<th rowspan=2>
+					<th></th>
+				</tr>
+				<tr class="center shipRow">
+					<td data-label="Fleet Name"><input type=text name="fleet_name[<?php echo $fleet['id']; ?>]" value="<?php echo stripslashes($fleet['name']); ?>" size=14 maxlength=20></td>
+					<td data-label="Current BR" style="color: <?php echo $brcolor; ?>;"><?php echo number_format($fleet_br, 3, '.', ''); ?></td>
+				   	<td data-label="Next BR" style="color: <?php echo $next_brcolor; ?>;"><?php echo number_format($fleet_nextbr, 3, '.', ''); ?></td>
+				   	<td data-label="Max BR"><?php echo number_format($fleet_maxbr, 3, '.', ''); ?></td>
+				   	<td data-label="Orders"><select name="fleet_orders[<?php echo $fleet['id']; ?>]"><?php echo $fleet_orders; ?></select></td>
+				   	<td data-label="Location"><?php echo ($system['annihilated'] ? 'Remains of ': '').$system['name'].' ('.xlateToLocal($system['coordinates']).')'; ?></td>
+					<td data-label="">
 <?php
 		if ($fleet['collapsed'])
 			echo '<input type=submit name="expand['.$fleet['id'].']" value="Expand">';
 		else
 			echo '<input type=submit name="collapse['.$fleet['id'].']" value="Collapse">';
 ?>
-					</th>
-				</tr>
-				<tr class=center>
-					<td><input type=text name="fleet_name[<?php echo $fleet['id']; ?>]" value="<?php echo stripslashes($fleet['name']); ?>" size=14 maxlength=20></td>
-					<td style="color: <?php echo $brcolor; ?>;"><?php echo number_format($fleet_br, 3, '.', ''); ?></td>
-				   	<td style="color: <?php echo $next_brcolor; ?>;"><?php echo number_format($fleet_nextbr, 3, '.', ''); ?></td>
-				   	<td><?php echo number_format($fleet_maxbr, 3, '.', ''); ?></td>
-				   	<td><select name="fleet_orders[<?php echo $fleet['id']; ?>]"><?php echo $fleet_orders; ?></select></td>
-				   	<td><?php echo ($system['annihilated'] ? 'Remains of ': '').$system['name'].' ('.xlateToLocal($system['coordinates']).')'; ?></td>
+					</td>
 				</tr>
 <?php
 		if ($ship_list) echo $ship_list;

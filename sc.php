@@ -168,6 +168,7 @@ function standardHeader($title, $empire = array())
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>SC <?php echo $server['version'].' @ '.$server['servername'].': '.$title; ?></title>
 	<script type="text/javascript">
 		var scServerName = '<?php echo $server['servername']; ?>';
@@ -206,7 +207,7 @@ function drawButtons($empire = array())
 {
 	global $server;
 	
-	echo '<div style="text-align: center; margin-top: 10pt;">'.
+	echo '<div class="buttonBar">'.
 		 '<input type=submit name=action value="Game List">'.
 		 '<input type=submit name=action value="Password Games">'.
 		 ($server['custom_series_allowed'] ? '<input type=submit name=action value="Custom Series">' : '').
@@ -261,11 +262,12 @@ function mainPage()
 
 <div>
 <img class=spacerule src="images/spacerule.jpg" width="100%">
-<table 	width="100%" 
+<table 	class="loginLayout"
+		width="100%" 
 		cellspacing=5 
 		style="margin-bottom: 10pt;">
 	<tr>
-		<td style=" width: 250pt;">
+		<td class="loginFormCell" style="width: 250pt;">
 			<table>
 				<tr>
 					<th style="text-align: right;">Empire Name:</th>
@@ -295,7 +297,7 @@ function mainPage()
 				</tr>
 			</table>
 		</td>
-		<th style="text-align: left; vertical-align: top;">
+		<th class="loginBlurbCell" style="text-align: left; vertical-align: top;">
 		Stellar Crisis is the web's first complete multi-player strategy game. 
 		Players from all over the world compete to build megalithic galactic empires, 
 		develop powerful new technologies, and fight pitched battles in far away star
@@ -1561,7 +1563,11 @@ function seriesParameters($series_id)
 	}
 
 ?></table>
+<div class="center" style="margin-top: 15pt;">
+	<input type="button" value="Back" onClick="history.back();">
+</div>
 <?php
+	footer();
 }
 
 #----------------------------------------------------------------------------------------------------------------------#

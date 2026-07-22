@@ -169,7 +169,7 @@ function mapScreen($vars)
 					$icon .= '"images/aliens/'.$icons[$system['owner']].'"';
 					}
 
-				$icon .= ' name="system:'.xlateToLocal($coordinates).'" height=40 width=40>';
+				$icon .= ' name="system:'.xlateToLocal($coordinates).'" class="mapIcon" height=40 width=40>';
 
 				if ($system['explored'] == 'yes')
 					{
@@ -246,7 +246,7 @@ function mapScreen($vars)
 	ratios($player);
 ?>
 <div class=messageBold>Click on a system for an up close view.</div>
-<div style="margin-top: 10pt;"><?php echo $map; ?></div>
+<div class="mapScroll" style="margin-top: 10pt;"><?php echo $map; ?></div>
 <?php
 	footer();
 }
@@ -370,7 +370,7 @@ function miniMapScreen($vars)
 					$image = 'images/aliens/'.$icon_cache[$system_owner].'';
 					}
 
-				$icon = '<input type=image src="'.$image.'" width=20 height=20 name="system:'.$local_coordinates.'">';
+				$icon = '<input type=image src="'.$image.'" class="mapIconMini" width=20 height=20 name="system:'.$local_coordinates.'">';
 				
 				// Cache results, again.
 				if (!array_key_exists($system_owner, $border_colors) || !$border_colors[$system_owner])
@@ -401,7 +401,7 @@ function miniMapScreen($vars)
 	ratios($player);
 ?>
 <div class=messageBold>Click on a system for an up close view.</div>
-<div style="margin-top: 10pt;">
+<div class="mapScroll" style="margin-top: 10pt;">
 <table border=0 cellpadding=0 cellspacing=1 style="text-align: center; font-size: 8pt; margin-left: auto; margin-right: auto;">
 <?php echo $map; ?>
 </table>

@@ -1,39 +1,51 @@
-function blabBox(sender, recipient, password)
+function ensureHiddenField(form, name, value)
 {
-	msgWin = window.open("", "instantMessage", "scrollbars=yes,status=no,toolbar=no,width=600,height=400");
+	var field = form[name];
+	if (!field)
+		{
+		field = document.createElement('input');
+		field.type = 'hidden';
+		field.name = name;
+		form.appendChild(field);
+		}
+	field.value = value;
+	return field;
+}
 
-	msgWin.document.open();
-	msgWin.document.writeln('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">');
-	msgWin.document.writeln('<html>');
-	msgWin.document.writeln('<head>');
-	msgWin.document.writeln('<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">');
-	msgWin.document.writeln('<title>SC ', scServerVersion, ' @ ', scServerName, ': Send Message</title>');
-	msgWin.document.writeln('<link REL=StyleSheet HREF="styles.css" TYPE="text/css"> ');
-	msgWin.document.writeln('</head>');
-	msgWin.document.writeln('<body>');
-	msgWin.document.writeln('<form method=post action="sc.php">');
-	msgWin.document.writeln('<input type=hidden name=section value="main">');
-	msgWin.document.writeln('<input type=hidden name=page value="instantMessage">');
-	msgWin.document.writeln('<input type=hidden name=recipient value="', recipient, '">');
-	msgWin.document.writeln('<input type=hidden name=name value="', sender, '">');
-	msgWin.document.writeln('<input type=hidden name=pass value="', password, '">');
-	msgWin.document.writeln('<div class=pageTitle>', sender, ': Send Message</div>');
-	msgWin.document.writeln('<img class=spacerule src="images/spacerule.jpg" alt="spacerule.jpg">');
-	msgWin.document.writeln('<div class=center>You will send the following message to <b>', recipient, '</b>:</div>');
-	msgWin.document.writeln('<div class=center style="margin-top: 10pt;"><textarea name=message rows=8 cols=60></textarea></div>');
-	msgWin.document.writeln('<div class=center style="margin-top: 10pt;"><input type=submit name=sendInstantMessage value="Send"></div>');
-	msgWin.document.writeln('</form></body></html>');
-	msgWin.document.close();
+//-------------------------------------------------------------------------------------------//
+
+function openInstantMessage(recipient)
+{
+	var form = document.forms[0];
+	if (!form)
+		return;
+
+	ensureHiddenField(form, 'recipient', recipient);
+	if (form.page)
+		form.page.value = 'instantMessage';
+	else
+		ensureHiddenField(form, 'page', 'instantMessage');
+
+	if (form.section)
+		form.section.value = 'main';
+	else
+		ensureHiddenField(form, 'section', 'main');
+
+	form.submit();
 }
 
 //-------------------------------------------------------------------------------------------//
 
 function blab()
 {
-	if (document.forms[0].onlinePlayers.value != 0)
+	var form = document.forms[0];
+	if (!form || !form.onlinePlayers)
+		return;
+
+	if (form.onlinePlayers.selectedIndex > 0)
 		{
-		blabBox( document.forms[0].name.value, document.forms[0].onlinePlayers.value, document.forms[0].pass.value);
-		document.forms[0].onlinePlayers.selectedIndex = 0;
+		openInstantMessage(form.onlinePlayers.value);
+		form.onlinePlayers.selectedIndex = 0;
 		}
 	else
 		alert('Select a player first.');
@@ -43,7 +55,7 @@ function blab()
 
 function blabReply(recipient)
 {
-	blabBox(document.forms[0].name.value, recipient, document.forms[0].pass.value);
+	openInstantMessage(recipient);
 }
 
 //-------------------------------------------------------------------------------------------//
@@ -214,3 +226,45 @@ function showHidePlayers(element)
 
 		}
 }
+//-------------------------------------------------------------------------------------------//
+// Player listing tooltips: tap/click to toggle (hover still works via CSS).
+
+function closePlayerListingTooltips()
+{
+	var openLinks = document.querySelectorAll('.playerListing a.tooltipOpen');
+	for (var i = 0; i < openLinks.length; i++)
+		openLinks[i].className = openLinks[i].className.replace(/\btooltipOpen\b/g, '').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+}
+
+function initPlayerListingTooltips()
+{
+	if (!document.addEventListener || !document.querySelectorAll)
+		return;
+
+	document.addEventListener('click', function(event)
+		{
+		var target = event.target;
+		while (target && target !== document)
+			{
+			if (target.tagName && target.tagName.toLowerCase() === 'a' &&
+				target.parentNode && (' ' + target.parentNode.className + ' ').indexOf(' playerListing ') !== -1)
+				break;
+			target = target.parentNode;
+			}
+
+		if (target && target !== document && target.tagName && target.tagName.toLowerCase() === 'a')
+			{
+			event.preventDefault();
+			var alreadyOpen = (' ' + target.className + ' ').indexOf(' tooltipOpen ') !== -1;
+			closePlayerListingTooltips();
+			if (!alreadyOpen)
+				target.className = (target.className ? target.className + ' ' : '') + 'tooltipOpen';
+			return;
+			}
+
+		closePlayerListingTooltips();
+		});
+}
+
+if (document.addEventListener)
+	document.addEventListener('DOMContentLoaded', initPlayerListingTooltips);

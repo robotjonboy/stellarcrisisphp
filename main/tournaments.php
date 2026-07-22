@@ -50,8 +50,7 @@ for ($i = 0; $i < $numberOfTournaments; $i++)
 	echo '<tr><td><input type=submit name="view[' . $tourneys[$i]['id'] . ']" value="View"/></td>';
 
 	echo '<td>' . $tourneys[$i]['name'] . '</td>';
-	echo '<td><a style="text-decoration: none; color: red;" href="javascript:void(0)" ';
-	echo 'onClick="window.open(\'sc.php?seriesParameters=' . $tourneys[$i]['series'] . '\',\'seriesParameters2\',\'height=500,width=600,scrollbars=yes\')">' . $tourneys[$i]['seriesname'] . '</a></td>';
+	echo '<td><a style="text-decoration: none; color: red;" href="sc.php?seriesParameters=' . $tourneys[$i]['series'] . '">' . $tourneys[$i]['seriesname'] . '</a></td>';
 	echo '<td>' . $tourneys[$i]['description'] . '</td>';
 	echo '<td>' . date("F j, Y, g:i a", $tourneys[$i]['starttime']) . '</td><td>';
 	

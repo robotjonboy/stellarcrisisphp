@@ -455,6 +455,7 @@ function gameHeader($vars, $title)
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html><head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel=StyleSheet href="styles.css" type="text/css">
 <script src="sc.js" type="text/javascript"></script>
 <?php
@@ -491,13 +492,15 @@ echo '<body'.($empire['auto_update'] ? ' onLoad="setTimeout('.$gotoDoc.','.($tim
 		echo '<div style="text-align: center; margin-top: 5pt;">'.$next_update.'</div>';
 
 	// Stupid line breaks that put spaces between the buttons... we need to condense.
-	echo ($password_button ? '<div style="text-align: center; margin-top: 5pt;"">'.$password_button.'</div>' : '').
-		 '<div style="text-align: center; margin-top: 5pt;""><input type=submit name=gameAction value=Info><input type=submit name=gameAction value=Tech>'.
+	echo ($password_button ? '<div class="buttonBar" style="margin-top: 5pt;">'.$password_button.'</div>' : '').
+		 '<div class="buttonBar" style="margin-top: 5pt;"><input type=submit name=gameAction value=Info><input type=submit name=gameAction value=Tech>'.
 		 '<input type=submit name=gameAction value=Ships><input type=submit name=gameAction value=Fleets>'.
 		 '<input type=submit name=gameAction value=Build>'.$map_buttons.$mini_map.
 		 '<input type=submit name=gameAction value=Diplomacy><input type=submit name=gameAction value="Message History">'.
-		 '<input type=submit name="gameAction" value="Notes">'.$end_turn_button.$quit_button.$exit_button.(isset($on_hold_button) ? $on_hold_button : '').
-		 (isset($invite_button) && $invite_button ? '<div style="text-align: center; margin-top: 5pt;"">'.$invite_button.'</div>' : '').'</div>'.
+		 '<input type=submit name="gameAction" value="Notes">'.
+		 '<span class="navDangerGroup">'.$end_turn_button.$quit_button.'</span>'.
+		 $exit_button.(isset($on_hold_button) ? $on_hold_button : '').'</div>'.
+		 (isset($invite_button) && $invite_button ? '<div class="buttonBar" style="margin-top: 5pt;">'.$invite_button.'</div>' : '').
 		 (isset($missive) ? $missive : '').'<img class=spacerule src="images/spacerule.jpg" width="100%" height=10 alt="spacerule.jpg">'.(isset($missive_history) ? $missive_history : '');
 }
 
@@ -525,7 +528,7 @@ function diplomacyString($status)
 function ratios($player)
 {
 ?>
-<table width="100%">
+<table class="ratiosTable" width="100%">
 	<tr>
 		<td style="text-align: right; color: white;">Maintenance Ratio:</td>
 		<td><?php echo ($player['mineral_ratio'] ? number_format($player['mineral_ratio'], 5, '.', '') : '--'); ?></td>

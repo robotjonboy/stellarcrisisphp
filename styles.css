@@ -223,12 +223,22 @@ img { border: 0pt; }
 	cursor: help;
 	}
 
+.playerListing a:focus,
+.playerListing a.tooltipOpen
+	{
+	color: red;
+	cursor: help;
+	outline: none;
+	}
+
 .playerListing a span
 	{
 	display: none;
 	}
 
-.playerListing a:hover span
+.playerListing a:hover span,
+.playerListing a:focus span,
+.playerListing a.tooltipOpen span
 	{
 	display: block;
 	
@@ -302,4 +312,200 @@ div.motd_text
 	padding-left: 10pt;
 	
 	font-size: 8pt;
+	}
+
+/* ---- Shared chrome helpers (desktop-safe defaults) ---- */
+
+.buttonBar
+	{
+	text-align: center;
+	margin-top: 10pt;
+	}
+
+.navDangerGroup
+	{
+	display: inline;
+	}
+
+.mapScroll
+	{
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	max-width: 100%;
+	}
+
+.fluidTextarea
+	{
+	max-width: 95%;
+	box-sizing: border-box;
+	}
+
+/* ---- Mobile usability (Package 3; breakpoint ~768px) ---- */
+
+@media screen and (max-width: 768px)
+	{
+	.pageTitle
+		{
+		font-size: 18pt;
+		}
+
+	.requestStats,
+	.smallText,
+	.playerListing,
+	div.motdBox,
+	div.motd_text
+		{
+		font-size: 9pt;
+		}
+
+	.messageText,
+	.messageTextPrivate,
+	.messageTextTeam
+		{
+		white-space: pre-wrap;
+		word-wrap: break-word;
+		}
+
+	.buttonBar
+		{
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		align-items: center;
+		gap: 6px;
+		}
+
+	.buttonBar input[type=submit],
+	.buttonBar input[type=button]
+		{
+		min-height: 36px;
+		padding: 6px 10px;
+		margin: 0;
+		}
+
+	.navDangerGroup
+		{
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 8px;
+		flex-basis: 100%;
+		margin-top: 10px;
+		padding-top: 8px;
+		border-top: 1px solid #446;
+		}
+
+	.navDangerGroup input[type=submit]
+		{
+		min-height: 40px;
+		padding: 8px 14px;
+		}
+
+	input[type=text],
+	input[type=password],
+	select,
+	textarea
+		{
+		font-size: 16px;
+		max-width: 100%;
+		box-sizing: border-box;
+		}
+
+	table.loginLayout,
+	table.loginLayout tbody,
+	table.loginLayout tr,
+	table.loginLayout td.loginFormCell,
+	table.loginLayout th.loginBlurbCell
+		{
+		display: block;
+		width: 100% !important;
+		}
+
+	table.loginLayout td.loginFormCell
+		{
+		margin-bottom: 10pt;
+		}
+
+	table.ratiosTable,
+	table.ratiosTable tbody,
+	table.ratiosTable tr
+		{
+		display: block;
+		width: 100%;
+		}
+
+	table.ratiosTable td
+		{
+		display: inline-block;
+		padding: 2px 4px;
+		}
+
+	table.ratiosTable td:nth-child(odd)
+		{
+		min-width: 8em;
+		}
+
+	input.mapIcon
+		{
+		width: 28px !important;
+		height: 28px !important;
+		}
+
+	input.mapIconMini
+		{
+		width: 16px !important;
+		height: 16px !important;
+		}
+
+	.playerListing a:hover span,
+	.playerListing a:focus span,
+	.playerListing a.tooltipOpen span
+		{
+		left: 0;
+		right: auto;
+		max-width: 90vw;
+		box-sizing: border-box;
+		}
+
+	table.shipsTable tr.shipsTableHeader
+		{
+		display: none;
+		}
+
+	table.shipsTable tr.shipRow
+		{
+		display: block;
+		margin: 0 0 12px 0;
+		padding: 8px;
+		border: 1px solid #446;
+		text-align: left;
+		}
+
+	table.shipsTable tr.shipRow td
+		{
+		display: block;
+		text-align: left !important;
+		padding: 4px 0;
+		}
+
+	table.shipsTable tr.shipRow td[data-label]:before
+		{
+		content: attr(data-label) ": ";
+		color: white;
+		font-weight: bold;
+		display: inline-block;
+		min-width: 6.5em;
+		}
+
+	table.shipsTable tr.shipRow td select,
+	table.shipsTable tr.shipRow td input[type=text]
+		{
+		width: 100%;
+		max-width: 100%;
+		}
+
+	table.fleetBlock
+		{
+		margin-bottom: 12px;
+		}
 	}
