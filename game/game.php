@@ -147,7 +147,24 @@ function gameAction($vars)
    		case 'Ships':		if (shipsScreen_processing($vars)) $vars['gameAction'] = 'Ships';		break;
 		case 'Fleets':		if (fleetsScreen_processing($vars)) $vars['gameAction'] = 'Fleets';		break;
 		case 'Build':		if (buildScreen_processing($vars)) $vars['gameAction'] = 'Build';		break;
-		case 'Systems':		systemsScreen_processing($vars);						break;
+		case 'Systems':
+			if (isset($vars['gameAction']) && $vars['gameAction'] == 'All Systems')
+				{
+				systemsScreen_processing($vars);
+				unset($vars['zoomed_planet']);
+				$vars['gameAction'] = 'Systems';
+				}
+			else
+				{
+				systemsScreen_processing($vars);
+				// Neighbor click on the local map (image input), same as Map → Systems.
+				if (mapScreen_processing($vars))
+					$vars['gameAction'] = 'Systems';
+				else if (!isset($vars['gameAction']) || $vars['gameAction'] == ''
+					|| $vars['gameAction'] == 'Update System')
+					$vars['gameAction'] = 'Systems';
+				}
+			break;
 		case 'Map':			if (mapScreen_processing($vars)) $vars['gameAction'] = 'Systems';		break;
 		case 'Mini-Map':	if (mapScreen_processing($vars)) $vars['gameAction'] = 'Map';			break;
 		case 'Diplomacy':	if (diplomacyScreen_processing($vars)) $vars['gameAction'] = 'Diplomacy';	break;
@@ -198,7 +215,9 @@ function gameAction($vars)
 	 	case 'Ships':				return shipsScreen($vars);
    		case 'Fleets':				return fleetsScreen($vars);
 	 	case 'Build':				return buildScreen($vars);
-	 	case 'Systems':				if ($map_allowed) return systemsScreen($vars);
+	 	case 'Systems':
+		case 'All Systems':
+		case 'Update System':	if ($map_allowed) return systemsScreen($vars);
 		case 'Scouting Report':		if ($map_allowed) return scoutingScreen($vars);
 		case 'Full Scouting Report':	
 			// redraw system list with checked boxes

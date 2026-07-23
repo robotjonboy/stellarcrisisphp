@@ -334,6 +334,68 @@ div.motd_text
 	max-width: 100%;
 	}
 
+.localMapWrap
+	{
+	text-align: center;
+	margin: 8pt auto 4pt auto;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	max-width: 100%;
+	}
+
+table.localMap
+	{
+	margin-left: auto;
+	margin-right: auto;
+	font-size: 8pt;
+	}
+
+td.localMapCell
+	{
+	text-align: center;
+	vertical-align: top;
+	padding: 2px;
+	}
+
+td.localMapEmpty
+	{
+	min-width: 48px;
+	min-height: 48px;
+	}
+
+table.localMapSystem
+	{
+	margin-left: auto;
+	margin-right: auto;
+	font-size: 8pt;
+	}
+
+.localMapActions
+	{
+	text-align: center;
+	margin: 0 0 8pt 0;
+	}
+
+.localOrders
+	{
+	margin: 12pt auto 0 auto;
+	max-width: 100%;
+	}
+
+.localOrdersTitle
+	{
+	text-align: center;
+	font-weight: bold;
+	color: white;
+	margin-bottom: 6pt;
+	}
+
+.localOrdersActions
+	{
+	text-align: center;
+	margin-top: 8pt;
+	}
+
 .fluidTextarea
 	{
 	max-width: 95%;
@@ -449,6 +511,14 @@ div.motd_text
 		{
 		width: 28px !important;
 		height: 28px !important;
+		}
+
+	/* System-screen 3×3 keeps full-map icon size; room exists on phones. */
+	table.localMap input.mapIcon,
+	table.localMap img.mapIcon
+		{
+		width: 40px !important;
+		height: 40px !important;
 		}
 
 	input.mapIconMini
