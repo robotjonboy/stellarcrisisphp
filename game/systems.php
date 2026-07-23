@@ -736,14 +736,32 @@ function localNeighborhoodMap($vars, $center_local)
 	$map = '<div class="localMapWrap"><table class="localMap" border=0 cellpadding=0 cellspacing=2>'.
 		   '<tr><td></td>';
 
+	// Northward stubs from the top edge (links only; no systems beyond the 3×3).
 	for ($x = $x_min; $x <= $x_max; $x++)
-		$map .= '<th></th><td></td>';
+		{
+		$here = $x.','.$y_max;
+		$north = $x.','.($y_max+1);
+		$map .= '<th>';
+		if (array_key_exists($here, $jump_presence)
+			&& array_key_exists($north, $jump_presence[$here])
+			&& $jump_presence[$here][$north])
+			$map .= '<img src="images/vert.gif" height=10 width=1 alt="">';
+		$map .= '</th><td></td>';
+		}
 
 	$map .= '</tr>';
 
 	for ($y = $y_max; $y >= $y_min; $y--)
 		{
-		$map .= '<tr><td></td>';
+		$map .= '<tr><td>';
+		// Westward stub from the left edge.
+		$here = $x_min.','.$y;
+		$west = ($x_min-1).','.$y;
+		if (array_key_exists($here, $jump_presence)
+			&& array_key_exists($west, $jump_presence[$here])
+			&& $jump_presence[$here][$west])
+			$map .= '<img src="images/horz.gif" width=10 height=1 alt="">';
+		$map .= '</td>';
 
 		for ($x = $x_min; $x <= $x_max; $x++)
 			{
@@ -830,8 +848,8 @@ function localNeighborhoodMap($vars, $center_local)
 
 			$map .= '<td>';
 			$east = ($x+1).','.$y;
-			if ($x < $x_max
-				&& array_key_exists($coordinates, $jump_presence)
+			// In-grid east links, plus eastward stubs from the right edge.
+			if (array_key_exists($coordinates, $jump_presence)
 				&& array_key_exists($east, $jump_presence[$coordinates])
 				&& $jump_presence[$coordinates][$east])
 				$map .= '<img src="images/horz.gif" width=10 height=1 alt="">';
@@ -845,8 +863,8 @@ function localNeighborhoodMap($vars, $center_local)
 			$here = $x.','.$y;
 			$south = $x.','.($y-1);
 			$map .= '<th>';
-			if ($y > $y_min
-				&& array_key_exists($here, $jump_presence)
+			// In-grid south links, plus southward stubs from the bottom edge.
+			if (array_key_exists($here, $jump_presence)
 				&& array_key_exists($south, $jump_presence[$here])
 				&& $jump_presence[$here][$south])
 				$map .= '<img src="images/vert.gif" height=10 width=1 alt="">';
