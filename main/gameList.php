@@ -38,9 +38,9 @@ function gameList($vars)
 										color: red;" 
 										href="sc.php?seriesParameters='.$row['id'].'">'.
 									$row['name'].
-									'</a>';
-									($row['creator'] != 'admin' ? 
-				'<div style="font-size: 7pt;">Created by '.$row['creator'].'</div>' : '');
+									'</a>'.
+									(strlen(trim($row['creator'] ?? '')) && strcasecmp(trim($row['creator']), 'admin') !== 0 ? 
+				'<div style="font-size: 7pt;">Created by '.htmlspecialchars($row['creator']).'</div>' : '');
 	
 		$player_listing = '<span class="playerListing">'.
 						   '<a href="javascript:void(0)">'.
@@ -972,7 +972,7 @@ function seriesDescription($series)
 		$average_resources = $series['average_resources'].' average resources';
 
 	$description = '<tr><th width=150 style="text-align: left; color: red;"><a style="text-decoration: none; color: red;" href="sc.php?seriesParameters='.$series['id'].'">'.$series['name'].'</a>'.
-				   ($series['creator'] != 'admin' ? '<div style="font-size: 7pt;">Created by '.$series['creator'].'</div>' : '').'</th>'.
+				   (strlen(trim($series['creator'] ?? '')) && strcasecmp(trim($series['creator']), 'admin') !== 0 ? '<div style="font-size: 7pt;">Created by '.htmlspecialchars($series['creator']).'</div>' : '').'</th>'.
 				   '<td colspan=5 style="text-align: left;">'.($series['team_game'] ? '<span class=green><b>Team game.</b></span> ' : '').
 				   ($series['diplomacy'] == 6 ? '<span class=blue><b>Shared HQ.</b></span> ' : '').
 					 ($series['visible_builds'] ? '<span class=blue><b>Visible Builds.</b></span> ' : '').

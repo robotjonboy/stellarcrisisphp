@@ -632,22 +632,30 @@ function techsWaiting($vars)
 
 	if ($vars['player_data']['tech_level'] < 1)
 		return 0;
+
+	$game = $vars['game_data'] ?? null;
+	$series = $vars['series_data'] ?? null;
+	$player = $vars['player_data'];
+
+	$developed_tech_count = count(array_filter(explode(' ', trim($player['techs']))));
+
+	if ($game && ($game['game_type'] ?? '') === 'sc3' && !empty($game['ship_type_options']))
+	{
+		// Ensure series caps available for restricted filtering
+		if ($series)
+			$game['max_restricted_techs'] = $series['max_restricted_techs'] ?? 0;
+		$undeveloped_tech_count = count(sc3DevelopableTechs($game, $player));
+	}
 	else
-		{
-		$developed_tech_count = count(explode(' ', $vars['player_data']['techs']));
-		
+	{
 		$allowed_techs = array_keys($ship_types);
+		$undeveloped_tech_count = (count($allowed_techs) - $developed_tech_count);
+	}
 
-		// This is the maximum we can display.
-		$undeveloped_tech_count = (count($allowed_techs)-$developed_tech_count);
+	$maximum_tech_count = (floor(sqrt($player['tech_level'])) + 3);
+	$techs_available = $maximum_tech_count - $developed_tech_count;
 
-		// The maximum number of techs we can have at this level.
-		$maximum_tech_count = (floor(sqrt($vars['player_data']['tech_level']))+3);
-		
-		$techs_available = $maximum_tech_count-$developed_tech_count;
-
-		return min($techs_available, $undeveloped_tech_count);
-		}
+	return min(max(0, $techs_available), max(0, $undeveloped_tech_count));
 }
 
 #----------------------------------------------------------------------------------------------------------------------#

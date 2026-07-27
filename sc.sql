@@ -307,6 +307,7 @@ CREATE TABLE IF NOT EXISTS `players` (
   `tech_level` float NOT NULL DEFAULT '0',
   `techs` text NOT NULL,
   `traded_in` smallint(6) NOT NULL DEFAULT '0',
+  `restricted_techs` smallint(6) NOT NULL DEFAULT '0',
   PRIMARY KEY (`series_id`,`game_number`,`name`),
   UNIQUE KEY `id` (`id`),
   KEY `game_id` (`game_id`,`name`)
@@ -372,6 +373,18 @@ CREATE TABLE IF NOT EXISTS `series` (
   `update_time` int(11) NOT NULL DEFAULT '0',
   `visible_builds` enum('1','0') NOT NULL DEFAULT '0',
   `weekend_updates` enum('1','0') NOT NULL DEFAULT '1',
+  `max_ag_ratio` float NOT NULL DEFAULT 100,
+  `max_ships` smallint(6) NOT NULL DEFAULT 0,
+  `initial_tech` float NOT NULL DEFAULT 1.0,
+  `hw_ag` smallint(6) NOT NULL DEFAULT 100,
+  `hw_min` smallint(6) NOT NULL DEFAULT 100,
+  `hw_fuel` smallint(6) NOT NULL DEFAULT 100,
+  `min_pop_to_build` smallint(6) NOT NULL DEFAULT 50,
+  `planet_create_cost` smallint(6) NOT NULL DEFAULT 90,
+  `max_planets` int(11) NOT NULL DEFAULT 1000,
+  `max_restricted_techs` smallint(6) NOT NULL DEFAULT 0,
+  `max_trade_ins` smallint(6) NOT NULL DEFAULT 0,
+  `max_allies` tinyint(3) unsigned DEFAULT NULL,
   PRIMARY KEY (`name`),
   UNIQUE KEY `id` (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
@@ -421,6 +434,7 @@ CREATE TABLE IF NOT EXISTS `ships` (
   `player_id` int(11) NOT NULL DEFAULT '0',
   `series_id` int(11) NOT NULL DEFAULT '0',
   `type` varchar(20) NOT NULL DEFAULT '',
+  `morpher` enum('1','0') NOT NULL DEFAULT '0',
   UNIQUE KEY `id` (`id`),
   KEY `series_id` (`series_id`,`game_number`),
   KEY `owner` (`game_id`,`owner`),
@@ -460,7 +474,10 @@ INSERT INTO `ship_types` (`id`, `type`, `mobile`, `version`) VALUES
 (10, 'Minefield', '0', 'v2'),
 (11, 'Minesweeper', '1', 'v2'),
 (12, 'Engineer', '1', 'v2'),
-(13, 'Jumpgate', '0', 'v3');
+(13, 'Jumpgate', '0', 'v3'),
+(14, 'Carrier', '1', 'v3'),
+(15, 'Builder', '1', 'v3'),
+(16, 'Morpher', '1', 'v3');
 
 -- --------------------------------------------------------
 

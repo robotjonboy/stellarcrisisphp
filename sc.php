@@ -57,6 +57,7 @@ require('debug.php');
 require('sql.php');
 require('admin/admin.php');
 require('ship_types.php');  //contains global $ship_types array
+require('sc3.php');
 require('history.php');
 require('main/main.php');
 require('game/game.php');
@@ -675,7 +676,7 @@ function spawnGame($series_name)
 		$values[] = 'last_update  = '.$last_update;
 		$values[] = 'update_time  = '.$series['update_time'];
 		$values[] = 'weekend_updates  = "'.$series['weekend_updates'].'"';
-		$values[] = 'max_allies  = '.((array_key_exists('max_allies', $series) && $series['max_allies']) ? $series['max_allies'] : 'NULL');
+		$values[] = 'max_allies  = '.((array_key_exists('max_allies', $series) && $series['max_allies'] !== null && $series['max_allies'] !== '') ? intval($series['max_allies']) : 'NULL');
 		$values[] = 'game_type = \''.$series['game_type'].'\'';
 
   		sc_query('INSERT INTO games SET '.implode(', ', $values), __FILE__.'*'.__LINE__);
@@ -689,10 +690,14 @@ function spawnGame($series_name)
 			$values[] = 'game_id = '.$game_id;
 			$values[] = 'ship_type = \''.$line['ship_type'].'\'';
 			$values[] = 'status = \''.$line['status'].'\'';
-			if (array_key_exists('range_multiplier', $line) && isset($line['range_multiplier']) && strlen(trim($line['range_multiplier'])) > 0) $values[] = 'range_multiplier = '.$line['range_multiplier'];
-			$values[] = 'loss = '.$line['loss'];
-			$values[] = 'build_cost = '.$line['build_cost'];
-			$values[] = 'maintenance_cost = '.$line['maintenance_cost'];
+			if (isset($line['range_multiplier']) && $line['range_multiplier'] !== null && $line['range_multiplier'] !== '')
+				$values[] = 'range_multiplier = '.$line['range_multiplier'];
+			if (isset($line['loss']) && $line['loss'] !== null && $line['loss'] !== '')
+				$values[] = 'loss = '.$line['loss'];
+			if (isset($line['build_cost']) && $line['build_cost'] !== null && $line['build_cost'] !== '')
+				$values[] = 'build_cost = '.$line['build_cost'];
+			if (isset($line['maintenance_cost']) && $line['maintenance_cost'] !== null && $line['maintenance_cost'] !== '')
+				$values[] = 'maintenance_cost = '.$line['maintenance_cost'];
 
 			$sql = 'insert into game_ship_type_options set ' . implode(', ', $values);
 
@@ -808,7 +813,11 @@ function recalculateRatios($vars)
 	$values[] = 'max_population = '.$max_population;
 	$values[] = 'mineral_ratio = '.($mineral_use ? $mineral/$mineral_use : 'NULL');
 	$values[] = 'fuel_ratio = '.($fuel_use ? $fuel/$fuel_use : 'NULL');
-	$values[] = 'agriculture_ratio = '.($population ? $agriculture/$population : 1);
+	$ag_ratio = ($population ? $agriculture/$population : 1);
+	$max_ag = isset($series['max_ag_ratio']) ? (float)$series['max_ag_ratio'] : 100.0;
+	if ($max_ag > 0 && $ag_ratio > $max_ag)
+		$ag_ratio = $max_ag;
+	$values[] = 'agriculture_ratio = '.$ag_ratio;
 	$values[] = 'tech_development = '.$tech_development;
 	
 	sc_query('UPDATE players SET '.implode(',', $values).' WHERE id = '.$player['id'], __FILE__.'*'.__LINE__);
@@ -1470,7 +1479,7 @@ function seriesParameters($series_id)
 <style type="text/css">th { vertical-align: top; text-align: right; color: white; }</style>
 
 <div style="color: red; font-size: 14pt;"><?php echo $series['name']; ?></div>
-<?php echo ($series['custom'] == 'yes' ? '<div style="color: white; font-size: 8pt;">Created by '.$series['creator'].'</div>' : ''); ?>
+<?php echo ($series['custom'] == 'yes' && strlen(trim($series['creator'] ?? '')) ? '<div style="color: white; font-size: 8pt;">Created by '.htmlspecialchars($series['creator']).'</div>' : ''); ?>
 
 <table cellspacing=10 style="margin-top: 10pt;">
 	<tr>
@@ -1507,7 +1516,12 @@ function seriesParameters($series_id)
 	</tr>
 	<tr>
 		<th>Alliance limit:</th>
-		<td><?php echo (array_key_exists('max_allies', $series) ? $series['max_allies'].' allies' : 'none'); ?></td>
+		<td><?php
+			if (!array_key_exists('max_allies', $series) || $series['max_allies'] === null || $series['max_allies'] === '')
+				echo 'none (unlimited)';
+			else
+				echo (int)$series['max_allies'].' allies';
+		?></td>
 	</tr>
 	<tr>
 		<th>Win restrictions:</th>
@@ -1525,40 +1539,70 @@ function seriesParameters($series_id)
 		<td><?php echo $average_resources; ?></td>
 	</tr>
 	<tr>
+		<th>Homeworld resources:</th>
+		<td><?php echo ($series['hw_ag'] ?? 100).' ag / '.($series['hw_min'] ?? 100).' min / '.($series['hw_fuel'] ?? 100).' fuel'; ?></td>
+	</tr>
+	<tr>
+		<th>Initial tech:</th>
+		<td><?php echo number_format($series['initial_tech'] ?? 1.0, 2, '.', ''); ?></td>
+	</tr>
+	<tr>
+		<th>Max ag ratio:</th>
+		<td><?php echo $series['max_ag_ratio'] ?? 100; ?></td>
+	</tr>
+	<tr>
+		<th>Max ships:</th>
+		<td><?php echo !empty($series['max_ships']) ? $series['max_ships'] : 'No limit'; ?></td>
+	</tr>
+	<tr>
+		<th>Min pop to build:</th>
+		<td><?php echo $series['min_pop_to_build'] ?? 50; ?></td>
+	</tr>
+	<tr>
+		<th>Max planets:</th>
+		<td><?php echo $series['max_planets'] ?? 1000; ?></td>
+	</tr>
+	<tr>
+		<th>Planet create cost:</th>
+		<td><?php echo $series['planet_create_cost'] ?? 90; ?></td>
+	</tr>
+	<tr>
 		<th>Cloakers:</th>
 		<td><?php echo ($series['build_cloakers_cloaked'] ? 'Built cloaked. '.($series['cloakers_as_attacks'] ? 'Appear as attacks.' : '') : 'Built uncloaked'); ?></td>
 	</tr><?php
 	
-	if ($series['game_type'] == 'sc3') {
-		foreach ($series['ship_type_options'] as $ship_type_options) {
-			if ($ship_type_options['ship_type'] == 'Jumpgate') {?>
-				<tr>
-					<th>Jumpgates:</th>
-					<td><?php echo $ship_type_options['status']; ?></td>
-				</tr>
-				<tr>
-					<th>Jumpgate Range:</th>
-					<td>
-						<?php if (array_key_exists('range_multiplier', $ship_type_options) && !is_null($ship_type_options['range_multiplier']) && strlen(trim($ship_type_options['range_multiplier'])) > 0) {
-							echo $ship_type_options['range_multiplier'] . ' x BR';
-	 					} else {
-							echo 'Infinite';
-						}?>
-					</td>
-				</tr>
-				<tr>
-					<th>Jumpgate Loss:</th>
-					<td><?php echo $ship_type_options['loss']; ?></td>
-				</tr>
-				<tr>
-					<th>Jumpgate Build Cost:</th>
-					<td><?php echo $ship_type_options['build_cost']; ?></td>
-				</tr>
-				<tr>
-					<th>Jumpgate Maintenance Cost:</th>
-					<td><?php echo $ship_type_options['maintenance_cost']; ?></td>
-				</tr>
-			<?php }
+	if ($series['game_type'] == 'sc3' && !empty($series['ship_type_options'])) {
+		$dev = $unr = $res = $bar = array();
+		foreach ($series['ship_type_options'] as $type => $opts) {
+			$st = sc3NormalizeStatus($opts['status'] ?? 'Barred');
+			if ($st === 'Developed') $dev[] = $type;
+			else if ($st === 'Unrestricted') $unr[] = $type;
+			else if ($st === 'Restricted') $res[] = $type;
+			else $bar[] = $type;
+		}
+		echo '<tr><th>Developed tech:</th><td>'.htmlspecialchars(implode(' ', $dev)).'</td></tr>';
+		echo '<tr><th>Unrestricted tech:</th><td>'.htmlspecialchars(implode(' ', $unr)).'</td></tr>';
+		echo '<tr><th>Restricted tech:</th><td>'.htmlspecialchars(implode(' ', $res));
+		if (!empty($series['max_restricted_techs']))
+			echo ' (max '.$series['max_restricted_techs'].', trade-ins '.$series['max_trade_ins'].')';
+		echo '</td></tr>';
+
+		foreach ($series['ship_type_options'] as $type => $opts) {
+			$st = sc3NormalizeStatus($opts['status'] ?? '');
+			if ($st === 'Barred') continue;
+			$extra = array();
+			if (isset($opts['range_multiplier']) && $opts['range_multiplier'] !== null && $opts['range_multiplier'] !== '')
+				$extra[] = 'range '.$opts['range_multiplier'].'×BR';
+			else if (in_array($type, array('Jumpgate','Stargate'), true))
+				$extra[] = 'range infinite';
+			if (isset($opts['loss']) && $opts['loss'] !== null && $opts['loss'] !== '')
+				$extra[] = 'loss '.$opts['loss'];
+			if (isset($opts['build_cost']) && $opts['build_cost'] !== null && $opts['build_cost'] !== '')
+				$extra[] = 'build '.$opts['build_cost'];
+			if (isset($opts['maintenance_cost']) && $opts['maintenance_cost'] !== null && $opts['maintenance_cost'] !== '')
+				$extra[] = 'maint '.$opts['maintenance_cost'];
+			if (!count($extra)) continue;
+			echo '<tr><th>'.$type.':</th><td>'.$st.' — '.implode(', ', $extra).'</td></tr>';
 		}
 	}
 

@@ -912,6 +912,8 @@ function getValidOrders($series, $game, $ship, $player)
 
 	// Don't waste time if we somehow have an empty ship ID. This should NOT happen.
 	if ($ship['id'] == '') return array();
+
+	$effective_moving = getEffectiveMovingShips($game['game_type'] ?? 'sc2');
 	
 	$orders = array();
 
@@ -930,7 +932,7 @@ function getValidOrders($series, $game, $ship, $player)
 		$conditions[] = 'game_id = '.$game['id'];
 		$conditions[] = 'owner = "'.$ship['owner'].'"';
 		$conditions[] = 'coordinates <> "'.$ship['location'].'"';
-		$conditions[] = 'population >= '.$server['builder_population'];
+		$conditions[] = 'population >= '.sc3MinPopToBuild($series);
 		
 		$select = sc_query('SELECT coordinates FROM systems WHERE '.implode(' AND ', $conditions).' ORDER BY name, coordinates ASC');
 		while ($system = $select->fetch_assoc())
@@ -977,7 +979,7 @@ function getValidOrders($series, $game, $ship, $player)
 	// All ships have this order.
 	$orders[] = array('standby', '');
 
-	if (in_array($ship['type'], $moving_ships))
+	if (in_array($ship['type'], $effective_moving))
 		{
 		// All moving ships can join fleets; here we get a listing of all the fleets present in this system.
 		$conditions = array();
@@ -1022,12 +1024,13 @@ function getValidOrders($series, $game, $ship, $player)
 		}
 	
 	// Special case for Morphers. We use a special field, since their type can change.
-	if (array_key_exists('morpher', $ship) && $ship['morpher'])
+	// Cloaked morphers cannot morph until uncloaked.
+	if (array_key_exists('morpher', $ship) && $ship['morpher'] && !$ship['cloaked'])
 		{
 		// We list all of the player's tech, except the current one.
 		// The Morpher tech is included; maybe the player wants it for some reason.
 		foreach (explode(' ', $player['techs']) as $ship_type)
-			if ($ship['type'] != $ship_type)
+			if ($ship['type'] != $ship_type && $ship_type !== '')
 				$orders[] = array('morph', $ship_type);
 		}
 
@@ -1067,9 +1070,9 @@ function getValidOrders($series, $game, $ship, $player)
 			$orders[] = array(($ship['cloaked'] ? 'uncloak' : 'cloak'), '');
 			break;
 		case 'Builder':
-			if ($ship['br'] < $series['builder_cost']/10)
-				break;
-				
+			// Create orders are always offered for empty adjacent cells.
+			// Success is decided at update by summing all builders aiming at the same destination
+			// (Σ BR >= planet_create_cost / 10); individual ships need not meet the threshold alone.
 			list($x,$y) = explode(',', $ship['location']);
 
 			foreach (potentialJumps($x,$y) as $jump)
@@ -1122,11 +1125,22 @@ function getValidOrders($series, $game, $ship, $player)
 				$query = $query_for_owner.' ORDER BY name, coordinates ASC';
 
 			$select = sc_query($query);
+			$stargateRangeMultiplier = getGateRangeMultiplier($game, 'Stargate');
+			list($sx,$sy) = explode(',', $ship['location']);
 			while ($system = $select->fetch_assoc())
+			{
+				if ($stargateRangeMultiplier != null && $stargateRangeMultiplier > 0)
+				{
+					$range = floor($ship['max_br']*$stargateRangeMultiplier);
+					list($dx,$dy) = explode(',', $system['coordinates']);
+					if ($dx < $sx-$range || $dx > $sx+$range || $dy < $sy-$range || $dy > $sy+$range)
+						continue;
+				}
 				$orders[] = array('send', xlateToLocal($system['coordinates']));
+			}
 			break;
 		case 'Jumpgate':
-			// Jumpgates send ships up to BR*(range divisor) planets away, and the destination must
+			// Jumpgates send ships up to BR*(range multiplier) planets away, and the destination must
 			// not be annihilated. We calculate the range first.
 	
 			list($x,$y) = explode(',', $ship['location']);
@@ -1137,7 +1151,7 @@ function getValidOrders($series, $game, $ship, $player)
 			$conditions[] = 'systems.annihilated = "0"';
 			$conditions[] = 'explored.empire = "'.$player['name'].'"';
 			
-			$jumpgateRangeMultiplier = getJumpgateRangeMultiplier($game);
+			$jumpgateRangeMultiplier = getGateRangeMultiplier($game, 'Jumpgate');
 			$range; $min_x; $max_x; $min_y; $max_y;
 
 			if ($jumpgateRangeMultiplier != null && $jumpgateRangeMultiplier > 0) {
@@ -1174,15 +1188,21 @@ function getValidOrders($series, $game, $ship, $player)
 }
 
 function getJumpgateRangeMultiplier($game) {
-	$jumpgateRangeMultiplier = NULL;
+	return getGateRangeMultiplier($game, 'Jumpgate');
+}
 
-	if ($game['game_type'] == 'sc3' && array_key_exists('ship_type_options', $game) && is_array($game['ship_type_options']) && !empty($game['ship_type_options'])) {
-		if (array_key_exists('Jumpgate', $game['ship_type_options']) && array_key_exists('range_multiplier', $game['ship_type_options']['Jumpgate'])) {
-			$jumpgateRangeMultiplier = $game['ship_type_options']['Jumpgate']['range_multiplier'];
+function getGateRangeMultiplier($game, $ship_type = 'Jumpgate') {
+	$rangeMultiplier = NULL;
+
+	if (($game['game_type'] ?? '') == 'sc3' && !empty($game['ship_type_options']) && is_array($game['ship_type_options'])) {
+		if (array_key_exists($ship_type, $game['ship_type_options']) && array_key_exists('range_multiplier', $game['ship_type_options'][$ship_type])
+			&& $game['ship_type_options'][$ship_type]['range_multiplier'] !== null
+			&& $game['ship_type_options'][$ship_type]['range_multiplier'] !== '') {
+			$rangeMultiplier = $game['ship_type_options'][$ship_type]['range_multiplier'];
 		}
 	}
 
-	return $jumpgateRangeMultiplier;
+	return $rangeMultiplier;
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -1239,6 +1259,11 @@ function fixOrders($dirty_orders, $series, $game, $player, $ship)
 
 	  				if ($ship['fleet_id'] == $fleet['id']) $selected = true;
 	  				}
+				else if ($orders == 'morph')
+					{
+					// Morph arguments are a ship type name, not coordinates.
+					$fixed_orders[$x] = 'Change into '.$order_arguments;
+					}
 				else
 					{
 					$galactic_coordinates = xlateToGalactic($order_arguments);
@@ -1257,7 +1282,6 @@ function fixOrders($dirty_orders, $series, $game, $player, $ship)
 						{
 						case 'build_at':	$fixed_orders[$x] = 'Build at '.$system_name.' ('.$order_arguments.')';	break;
 						case 'create':		$fixed_orders[$x] = 'Create a new system to the '.getDirection($ship['location'], $galactic_coordinates).' ('.$order_arguments.')'; break;
-						case 'morph':		$fixed_orders[$x] = 'Change into '.$order_arguments;					break;
 						case 'send':		$fixed_orders[$x] = 'Send to '.$system_name.' ('.$order_arguments.')';	break;
 
 						case 'explore':

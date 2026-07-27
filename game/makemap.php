@@ -432,18 +432,26 @@ function initPlayer($vars, $series, $game, $team, $player_slot = '')
 {
 	$empire = getEmpire($vars['name']);
 
-	// The player's tech level is by default 1.0, unless there is someone in this game which has a higher tech level.
-	// If this is the case, set the player's tech level to the highest tech level of the other players.
-	$sql = 'SELECT GREATEST(1.0, MAX(tech_level)) as g FROM players WHERE game_id = '.$game['id'].' AND name <> "'.$vars['name'].'"';
+	// Tech level: before first update use series initial_tech; otherwise highest existing (min 1.0 / initial_tech).
+	$initial = isset($series['initial_tech']) ? (float)$series['initial_tech'] : 1.0;
+	if ($initial < 1.0)
+		$initial = 1.0;
+
+	$sql = 'SELECT MAX(tech_level) as g FROM players WHERE game_id = '.$game['id'].' AND name <> "'.$vars['name'].'"';
 	$select = sc_query($sql);
 	$line = $select->fetch_assoc();
 	$tech_level = $line['g'];
-	
-	if (!isset($tech_level))
-	{
-		$tech_level = 1.0;
-	}
-	
+
+	if ($game['update_count'] == 0 || !isset($tech_level) || $tech_level === null)
+		$tech_level = $initial;
+	else
+		$tech_level = max($initial, (float)$tech_level);
+
+	$hw_ag = isset($series['hw_ag']) ? (int)$series['hw_ag'] : 100;
+	$hw_min = isset($series['hw_min']) ? (int)$series['hw_min'] : 100;
+	$hw_fuel = isset($series['hw_fuel']) ? (int)$series['hw_fuel'] : 100;
+	$hw_max_pop = max($hw_min, $hw_fuel);
+
 	$values = array();
 	$values[] = 'series_id = '.$series['id'];
 	$values[] = 'game_number = '.$game['game_number'];
@@ -451,22 +459,21 @@ function initPlayer($vars, $series, $game, $team, $player_slot = '')
 	$values[] = 'name = "'.$vars['name'].'"';
 	$values[] = 'team = '.$team;
 	$values[] = 'team_spot = "'.$player_slot.'"';
-	$values[] = 'mineral = 100'; // This needs to be configurable.
-	$values[] = 'fuel = 100'; // This needs to be configurable.
-	$values[] = 'agriculture = 100'; // This needs to be configurable.
-	$values[] = 'population = 100'; // This needs to be configurable.
-	$values[] = 'max_population = 100'; // This needs to be configurable.
-	#$values[] = 'mineral_ratio = -1';		// 2003/05/06 -- Default value for these two fields
-	#$values[] = 'fuel_ratio = -1';			// is now NULL, as it should be.
+	$values[] = 'mineral = '.$hw_min;
+	$values[] = 'fuel = '.$hw_fuel;
+	$values[] = 'agriculture = '.$hw_ag;
+	$values[] = 'population = '.$hw_ag;
+	$values[] = 'max_population = '.$hw_max_pop;
 	$values[] = 'agriculture_ratio = 1.0';
 	$values[] = 'tech_development = '.$series['tech_multiple'];
 	$values[] = 'last_access = '.time();
 	$values[] = 'last_update = '.$game['update_count'];	
 	$values[] = 'tech_level = '.$tech_level;
-	$values[] = 'techs = "Attack Science Colony"'; // Default techs; this may need to be configurable someday.
-	// Dynamic calculation will be needed if we ever start games with HWs set other that 100/100/100
-	$values[] = 'economic_power = 3';#.get_economic_power($series['id'], $game['game_number'], $vars['name']); // Do we need to calculate this
-	$values[] = 'military_power = 0';#.get_military_power($series['id'], $game['game_number'], $vars['name']); // dynamically here?
+	$values[] = 'techs = "'.addslashes(sc3StartingTechs($series)).'"';
+	$values[] = 'traded_in = 0';
+	$values[] = 'restricted_techs = 0';
+	$values[] = 'economic_power = '.floor(($hw_min+$hw_fuel+$hw_ag)/100);
+	$values[] = 'military_power = 0';
 	$values[] = 'ended_turn = "0"';
 	$values[] = 'ip = "'.$_SERVER['REMOTE_ADDR'].'"';
 	$values[] = 'map_origin = "'.$empire['map_origin'].'"';
@@ -488,7 +495,7 @@ function createPrebuiltMap($series, $game)
 		{
 		$player_name = '=Player '.$player.'=';
 		$chain = buildPlayerChain( $series['systems_per_player'], $big_map, $lower_limit, $upper_limit);
-		$home = selectHW($player_name, $chain, $big_map);
+		$home = selectHW($player_name, $chain, $big_map, $series);
 		assignResources($series, $chain, $home, array_keys($chain));
 
 		// Add every planet of this chain to the big map.
@@ -647,24 +654,16 @@ function createBalancedMap($series, $game)
 	$home = $pair_data[$pick]['hw1'];
   	$big_map[$home]['homeworld'] = '=Player 1=';
   	$big_map[$home]['owner'] = '=Player 1=';
-  	$big_map[$home]['name'] = '=Player 1=';;
-  	$big_map[$home]['mineral'] = 100;
-  	$big_map[$home]['fuel'] = 100;
-  	$big_map[$home]['agriculture'] = 100;
-  	$big_map[$home]['population'] = 100;
-  	$big_map[$home]['max_population'] = 100;
+  	$big_map[$home]['name'] = '=Player 1=';
+	sc3ApplyHomeworldResources($series, $big_map, $home);
   	$big_map[$home]['coordinates'] = $home;
 	assignResources($series, $big_map, $home, array_keys($chain1));
 	
 	$home = $pair_data[$pick]['hw2'];
   	$big_map[$home]['homeworld'] = '=Player 2=';
   	$big_map[$home]['owner'] = '=Player 2=';
-  	$big_map[$home]['name'] = '=Player 2=';;
-  	$big_map[$home]['mineral'] = 100;
-  	$big_map[$home]['fuel'] = 100;
-  	$big_map[$home]['agriculture'] = 100;
-  	$big_map[$home]['population'] = 100;
-  	$big_map[$home]['max_population'] = 100;
+  	$big_map[$home]['name'] = '=Player 2=';
+	sc3ApplyHomeworldResources($series, $big_map, $home);
   	$big_map[$home]['coordinates'] = $home;
 	assignResources($series, $big_map, $home, array_keys($chain2));
 	saveMap($series, $game, $big_map);
@@ -769,7 +768,7 @@ function createMapSide($series, &$big_map, $lower_limit, $upper_limit)
 		{
 		$player_name = '=Player '.$player.'=';
 		$chain = buildPlayerChain( $series['systems_per_player'], $big_map, $lower_limit, $upper_limit );
-		$home = selectHW( $player_name, $chain, $big_map );
+		$home = selectHW( $player_name, $chain, $big_map, $series );
 		assignResources( $series, $chain, $home, array_keys($chain) );
 
 		// Add every planet of this chain to the big map.
@@ -1296,7 +1295,7 @@ function generateMapForPlayer($name, $series, $game)
 	$chain = buildPlayerChain( $series['systems_per_player'], $big_map, 1, 2*$series['max_players']*$series['systems_per_player'] );
 	foreach ( array_keys($chain) as $c )
 		$chain[$c]['player_number'] = $game['player_count'];
-	$home = selectHW( $name, $chain, $big_map );
+	$home = selectHW( $name, $chain, $big_map, $series );
 	assignResources( $series, $chain, $home, array_keys($chain) );
 
 	// Add every planet of this chain to the big map.
@@ -1437,7 +1436,7 @@ function buildPlayerChain( $nplanets, &$big_map, $lower_limit, $upper_limit )
 #-----------------------------------------------------------------------------------------------------------------------------------------#
 #
 
-function selectHW( $player_name, &$chain, &$big_map )
+function selectHW( $player_name, &$chain, &$big_map, $series = null )
 {
   	do
   		{
@@ -1463,14 +1462,22 @@ function selectHW( $player_name, &$chain, &$big_map )
   	$chain[$home]['homeworld'] = $player_name;
   	$chain[$home]['owner'] = $player_name;
   	$chain[$home]['name'] = $player_name;
-  	$chain[$home]['mineral'] = 100;
-  	$chain[$home]['fuel'] = 100;
-  	$chain[$home]['agriculture'] = 100;
-  	$chain[$home]['population'] = 100;
-  	$chain[$home]['max_population'] = 100;
+	sc3ApplyHomeworldResources($series, $chain, $home);
   	$chain[$home]['coordinates'] = $home;
 
 	return ( $home );
+}
+
+function sc3ApplyHomeworldResources($series, &$map, $home)
+{
+	$hw_ag = (is_array($series) && isset($series['hw_ag'])) ? (int)$series['hw_ag'] : 100;
+	$hw_min = (is_array($series) && isset($series['hw_min'])) ? (int)$series['hw_min'] : 100;
+	$hw_fuel = (is_array($series) && isset($series['hw_fuel'])) ? (int)$series['hw_fuel'] : 100;
+	$map[$home]['mineral'] = $hw_min;
+	$map[$home]['fuel'] = $hw_fuel;
+	$map[$home]['agriculture'] = $hw_ag;
+	$map[$home]['population'] = $hw_ag;
+	$map[$home]['max_population'] = max($hw_min, $hw_fuel);
 }
 
 #

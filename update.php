@@ -26,6 +26,8 @@ function localize($galacticCoord, $player, $homeworlds)
 function update_game($series, &$game, $update_time)
 {
 	global $missive, $history, $server, $ship_types, $moving_ships, $mysqli;
+
+	$effective_moving = getEffectiveMovingShips($game['game_type'] ?? 'sc2');
 	
 	//ysql_query('BEGIN');
 	
@@ -168,9 +170,16 @@ function update_game($series, &$game, $update_time)
 	$send = array();
 	$open = array();
 	$close = array();
+	$create = array(); // Builder create: dest => list of ship ids
 	$eliminated = array();
 	$buffered_missive = array();
 	$system_cache = array();
+	$engineer_loss = sc3EngineerLoss($game);
+	$carrier_loss = sc3CarrierLoss($game);
+	$morpher_loss = sc3MorpherLoss($game);
+	$planet_create_cost = sc3PlanetCreateCost($series);
+	$max_planets = sc3MaxPlanets($series);
+	$max_ag = isset($series['max_ag_ratio']) ? (float)$series['max_ag_ratio'] : 100.0;
 
 	/*$game['update_count'] += 1;
 	$game['last_update'] = $update_time;
@@ -289,8 +298,12 @@ function update_game($series, &$game, $update_time)
 		$conditions = array();
 		$conditions[] = 'game_id = '.$game['id'];
 		$conditions[] = 'owner = "'.$player['name'].'"';
+
+		$ag_ratio = (float)$player['agriculture_ratio'];
+		if ($max_ag > 0 && $ag_ratio > $max_ag)
+			$ag_ratio = $max_ag;
 		
-		$new_population = 'LEAST(population*'.$player['agriculture_ratio'].'+1, max_population)';
+		$new_population = 'LEAST(population*'.$ag_ratio.'+1, max_population)';
 
 		sc_query('UPDATE systems SET population = '.$new_population.' WHERE '.implode(' AND ', $conditions));
 
@@ -379,6 +392,38 @@ function update_game($series, &$game, $update_time)
 					$close[ $ship['location'] ][ $ship['id'] ] = $value;
 					$missive[ $ship['location'] ]['neer'] = array();
 					break;
+				case 'create':
+					$create[ $value ][] = $ship['id'];
+					break;
+				case 'morph':
+					// Pre-combat morph (requires morpher flag, not cloaked).
+					if ((!empty($ship['morpher']) && $ship['morpher']) && !$ship['cloaked']
+						&& in_array($value, explode(' ', $player['techs']), true)
+						&& $ship['br'] >= $morpher_loss)
+					{
+						$ship['max_br'] = (float)$ship['max_br'] - $morpher_loss;
+						$ship['br'] = (float)$ship['br'] - $morpher_loss;
+						if ($ship['max_br'] < $morpher_loss || $ship['br'] <= 0)
+						{
+							$buffered_missive[$player['id']]['actions'][] =
+								'<!--U:morc-->The effort to morph has consumed '.($ship['name'] ? $ship['name'] : 'a morpher').' of '.$player['name'].'.';
+							sc_query('DELETE FROM ships WHERE id = '.$ship['id']);
+							$ignore_this_ship = 1;
+							$orders = 'dismantle'; // skip final update
+						}
+						else
+						{
+							$ship['type'] = $value;
+							if ($value === 'Cloaker' && $series['build_cloakers_cloaked'])
+							{
+								$ship['cloaked'] = 1;
+								$ignore_this_ship = 1;
+							}
+							$buffered_missive[$player['id']]['actions'][] =
+								'<!--U:morph-->'.($ship['name'] ? $ship['name'] : 'A morpher').' of '.$player['name'].' has changed into a '.$value.'.';
+						}
+					}
+					break;
         case 'explore':
 		    case 'move':
 					// We treat both moving and exploring here, due to similarity.
@@ -435,6 +480,8 @@ function update_game($series, &$game, $update_time)
 				$values[] = 'cloaked = "'.$ship['cloaked'].'"';
 				$values[] = 'location = "'.$ship['location'].'"';
 				$values[] = 'br = "'.$ship['br'].'"';
+				$values[] = 'max_br = "'.$ship['max_br'].'"';
+				$values[] = 'type = "'.addslashes($ship['type']).'"';
 				$values[] = 'orders = "'.$ship['orders'].'"';
 				$values[] = 'order_arguments = '.($ship['order_arguments'] ? '"'.$ship['order_arguments'].'"' : '\'NULL\'');
 
@@ -456,7 +503,7 @@ function update_game($series, &$game, $update_time)
 				$amissive  = $build_count;
 				$amissive .= ' ';
 				$amissive .= $ship_type;
-				$amissive .= (in_array($ship_type, $moving_ships) ? ' ship' : ''); //ship or ship's
+				$amissive .= (in_array($ship_type, $effective_moving) ? ' ship' : ''); //ship or ship's
 				$amissive .= ($build_count != 1 ? 's were' : ' was'); //was or were
 				$amissive .= ' built in ';
 				$amissive .= $system['name'];
@@ -472,7 +519,7 @@ function update_game($series, &$game, $update_time)
 		foreach (array_keys($dismantled_ships) as $ship_type)
     		{
 			$buffered_missive[$player['id']]['dismantling'][] = $dismantled_ships[$ship_type].' '.$ship_type.
-			(in_array($ship_type, $moving_ships) ? ' ship' : '').
+			(in_array($ship_type, $effective_moving) ? ' ship' : '').
 			($dismantled_ships[$ship_type] != 1 ? 's were' : ' was').' dismantled.';
 		}
 
@@ -576,7 +623,7 @@ function update_game($series, &$game, $update_time)
 			#$sighted[$system['coordinates']][$ship_owner] = array();
 
 			// Set up arrays so that they are in a fixed, known order.
-			foreach (array_keys($ship_types) as $type)
+			foreach (getEffectiveShipTypeNames($game['game_type'] ?? 'sc2') as $type)
 				{
 				$destroyed[$system['coordinates']][$ship_owner][$type] = 0;
 				#$sighted[$system['coordinates']][$ship_owner][$type] = 0;
@@ -633,6 +680,20 @@ function update_game($series, &$game, $update_time)
 				{
 				if ( (pow((float)$ship['br'], 2)*$fuel_ratio) <= $dest )
 					{
+					// Carrier DEST absorption (SC3): soak DEST instead of dying if BR > carrier loss.
+					if ($ship['type'] === 'Carrier' && (float)$ship['br'] > $carrier_loss)
+						{
+						$ship['max_br'] = (float)$ship['max_br'] - $carrier_loss;
+						$ship['br'] = (float)$ship['br'] - $carrier_loss;
+						$absorbed = pow((float)$ship['br'], 2) * $fuel_ratio;
+						$dest -= $absorbed;
+						sc_query('UPDATE ships SET br = '.$ship['br'].', max_br = '.$ship['max_br'].' WHERE id = '.$ship['id']);
+						$missive[$system['coordinates']]['sys'] =
+							(isset($missive[$system['coordinates']]['sys']) ? $missive[$system['coordinates']]['sys'] : '').
+							'<!--U:carl-->'.($ship['name'] ? $ship['name'] : 'A carrier').' of '.$ship_owner.' has taken damage.<br>';
+						continue;
+						}
+
 					// If we get here, this ship is toast.
 					$missive[$system['coordinates']]['dest'][$ship_owner][] = $ship['name'];
 					$destroyed[$system['coordinates']][$ship_owner][$ship['type']] = array_key_exists($ship['type'], $destroyed[$system['coordinates']][$ship_owner]) ? $destroyed[$system['coordinates']][$ship_owner][$ship['type']] + 1 : 1;
@@ -722,6 +783,106 @@ function update_game($series, &$game, $update_time)
             }
 		}
 
+	// Process builder create orders (post-combat, before gates — matches pike).
+	// $create[destination] = list of ship ids
+	foreach (array_keys($create) as $destination)
+	{
+		$ship_count_row = sc_query('SELECT COUNT(*) AS c FROM systems WHERE game_id = '.(int)$game['id']);
+		$num = $ship_count_row->fetch_assoc();
+		if ((int)$num['c'] >= $max_planets)
+			continue; // at cap: leave builders unconsumed
+
+		$work = 0;
+		$origins = array();
+		$alive_builders = array();
+		foreach ($create[$destination] as $ship_id)
+		{
+			$ship = getShipByID($ship_id);
+			if (!$ship || $ship['type'] !== 'Builder')
+				continue;
+			$alive_builders[] = $ship;
+			$work += (float)$ship['br'] * 10;
+			$origins[$ship['location']] = true;
+		}
+
+		$built = false;
+		if ($work >= $planet_create_cost && count($alive_builders))
+		{
+			$creator = $alive_builders[0];
+			$origin = $creator['location'];
+			$avg_ag = (int)$series['avg_ag'];
+			$avg_min = (int)$series['avg_min'];
+			$avg_fuel = (int)$series['avg_fuel'];
+			$max_pop = max($avg_min, $avg_fuel);
+			$open_jump = (count($origins) === 1);
+
+			$jumps = $open_jump ? $origin : '';
+			$sys_name = 'System '.$destination;
+			$values = array();
+			$values[] = 'game_id = '.(int)$game['id'];
+			$values[] = 'series_id = '.(int)$series['id'];
+			$values[] = 'game_number = '.(int)$game['game_number'];
+			$values[] = 'coordinates = "'.addslashes($destination).'"';
+			$values[] = 'name = "'.addslashes($sys_name).'"';
+			$values[] = 'agriculture = '.$avg_ag;
+			$values[] = 'mineral = '.$avg_min;
+			$values[] = 'fuel = '.$avg_fuel;
+			$values[] = 'population = 0';
+			$values[] = 'max_population = '.$max_pop;
+			$values[] = 'owner = ""';
+			$values[] = 'homeworld = ""';
+			$values[] = 'jumps = "'.addslashes($jumps).'"';
+			$values[] = 'annihilated = "0"';
+			$values[] = 'system_active = "1"';
+			sc_query('INSERT INTO systems SET '.implode(', ', $values));
+
+			if ($open_jump)
+			{
+				$origin_sys = getSystem($game['id'], $origin);
+				if ($origin_sys)
+				{
+					$oj = trim($origin_sys['jumps']);
+					$oj_list = $oj === '' ? array() : explode(' ', $oj);
+					if (!in_array($destination, $oj_list, true))
+						$oj_list[] = $destination;
+					sc_query('UPDATE systems SET jumps = "'.addslashes(implode(' ', $oj_list)).'" WHERE id = '.$origin_sys['id']);
+				}
+			}
+
+			// Explored for creator
+			$owner_player = getPlayer($game['id'], $creator['owner']);
+			$values = array();
+			$values[] = 'series_id = '.(int)$series['id'];
+			$values[] = 'game_number = '.(int)$game['game_number'];
+			$values[] = 'game_id = '.(int)$game['id'];
+			$values[] = 'empire = "'.addslashes($creator['owner']).'"';
+			if ($owner_player)
+				$values[] = 'player_id = '.(int)$owner_player['id'];
+			$values[] = 'coordinates = "'.addslashes($destination).'"';
+			$values[] = 'update_explored = '.(int)$game['update_count'];
+			sc_query('INSERT INTO explored SET '.implode(',', $values));
+
+			if ($owner_player)
+				$buffered_missive[$owner_player['id']]['actions'][] =
+					'<!--U:cre-->'.$sys_name.' was successfully created.';
+			$history[] = array($destination, $creator['owner'], 'opened', $destination.'/created');
+			$built = true;
+		}
+
+		// Consume builders (whether success or fail), when under planet cap
+		foreach ($alive_builders as $ship)
+		{
+			sc_query('DELETE FROM ships WHERE id = '.$ship['id']);
+			if (!$built)
+			{
+				$owner_player = getPlayer($game['id'], $ship['owner']);
+				if ($owner_player)
+					$buffered_missive[$owner_player['id']]['actions'][] =
+						'<!--U:cref-->The effort to create a system at '.$destination.' failed.';
+			}
+		}
+	}
+
 	// Process stargate orders.
     // send[ (origin) ][ (destination) ] = (ship ID of the stargate)
 	foreach (array_keys($send) as $origin)
@@ -731,12 +892,12 @@ function update_game($series, &$game, $update_time)
       {
 				$inRange = true;
 
-				if ($stargate['type'] == 'Jumpgate') {
+				if ($stargate['type'] == 'Jumpgate' || $stargate['type'] == 'Stargate') {
 					//check range
-					$jumpgateRangeMultiplier = getJumpgateRangeMultiplier($game);
+					$rangeMultiplier = getGateRangeMultiplier($game, $stargate['type']);
 
-		      if ($jumpgateRangeMultiplier != null && $jumpgateRangeMultiplier > 0) {
-    		    $range = floor($stargate['br']*$jumpgateRangeMultiplier);
+		      if ($rangeMultiplier != null && $rangeMultiplier > 0) {
+    		    $range = floor($stargate['br']*$rangeMultiplier);
 
 						list($x, $y) = explode(",", $stargate['location']);
         		
@@ -1091,7 +1252,7 @@ function update_game($series, &$game, $update_time)
             $ship = getShipByID($ship_id);
 
             // If the ship exists, has enough BR and the jump to be closed exists...
-            if ($ship and $ship['br'] >= $server['engineer_br_loss'] and in_array($close[$location][$ship_id], $jumps))
+            if ($ship and $ship['br'] >= $engineer_loss and in_array($close[$location][$ship_id], $jumps))
                 {
 				// So the enginner CAN close the requested jump.
 				// Here we get the list of jumps for the other sytem; the one about to be close off.
@@ -1109,9 +1270,9 @@ function update_game($series, &$game, $update_time)
                 sc_query('UPDATE systems SET jumps = "'.implode(' ', $jumps).'" WHERE id = '.$system['id'], __FILE__.'*'.__LINE__);
 				sc_query('UPDATE systems SET jumps = "'.implode(' ', $jumps2).'" WHERE id = "'.$system2['id'].'"', __FILE__.'*'.__LINE__);
 
-				$new_maxbr = $ship['max_br'] - $server['engineer_br_loss'];
+				$new_maxbr = $ship['max_br'] - $engineer_loss;
 
-				if ($new_maxbr < $server['engineer_br_loss'])
+				if ($new_maxbr < $engineer_loss)
 					{
 					// Destroy the ship.
 					$engineer_consumed = true;
@@ -1123,7 +1284,7 @@ function update_game($series, &$game, $update_time)
 					$engineer_consumed = false;
 
 					$fields = array();
-					$fields[] = 'br = (br - '.$server['engineer_br_loss'].')';
+					$fields[] = 'br = (br - '.$engineer_loss.')';
 					$fields[] = 'max_br = '.$new_maxbr;
 					sc_query('UPDATE ships SET '.implode(', ', $fields).' WHERE id = '.$ship_id, __FILE__.'*'.__LINE__);
 					}
@@ -1153,7 +1314,7 @@ function update_game($series, &$game, $update_time)
         foreach (array_keys($open[$location]) as $ship_id)
             {
 			$ship = getShipByID($ship_id);
-			if ($ship and $ship['br'] >= $server['engineer_br_loss'] and !in_array($open[$location][$ship_id], $jumps))
+			if ($ship and $ship['br'] >= $engineer_loss and !in_array($open[$location][$ship_id], $jumps))
                 {
 				// So the enginner CAN open the requested jump.
 				// Here we get the list of jumps from the other system; the one about to be open up.
@@ -1168,9 +1329,9 @@ function update_game($series, &$game, $update_time)
                 sc_query('UPDATE systems SET jumps = "'.implode(' ', $jumps).'" WHERE id = '.$system['id'], __FILE__.'*'.__LINE__);
 				sc_query('UPDATE systems SET jumps = "'.implode(' ', $jumps2).'" WHERE id = '.$system2['id'], __FILE__.'*'.__LINE__);
 
-				$new_maxbr = $ship['max_br'] - $server['engineer_br_loss'];
+				$new_maxbr = $ship['max_br'] - $engineer_loss;
 
-				if ($new_maxbr < $server['engineer_br_loss'])
+				if ($new_maxbr < $engineer_loss)
 					{
 					// Destroy the ship.
 					$engineer_consumed = true;
@@ -1182,7 +1343,7 @@ function update_game($series, &$game, $update_time)
 					$engineer_consumed = false;
 
 					$fields = array();
-					$fields[] = 'br = (br - '.$server['engineer_br_loss'].')';
+					$fields[] = 'br = (br - '.$engineer_loss.')';
 					$fields[] = 'max_br = '.$new_maxbr;
 					sc_query('UPDATE ships SET '.implode(', ', $fields).' WHERE id = '.$ship_id, __FILE__.'*'.__LINE__);
 					}

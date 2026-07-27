@@ -8,6 +8,7 @@ function buildScreen($vars)
 	$player = $vars['player_data'];
 	
 	$game['id'] = (int)$game['id'];
+	$min_pop = sc3MinPopToBuild($series);
 
 	gameHeader($vars, 'Build');
 	ratios($player);
@@ -22,7 +23,7 @@ function buildScreen($vars)
 	$conditions = array();
 	$conditions[] = 'game_id = '.$game['id'];
 	$conditions[] = 'owner = "'.$mysqli->real_escape_string($vars['name']).'"';
-	$conditions[] = 'population >= '.$server['builder_population'];
+	$conditions[] = 'population >= '.$min_pop;
 	$select = sc_query('SELECT name, coordinates, homeworld FROM systems WHERE '.implode(' AND ', $conditions).' ORDER BY name, coordinates ASC');
 
   	if (!$select->num_rows)
@@ -76,13 +77,14 @@ function buildScreen($vars)
 <?php
 	foreach (explode(' ', $player['techs']) as $tech)
 		{
+		if ($tech === '') continue;
 ?>
 	<tr>
-		<td><?php echo $tech; ?></td>
-		<th><select name="builds[<?php echo $tech; ?>][count]"><?php echo implode('', $build_counts); ?></select></th>
-		<th><input type=text name="builds[<?php echo $tech; ?>][name]" size=15 maxlength=20></th>
-		<th><select name="builds[<?php echo $tech; ?>][br]"><?php echo implode('', $br_list); ?></select></th>
-		<th><select name="builds[<?php echo $tech; ?>][location]"><?php echo implode('', $build_at); ?></select></th>
+		<td><?php echo htmlspecialchars($tech); ?></td>
+		<th><select name="builds[<?php echo htmlspecialchars($tech); ?>][count]"><?php echo implode('', $build_counts); ?></select></th>
+		<th><input type=text name="builds[<?php echo htmlspecialchars($tech); ?>][name]" size=15 maxlength=20></th>
+		<th><select name="builds[<?php echo htmlspecialchars($tech); ?>][br]"><?php echo implode('', $br_list); ?></select></th>
+		<th><select name="builds[<?php echo htmlspecialchars($tech); ?>][location]"><?php echo implode('', $build_at); ?></select></th>
 	</tr>
 <?php
 		}
@@ -104,12 +106,23 @@ function buildScreen_processing($vars)
 	$game = $vars['game_data'];
 	$player = $vars['player_data'];
 	$empire = $vars['empire_data'];
+	$min_pop = sc3MinPopToBuild($series);
+	$effective_moving = getEffectiveMovingShips($game['game_type'] ?? 'sc2');
 		
 	$outbuild = array();
 	$departing_colonists = array();
 
 	if (isset($vars['build']))
 		{
+		$max_ships = isset($series['max_ships']) ? (int)$series['max_ships'] : 0;
+		$current_ship_count = 0;
+		if ($max_ships > 0)
+		{
+			$r = sc_query('SELECT COUNT(*) AS c FROM ships WHERE game_id = '.(int)$game['id'].' AND owner = "'.addslashes($vars['name']).'"');
+			$row = $r->fetch_assoc();
+			$current_ship_count = (int)$row['c'];
+		}
+
 		foreach ($vars['builds'] as $ship_type => $build_data)
 			{
 			$build_count = $build_data['count'];
@@ -132,7 +145,7 @@ function buildScreen_processing($vars)
 				continue;
 				}
 				
-			if ($system['owner'] != $vars['name'] or $system['population'] < $server['builder_population'])
+			if ($system['owner'] != $vars['name'] or $system['population'] < $min_pop)
 				{
 				$outbuild[] = 'You cannot build ships at '.xlateToGalactic($build_location).'.';
 				continue;
@@ -150,16 +163,30 @@ function buildScreen_processing($vars)
 				continue;
 				}
 
+			if ($max_ships > 0 && ($current_ship_count + $build_count) > $max_ships)
+				{
+				$outbuild[] = 'Ship limit is '.$max_ships.'; you cannot build that many ships.';
+				continue;
+				}
+
 			// Base costs; extras added later.
 			$build_cost 	  = pow((float)$br+4.0, 2.0);
 			$maintenance_cost = $br*2.0;
 			$fuel_cost 		  = $br*4.0;
 
+			$option_costs = sc3SpecialBuildCosts($game, $ship_type);
+			if ($option_costs !== null)
+				{
+				$build_cost += $option_costs[0];
+				$maintenance_cost += $option_costs[1];
+				if (in_array($ship_type, array('Jumpgate', 'Carrier', 'Builder', 'Morpher'), true))
+					$fuel_cost += 2 * $option_costs[1]; // fuel = 2x maint special, matching Jumpgate pattern (+32 for +16 maint)
+				}
+			else
+			{
 			switch ($ship_type)
 				{
 				case 'Colony':
-					// Population cost for colony ships. We substract this later.
-					$departing_colonists[$system['id']] = (array_key_exists($system['id'], $departing_colonists) ? $departing_colonists[$system['id']] : 0) + $build_count;
 				case 'Science':
 				case 'Cloaker':
 				case 'Doomsday':
@@ -176,11 +203,6 @@ function buildScreen_processing($vars)
 					$maintenance_cost += 16;
 					$fuel_cost += 32;
 					break;
-				case 'Jumpgate':
-					$build_cost += $game['ship_type_options']['Jumpgate']['build_cost'];
-					$maintenance_cost += $game['ship_type_options']['Jumpgate']['maintenance_cost'];
-					$fuel_cost += 32;
-					break;
 				case 'Minefield':
 					$build_cost += 10;
 					$maintenance_cost += 2;
@@ -192,6 +214,10 @@ function buildScreen_processing($vars)
 					$fuel_cost = 0;
 					break;
 				}
+			}
+
+			if ($ship_type === 'Colony')
+				$departing_colonists[$system['id']] = (array_key_exists($system['id'], $departing_colonists) ? $departing_colonists[$system['id']] : 0) + $build_count;
 						
 			$values = array();
 			$values[] = 'series_id = '.$vars['series_id'];
@@ -211,12 +237,17 @@ function buildScreen_processing($vars)
 					
 			if ($ship_type == 'Cloaker' and $series['build_cloakers_cloaked'])
 				$values[] = 'cloaked = "1"';
+
+			if ($ship_type == 'Morpher')
+				$values[] = 'morpher = "1"';
 				
 			// Build the requested amount of ships.
 			for ($x = 0; $x < $build_count; $x++)
 				sc_query('INSERT INTO ships SET '.implode(',', $values));
 
-			$outbuild[] = $build_count.' '.$ship_type.(in_array($ship_type, $moving_ships) ? ' ship' : '').($build_count != 1 ? 's' : '').
+			$current_ship_count += $build_count;
+
+			$outbuild[] = $build_count.' '.$ship_type.(in_array($ship_type, $effective_moving) ? ' ship' : '').($build_count != 1 ? 's' : '').
 						  ($build_name ? ' named '.$build_name : '').' (BR '.$br.') built at '.$system['name'].' ('.$build_location.').';
 			}
 

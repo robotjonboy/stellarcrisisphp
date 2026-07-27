@@ -231,6 +231,8 @@ function diplomacyScreen($vars)
 
 function diplomacyScreen_processing($vars)
 {
+	global $mysqli;
+
 	$series = $vars['series_data'];
 	$game = $vars['game_data'];
 	$player = $vars['player_data'];
@@ -239,16 +241,19 @@ function diplomacyScreen_processing($vars)
 		foreach ($vars['diplomacy'] as $id => $offer)
 			sc_query('UPDATE diplomacies SET offer = "'.$offer.'" WHERE id = '.$id);
 	
-	// To enforce alliance limits we drop any alliance offer to trade if we are offering it to too many empires.
-	// Current allies aren't affected - those aren't offers per se.
+	// To enforce alliance limits we drop excess alliance offers (not existing alliances).
+	// Count current alliances plus pending alliance offers against the game's max_allies.
 	if ($game['diplomacy'] != 2 and is_numeric($game['max_allies']) and $game['max_allies'] >= 0)
 		{
-		$select = sc_query('SELECT COUNT(*) as c FROM diplomacies WHERE game_id = '.$game['id'].' AND empire = "'.$player['name'].'" AND offer = "5"');
+		$name_esc = $mysqli->real_escape_string($player['name']);
+		$select = sc_query('SELECT COUNT(*) as c FROM diplomacies WHERE game_id = '.$game['id'].
+			' AND empire = "'.$name_esc.'" AND (status = "5" OR offer = "5")');
 		$line = $select->fetch_assoc();
 		if ($line['c'] > $game['max_allies'])
 			{
-			sendPlayerMissive($player, $player['id'], '', 'game_message', 'Alliance limit reached. Offers have been dropped down to truce.');
-			sc_query('UPDATE diplomacies SET offer = "4" WHERE game_id = '.$game['id'].' AND empire = "'.$player['name'].'" AND status <> "5"');
+			sendPlayerMissive($player, $player['id'], '', 'game_message', 'Alliance limit reached. Extra offers have been dropped.');
+			sc_query('UPDATE diplomacies SET offer = "4" WHERE game_id = '.$game['id'].
+				' AND empire = "'.$name_esc.'" AND offer = "5" AND status <> "5"');
 			}
 		}
 	

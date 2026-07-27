@@ -143,41 +143,10 @@ function editSeries($vars, $message = '')
       </select>
     </td>
   </tr>
-  <tr>
-    <th style="text-align: right;">Jumpgate:</th>
-    <td>
-      <select name="jumpgate_status">
-				<?php $jumpgate_status_options = ['Barred', 'Restricted', 'Unrestricted', 'Available'];
-					foreach ($jumpgate_status_options as $status) {
-						echo '<option value="' . $status . '" ';
-						
-						if (getJumpgateStatus($series) == $status) {
-							echo 'selected';
-						}
-
-						echo '>' . $status . '</option>';
-					}
-				?>
-      </select>
-    </td>
-  </tr>
-  <tr>
-    <th style="text-align: right;">Jumpgate Range Multiplier:</th>
-    <td><input type=text size=7 maxlength=7 name="jumpgate_range_multiplier" value="<?php echo getJumpgateShipTypeOptions($series)['range_multiplier']; ?>"/> x BR (Blank indicates infinite range)</td>
-  </tr>
-  <tr>
-    <th style="text-align: right;">Jumpgate Loss:</th>
-    <td><input type=text size=6 maxlength=6 name="jumpgate_loss" value="<?php echo getJumpgateShipTypeOptions($series)['loss'];?>"/></td>
-  </tr>
-  <tr>
-    <th style="text-align: right;">Jumpgate Build Cost:</th>
-    <td><input type=text size=5 maxlength=5 name="jumpgate_build_cost" value="<?php echo getJumpgateShipTypeOptions($series)['build_cost'];?>"/></td>
-  </tr>
-  <tr>
-    <th style="text-align: right;">Jumpgate Maintenance Cost:</th>
-    <td><input type=text size=5 maxlength=5 name="jumpgate_maintenance_cost" value="<?php echo getJumpgateShipTypeOptions($series)['maintenance_cost'];?>"/></td>
-  </tr>
-
+<?php
+	echo sc3SeriesLevelFormHtml($series, false);
+	echo sc3ShipTypeOptionsFormHtml($series, 'sc3');
+?>
 	<tr>
 		<th style="text-align: right;">Average agriculture:</th>
 		<td align=left>
@@ -507,39 +476,12 @@ function editSeries_processing($vars)
 	$vars['weekend_updates'] = ($vars['weekend_updates'] != '' ? 1 : 0);
 	$vars['max_wins'] = ($vars['no_max_wins'] != '' ? -1 : $vars['max_wins']);
 
-	if ($vars['jumpgate_status'] != 'Available' && $vars['jumpgate_status'] != 'Unrestricted' && $vars['jumpgate_status'] != 'Restricted') {
-    $vars['jumpgate_status'] = 'Barred';
-  } 
-    
-  if (array_key_exists('jumpgate_range_multiplier', $vars) && strlen(trim($vars['jumpgate_range_multiplier'])) > 0) {
-    $vars['jumpgate_range_multiplier'] = floatval($vars['jumpgate_range_multiplier']);
-  } else {
-    $vars['jumpgate_range_multiplier'] = 'NULL';
-  }   
-      
-  if (array_key_exists('jumpgate_loss', $vars)) {
-    $vars['jumpgate_loss'] = floatval($vars['jumpgate_loss']);
-  }   
-      
-  if (array_key_exists('jumpgate_build_cost', $vars)) {
-    $vars['jumpgate_build_cost'] = intval($vars['jumpgate_build_cost']);
-  }   
-      
-  if (array_key_exists('jumpgate_maintenance_cost', $vars)) {
-    $vars['jumpgate_maintenance_cost'] = intval($vars['jumpgate_maintenance_cost']);
-  }
-
-  if ($vars['game_type'] == 'sc2') {
-    if ($vars['jumpgate_status'] != 'Barred') {
-      return editSeries($vars, 'Jumpgate must be barred in sc2 games.');
-    }
-  }
-
 	debugecho("loading values");
 	// load fields for update
 	$values = array();
 	//id is auto increment
 	$values[] = 'name = "'.$vars['series_name'].'"';
+	$values[] = 'game_type = "'.$vars['game_type'].'"';
 	// keep rest of fields in alpha order
 	$values[] = 'average_resources = "'.$vars['avg_min'].'"';
 	$values[] = 'avg_ag = "'.$vars['avg_ag'].'"';
@@ -567,24 +509,22 @@ function editSeries_processing($vars)
 	$values[] = 'update_time = "'.$vars['update_time'].'"';
 	$values[] = 'visible_builds = "'.$vars['visible_builds'].'"';
 	$values[] = 'weekend_updates = "'.$vars['weekend_updates'].'"';
+	$values = array_merge($values, sc3SeriesLevelValuesFromVars($vars, false));
 
 	debugecho("14: pre mysql update");
 	$cjpsql='UPDATE series SET '.implode(',', $values).' WHERE id = '.$vars['editSeriesID'];
 	debugecho($cjpsql);
 	sc_query('UPDATE series SET '.implode(',', $values).' WHERE id = '.$vars['editSeriesID'], __FILE__.'*'.__LINE__);
 
-	$values = array();
-	$values[] = 'status = \'' . $vars['jumpgate_status'] . '\'';
-	$values[] = 'range_multiplier = \'' . $vars['jumpgate_range_multiplier'] . '\'';
-	$values[] = 'loss = \'' . $vars['jumpgate_loss'] . '\'';
-	$values[] = 'build_cost = \'' . $vars['jumpgate_build_cost'] . '\'';
-	$values[] = 'maintenance_cost = \'' . $vars['jumpgate_maintenance_cost'] . '\'';
-	
-	$sql = 'update series_ship_type_options set ' . implode(',', $values) . ' where series_id = ' . $vars['editSeriesID'] . ' AND ship_type = \'Jumpgate\'';
-	sc_query($sql);
+	sc3SaveSeriesShipTypeOptions($vars['editSeriesID'], $vars, $vars['game_type'], true);
 
-	$sql = 'update game_ship_type_options set ' . implode(',', $values) . ' where game_id in (select id from games where series_id = ' . $vars['editSeriesID'] . ' AND player_count = 0) AND ship_type = \'Jumpgate\'';
-	sc_query($sql);
+	// Propagate alliance limit to empty games of this series.
+	if (!isset($vars['max_allies']) || trim((string)$vars['max_allies']) === '')
+		$ally_sql = 'NULL';
+	else
+		$ally_sql = intval($vars['max_allies']);
+	sc_query('UPDATE games SET max_allies = '.$ally_sql.
+		' WHERE series_id = '.$vars['editSeriesID'].' AND player_count = 0');
 
 	debugecho("14: pre sendEmpireMessage");
 	$empire = [];

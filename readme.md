@@ -17,7 +17,7 @@ There is a fourth implementation from the late 90s called MkII.  I believe it is
 # History
 Depending on who you ask, Stellar Crisis first appeared in either 1993 or 1995.  The earliest announcement I have been able to find on usenet is from 1995.  The php implementation originated in the early '00s, first appearing on the Iceberg server.  By the late 00s, the Iceberg server was defunct.  Homeserve was started as a replacement.  I acquired a copy of the php code in 2010.  I added a tournament manager, which I have been using to run an annual tournament since 2011.  In 2019, I upgraded the software to run on php7 and newer versions of mysql/mariadb.  This upgrade was substantially more complicated than I anticipated.  In 2021, I implemented Jumpgates (a shiptype introduced in stellar crisis 3 that had never been implemented in the php version of the game).
 
-#Competitive Play
+# Competitive Play
 Stellar Crisis has a long history of competitive play.  Past competitions include Clan Wars, "Olympics," and the Stellar Kings Cup.  The Stellar Crisis Open Championship, began in 2011, continues to be run annually on the Rocket Empires server.  The tournament starts on the last Saturday in July, with registration opening a week before.
 
 # Installation/Configuration
@@ -70,6 +70,39 @@ Run the Following mysql script:
         series int(11) not null,
         completed tinyint(1) not null default 0
     );
+```
+
+# Upgrade (SC3 remaining features)
+These instructions are to upgrade a server that already has Jumpgate / ship_type_options support to the remaining SC 3.0 ships and series options (Carrier, Builder, Morpher, and related series knobs).
+Run the Following mysql script:
+```
+INSERT IGNORE INTO ship_types (type, mobile, version) VALUES
+('Carrier', '1', 'v3'),
+('Builder', '1', 'v3'),
+('Morpher', '1', 'v3');
+
+ALTER TABLE ships
+  ADD COLUMN morpher enum('1','0') NOT NULL DEFAULT '0' AFTER type;
+
+ALTER TABLE players
+  ADD COLUMN restricted_techs smallint(6) NOT NULL DEFAULT '0' AFTER traded_in;
+
+ALTER TABLE series
+  ADD COLUMN max_ag_ratio float NOT NULL DEFAULT 100 AFTER weekend_updates,
+  ADD COLUMN max_ships smallint(6) NOT NULL DEFAULT 0,
+  ADD COLUMN initial_tech float NOT NULL DEFAULT 1.0,
+  ADD COLUMN hw_ag smallint(6) NOT NULL DEFAULT 100,
+  ADD COLUMN hw_min smallint(6) NOT NULL DEFAULT 100,
+  ADD COLUMN hw_fuel smallint(6) NOT NULL DEFAULT 100,
+  ADD COLUMN min_pop_to_build smallint(6) NOT NULL DEFAULT 50,
+  ADD COLUMN planet_create_cost smallint(6) NOT NULL DEFAULT 90,
+  ADD COLUMN max_planets int(11) NOT NULL DEFAULT 1000,
+  ADD COLUMN max_restricted_techs smallint(6) NOT NULL DEFAULT 0,
+  ADD COLUMN max_trade_ins smallint(6) NOT NULL DEFAULT 0,
+  ADD COLUMN max_allies tinyint(3) unsigned DEFAULT NULL;
+
+UPDATE series_ship_type_options SET status = 'Developed' WHERE status = 'Available';
+UPDATE game_ship_type_options SET status = 'Developed' WHERE status = 'Available';
 ```
 
 # License
