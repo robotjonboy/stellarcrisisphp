@@ -50,7 +50,7 @@ function techScreen($vars)
 			$status = sc3GetShipTypeStatus($game, $type);
 			if ($status === 'Unrestricted')
 				$unrestricted[] = $type;
-			else if ($status === 'Restricted' && $have_r < $max_r)
+			else if ($status === 'Restricted')
 				$restricted[] = $type;
 		}
 		$x = 1;
@@ -84,12 +84,13 @@ function techScreen($vars)
 <?php
 	if ($is_sc3 && !empty($game['ship_type_options']))
 	{
+		$can_pick_restricted = ($techs_waiting > 0 && $have_r < $max_r);
 		echo '<tr><th style="vertical-align: top; text-align: right;">Restricted Undeveloped:</th><td>';
 		$x = 1;
 		foreach ($restricted as $type)
 		{
 			if (!($x++ % 5)) echo '<br>';
-			if ($techs_waiting > 0)
+			if ($can_pick_restricted)
 				echo '<input type=submit name="newTech" value="'.htmlspecialchars($type).'">';
 			else
 				echo '<input type=button disabled value="'.htmlspecialchars($type).'">';

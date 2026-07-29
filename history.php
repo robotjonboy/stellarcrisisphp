@@ -45,7 +45,7 @@ function endGame($series, $game, $history, $saved_map)
 	$icon_list[1] = 'annihilated.gif';
 	$icon_list[2] = 'nukedani.gif'; // nuke animation
 	$icon_list[3] = 'anilani.gif'; // annihilation animation
-	$icon_list[4] = 'planet.gif'; // save for invasion animation
+	$icon_list[4] = 'blank.gif'; // not yet created (builder)
 
 	$player_list = array();
 	$player_list['=annihilated='] = 1;
@@ -215,9 +215,30 @@ function endGame($series, $game, $history, $saved_map)
 				echo '<span class=updateInvade>'.$event['empire']."'s invasion of (".$event['coordinates'].') failed.</span>';
 				break;
 
+			case 'created':
+				// Hide the system in movie frames before this update, then show as unowned.
+				if (!isset($owner_history[$event['coordinates']]))
+					$owner_history[$event['coordinates']] = array();
+				for ($u = 0; $u < $update; $u++)
+					$owner_history[$event['coordinates']][$u] = 4;
+				$owner_history[$event['coordinates']][$update] = 0;
+				echo '<span class=updateColonize>('.$event['coordinates'].') was created by '.$event['empire'].'.</span>';
+				break;
+
 			case 'opened':
 			case 'closed':
-				list($target, $shipname, $consumed) = explode('/', $event['info']);
+				list($target, $shipname, $consumed) = array_pad(explode('/', $event['info']), 3, '');
+				// Legacy builder creates were recorded as opened with info "coords/created".
+				if ($event['event'] === 'opened' && $shipname === 'created')
+					{
+					if (!isset($owner_history[$event['coordinates']]))
+						$owner_history[$event['coordinates']] = array();
+					for ($u = 0; $u < $update; $u++)
+						$owner_history[$event['coordinates']][$u] = 4;
+					$owner_history[$event['coordinates']][$update] = 0;
+					echo '<span class=updateColonize>('.$event['coordinates'].') was created by '.$event['empire'].'.</span>';
+					break;
+					}
 				echo '<span class=updateEngineer>'.($shipname ? $shipname : 'An engineer').' of '.$event['empire'].' '.
 					 $event['event'].' the jump from ('.$event['coordinates'].') to ('.$target.
 					 ($consumed == 'yes' ? ') and was consumed in the process' : ')').'.</span>';

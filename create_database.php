@@ -177,7 +177,7 @@ CREATE TABLE history (
   update_no smallint(6) NOT NULL default "0",
   coordinates varchar(12) NOT NULL default "",
   empire varchar(20) NOT NULL default "",
-  event enum("started","bridier","update","Truce","Trade","War","Alliance","empire","unknown","ship to ship","ship to system","destroyed","sighted","minefield","nuked","annihilated","invaded","unsucessfully invaded","colonized","terraformed","opened","closed","joined","nuked out","invaded out","annihilated out","ruins","surrender","draw","won") NOT NULL default "unknown",
+  event enum("started","bridier","update","Truce","Trade","War","Alliance","empire","unknown","ship to ship","ship to system","destroyed","sighted","minefield","nuked","annihilated","invaded","unsucessfully invaded","colonized","terraformed","opened","closed","joined","nuked out","invaded out","annihilated out","ruins","surrender","draw","won","send","Shared HQ","created") NOT NULL default "unknown",
   info varchar(255) NOT NULL default "",
   UNIQUE KEY id (id),
   KEY game_id (game_id),

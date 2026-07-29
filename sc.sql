@@ -221,7 +221,7 @@ CREATE TABLE IF NOT EXISTS `history` (
   `game_id` int(11) NOT NULL DEFAULT '0',
   `empire` varchar(20) NOT NULL DEFAULT '',
   `coordinates` varchar(12) NOT NULL DEFAULT '',
-  `event` enum('started','bridier','update','Truce','Trade','War','Alliance','empire','unknown','ship to ship','ship to system','destroyed','sighted','minefield','nuked','annihilated','invaded','unsucessfully invaded','colonized','terraformed','opened','closed','joined','nuked out','invaded out','annihilated out','ruins','surrender','draw','won','send','Shared HQ') NOT NULL DEFAULT 'unknown',
+  `event` enum('started','bridier','update','Truce','Trade','War','Alliance','empire','unknown','ship to ship','ship to system','destroyed','sighted','minefield','nuked','annihilated','invaded','unsucessfully invaded','colonized','terraformed','opened','closed','joined','nuked out','invaded out','annihilated out','ruins','surrender','draw','won','send','Shared HQ','created') NOT NULL DEFAULT 'unknown',
   `info` varchar(255) NOT NULL DEFAULT '',
   `update_no` smallint(6) NOT NULL DEFAULT '0',
   UNIQUE KEY `id` (`id`),

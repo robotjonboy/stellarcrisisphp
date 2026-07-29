@@ -138,6 +138,11 @@ function gameAction($vars)
 	// If the processing functions return true, it means we want to stay on the screen we were on (the user needs to be
 	// informed of something). The two slight exceptions are the Map and Mini-Map processing which return a zoomed-on planet.
 	// In those cases, a coordinate is return and we use a different screen to zoom in.
+	// Map button carries leftover zoomed_planet from the system screen; clear it after processing so local
+	// ship/fleet orders still save, but the full map shows. Mini-Map system clicks do not submit
+	// gameAction=Map; they set zoomed_planet later for the intentional 10×10 zoom.
+	$clear_zoomed_for_full_map = (isset($vars['gameAction']) && $vars['gameAction'] == 'Map');
+
 	switch ($vars['play'])
 	{
    		case 'Info':												break;
@@ -184,6 +189,9 @@ function gameAction($vars)
 			break;
 		default:		sendGameMessage($player, 'Invalid play action.');
   	}
+
+	if ($clear_zoomed_for_full_map && isset($vars['gameAction']) && $vars['gameAction'] == 'Map')
+		unset($vars['zoomed_planet']);
 
 	// COMMIT what we've done and begin a new transaction.
 	// No more modifications are needed to the database.

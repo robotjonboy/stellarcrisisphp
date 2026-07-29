@@ -865,7 +865,7 @@ function update_game($series, &$game, $update_time)
 			if ($owner_player)
 				$buffered_missive[$owner_player['id']]['actions'][] =
 					'<!--U:cre-->'.$sys_name.' was successfully created.';
-			$history[] = array($destination, $creator['owner'], 'opened', $destination.'/created');
+			$history[] = array($destination, $creator['owner'], 'created', '');
 			$built = true;
 		}
 

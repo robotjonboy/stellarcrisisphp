@@ -25,8 +25,8 @@ function gameList($vars)
 		$game = getGameByID($row['game_id']);
 
 		$popup = 'onClick="window.open(\'sc.php?seriesParameters='.$row['id'].'\',\'seriesParameters'.$row['id'].'\',\'height=500,width=600,scrollbars=yes\')"';
-		$series_description_link = '<a style="text-decoration: none; color: red;" href="javascript:void(0)" '.$popup.'>'.$row['name'].'</a>';
-								   ($row['creator'] != 'admin' ? '<div style="font-size: 7pt;">Created by '.$row['creator'].'</div>' : '');
+		$series_description_link = '<a style="text-decoration: none; color: red;" href="javascript:void(0)" '.$popup.'>'.$row['name'].'</a>'.
+								   (strlen(trim($row['creator'] ?? '')) && strcasecmp(trim($row['creator']), 'admin') !== 0 ? '<div style="font-size: 7pt;">Created by '.htmlspecialchars($row['creator']).'</div>' : '');
 	
 		$player_listing = '<span class="playerListing">'.
 						  '<a href="javascript:void(0)">[&nbsp;list<span>'.playerList($row['game_id'], $empire).'</span>&nbsp;]</a></span>';
@@ -845,7 +845,7 @@ function seriesDescription($series)
 	$description = '<tr><th width=150 style="text-align: left; color: red;"><a style="text-decoration: none; color: red;" href="javascript:void(0)" '.
 				   'onClick="window.open(\'sc.php?seriesParameters='.$series['id'].'\',\'seriesParameters'.$series['id'].'\','.
 				   '\'height=500,width=600,scrollbars=yes\')">'.$series['name'].'</a>'.
-				   ($series['creator'] != 'admin' ? '<div style="font-size: 7pt;">Created by '.$series['creator'].'</div>' : '').'</th>'.
+				   (strlen(trim($series['creator'] ?? '')) && strcasecmp(trim($series['creator']), 'admin') !== 0 ? '<div style="font-size: 7pt;">Created by '.htmlspecialchars($series['creator']).'</div>' : '').'</th>'.
 				   '<td colspan=5 style="text-align: left;">'.($series['team_game'] ? '<span class=green><b>Team game.</b></span> ' : '').
 				   ($series['diplomacy'] == 6 ? '<span class=blue><b>Shared HQ.</b></span> ' : '').
 				   'Updates every '.$update_time.', '.($series['weekend_updates'] ? '' : 'no weekend updates, ').

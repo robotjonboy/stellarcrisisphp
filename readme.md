@@ -103,6 +103,16 @@ ALTER TABLE series
 
 UPDATE series_ship_type_options SET status = 'Developed' WHERE status = 'Available';
 UPDATE game_ship_type_options SET status = 'Developed' WHERE status = 'Available';
+
+ALTER TABLE history
+  MODIFY event ENUM(
+    'started','bridier','update','Truce','Trade','War','Alliance',
+    'empire','unknown','ship to ship','ship to system','destroyed',
+    'sighted','minefield','nuked','annihilated','invaded',
+    'unsucessfully invaded','colonized','terraformed','opened',
+    'closed','joined','nuked out','invaded out','annihilated out',
+    'ruins','surrender','draw','won','send','Shared HQ','created'
+  ) NOT NULL DEFAULT 'unknown';
 ```
 
 # License
