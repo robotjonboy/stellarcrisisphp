@@ -115,5 +115,7 @@ ALTER TABLE history
   ) NOT NULL DEFAULT 'unknown';
 ```
 
+If the server already ran the SC3 remaining-features script above, also run `upgrade_sc3_jumpgate_series.sql`. That fills ship-type options for existing sc3 series that only have Jumpgate: classic ships stay developable (Attack/Science/Colony start Developed), Jumpgate is left as-is, and Carrier/Builder/Morpher are Barred. The script is included at the end of `upgrade_sc3.sql` for first-time upgrades and is safe to re-run.
+
 # License
 Stellar Crisis PHP is available under The GPL v2.0

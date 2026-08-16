@@ -20,7 +20,7 @@ function resumeSeries($vars)
 <select name="seriesToResume" onChange="document.forms[0].resume.disabled = (document.forms[0].seriesToResume.value == 0)">
 	<option value="">Resume series...
 <?php
-	while ($series = mysql_fetch_array($select))
+	while ($series = $select->fetch_assoc())
 		echo '<option value="'.$series['id'].'">'.$series['name'];	
 ?>
 </select>
@@ -55,7 +55,7 @@ function resumeSeries_processing($vars)
 		// Not in 2.8 code, but how will one start a new game if it doesn't appear on the game list screen?
 		// This will spawn a new game if no other is open.
 		$select_empty_games = sc_query('SELECT COUNT(*) FROM games WHERE series_id = '.$series['id'].' AND player_count = 0');
-		if (!mysql_result($select_empty_games, 0, 0))
+		if (!sc_result($select_empty_games, 0, 0))
 			spawnGame($series['name']);
 
 		sendEmpireMessage($vars['empire_data'], 'Series <span class=red>'.$series['name'].'</span> resumed.');
