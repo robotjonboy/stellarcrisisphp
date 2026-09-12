@@ -1268,15 +1268,18 @@ function fixOrders($dirty_orders, $series, $game, $player, $ship)
 					{
 					$galactic_coordinates = xlateToGalactic($order_arguments);
 
-					if (isset($system_cache[$galactic_coordinates]))
+					if (array_key_exists($galactic_coordinates, $system_cache))
 						$system = $system_cache[$galactic_coordinates];
 					else
 						{
+						// May be null: create/explore targets empty or not-yet-visible cells.
 						$system = getSystem($game['id'], $galactic_coordinates);
 						$system_cache[$galactic_coordinates] = $system;
 						}
-					
-					$system_name = ($system['annihilated'] ? 'Remains of ' : '').$system['name'];
+
+					$system_name = '';
+					if ($system)
+						$system_name = ($system['annihilated'] ? 'Remains of ' : '').$system['name'];
 
 					switch ($orders)
 						{
