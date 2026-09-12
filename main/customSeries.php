@@ -417,8 +417,8 @@ function createCustomSeries_processing($vars)
 	if (badNumericValue($vars['avg_fuel'], 0, 500))											$errors[] = 'Invalid average fuel (2 to 500 allowed).';
 	if (badNumericValue($vars['avg_ag'], 0, 500))											$errors[] = 'Invalid average agriculture (2 to 500 allowed).';
 	if (badNumericValue($vars['min_wins'], 0, -1))											$errors[] = 'Invalid minimum wins.';
-	if ($vars['no_max_wins'] == '' and badNumericValue($vars['max_wins'], 0, -1))			$errors[] = 'Invalid maximum wins.';
-	if ($vars['no_max_wins'] == '' and $vars['max_wins'] < $vars['min_wins'])				$errors[] = 'Maximum wins was less than minimum wins.';
+	if (($vars['no_max_wins'] ?? '') == '' and badNumericValue($vars['max_wins'], 0, -1))			$errors[] = 'Invalid maximum wins.';
+	if (($vars['no_max_wins'] ?? '') == '' and $vars['max_wins'] < $vars['min_wins'])				$errors[] = 'Maximum wins was less than minimum wins.';
 	if ($vars['bridier_allowed'] and $vars['max_players'] != 2)								$errors[] = 'Bridier is for 2 player games only.';
 	if ($vars['map_type'] == 2 and $vars['max_players']*$vars['systems_per_player'] > 250)	$errors[] = 'Pre-built map not allowed for more than 250 total systems';
 
@@ -457,8 +457,8 @@ function createCustomSeries_processing($vars)
    		default:		$vars['update_time'] *= 60; // Assume minutes if nothing (!) is specified.
   		}
 
-	$vars['weekend_updates'] = ($vars['weekend_updates'] != '' ? 1 : 0);
-	$vars['max_wins'] = ($vars['no_max_wins'] != '' ? -1 : $vars['max_wins']);
+	$vars['weekend_updates'] = (($vars['weekend_updates'] ?? '') != '' ? 1 : 0);
+	$vars['max_wins'] = (($vars['no_max_wins'] ?? '') != '' ? -1 : $vars['max_wins']);
 
 	$values = array();
 	$values[] = 'name = "'.$vars['series_name'].'"';

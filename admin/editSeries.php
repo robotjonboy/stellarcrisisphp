@@ -438,9 +438,9 @@ function editSeries_processing($vars)
 		return editSeries($vars, 'Bridier is for 2 player games only.');
 	if ($vars['map_type'] == 2 and $vars['max_players']*$vars['systems_per_player'] > 250)
 		return editSeries($vars, 'Pre-built map not allowed for more than 250 total systems');
-	if ($vars['no_max_wins'] == '' and !is_numeric($vars['max_wins']))
+	if (($vars['no_max_wins'] ?? '') == '' and !is_numeric($vars['max_wins']))
 		return editSeries($vars, 'No maximum wins entered.');
-	if ($vars['no_max_wins'] == '' and $vars['max_wins'] < $vars['min_wins'])
+	if (($vars['no_max_wins'] ?? '') == '' and $vars['max_wins'] < $vars['min_wins'])
 		return editSeries($vars, 'Maximum wins was less than minimum wins.');
 
 	debugecho("11");
@@ -473,8 +473,8 @@ function editSeries_processing($vars)
    		case 'Days':	$vars['update_time'] *= 86400;	break;
 	}
 
-	$vars['weekend_updates'] = ($vars['weekend_updates'] != '' ? 1 : 0);
-	$vars['max_wins'] = ($vars['no_max_wins'] != '' ? -1 : $vars['max_wins']);
+	$vars['weekend_updates'] = (($vars['weekend_updates'] ?? '') != '' ? 1 : 0);
+	$vars['max_wins'] = (($vars['no_max_wins'] ?? '') != '' ? -1 : $vars['max_wins']);
 
 	debugecho("loading values");
 	// load fields for update

@@ -313,13 +313,13 @@ function createSeries_processing($vars)
 		$invalid_data = true;
 		}
 
-	if ($vars['no_max_wins'] == '' and badNumericValue($vars['max_wins'], 0))
+	if (($vars['no_max_wins'] ?? '') == '' and badNumericValue($vars['max_wins'], 0))
 		{
 		sendEmpireMessage($empire, 'No maximum wins entered.');
 		$invalid_data = true;
 		}
 
-	if ($vars['no_max_wins'] == '' and badNumericValue($vars['max_wins'], $vars['min_wins']))
+	if (($vars['no_max_wins'] ?? '') == '' and badNumericValue($vars['max_wins'], $vars['min_wins']))
 		{
 		sendEmpireMessage($empire, 'Maximum wins was less than minimum wins.');
 		$invalid_data = true;
@@ -373,8 +373,8 @@ function createSeries_processing($vars)
    		case '3':	$vars['update_time'] *= 86400;	break; #Days
   		}
 
-	$vars['weekend_updates'] = ($vars['weekend_updates'] != '' ? 1 : 0);
-	$vars['max_wins'] = ($vars['no_max_wins'] != '' ? -1 : $vars['max_wins']);
+	$vars['weekend_updates'] = (($vars['weekend_updates'] ?? '') != '' ? 1 : 0);
+	$vars['max_wins'] = (($vars['no_max_wins'] ?? '') != '' ? -1 : $vars['max_wins']);
 
 	$values = array();
 	$values[] = 'name = "'.$vars['series_name'].'"';
