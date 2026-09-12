@@ -809,14 +809,14 @@ function update_game($series, &$game, $update_time)
 		if ($work >= $planet_create_cost && count($alive_builders))
 		{
 			$creator = $alive_builders[0];
-			$origin = $creator['location'];
+			$origin_list = array_keys($origins);
 			$avg_ag = (int)$series['avg_ag'];
 			$avg_min = (int)$series['avg_min'];
 			$avg_fuel = (int)$series['avg_fuel'];
 			$max_pop = max($avg_min, $avg_fuel);
-			$open_jump = (count($origins) === 1);
 
-			$jumps = $open_jump ? $origin : '';
+			// Link the new system to every origin builders operated from.
+			$jumps = implode(' ', $origin_list);
 			$map_stub = array();
 			$sys_name = nameSystem($map_stub);
 			$values = array();
@@ -837,7 +837,7 @@ function update_game($series, &$game, $update_time)
 			$values[] = 'system_active = "1"';
 			sc_query('INSERT INTO systems SET '.implode(', ', $values));
 
-			if ($open_jump)
+			foreach ($origin_list as $origin)
 			{
 				$origin_sys = getSystem($game['id'], $origin);
 				if ($origin_sys)

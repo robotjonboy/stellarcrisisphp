@@ -422,11 +422,42 @@ function endGame($series, $game, $history, $saved_map)
 	$buffer = str_replace('***HISTORY_JAVASCRIPT***', $history_javascript, $buffer);
 
 	$filename = strtr($series['name'], " ?'", "___").'_'.$game['game_number'].'.html';
-	
-	$fp = fopen($server['history_write_path'].$filename, 'w');
-	
-	fwrite($fp, $buffer);	
-	fclose($fp);
+
+	// Resolve relative history_write_path against the app directory (where this
+	// file lives), not PHP's cwd — cwd varies by SAPI and often is not the app root.
+	$history_dir = $server['history_write_path'];
+	if ($history_dir === '' || $history_dir[0] !== '/')
+		$history_dir = rtrim(__DIR__.'/'.$history_dir, '/').'/';
+	else
+		$history_dir = rtrim($history_dir, '/').'/';
+
+	if (!is_dir($history_dir) && !@mkdir($history_dir, 0775, true))
+		{
+		reportError(E_WARNING,
+			'endGame: history directory missing and could not be created: '.$history_dir.
+			' (config history_write_path='.$server['history_write_path'].
+			', cwd='.getcwd().', __DIR__='.__DIR__.')',
+			__FILE__, __LINE__);
+		}
+	else
+		{
+		$history_path = $history_dir.$filename;
+		$fp = @fopen($history_path, 'w');
+		if (!$fp)
+			{
+			reportError(E_WARNING,
+				'endGame: failed to open history file for write: '.$history_path.
+				' (config history_write_path='.$server['history_write_path'].
+				', cwd='.getcwd().', is_dir='.(is_dir($history_dir)?'yes':'no').
+				', is_writable='.(is_writable($history_dir)?'yes':'no').')',
+				__FILE__, __LINE__);
+			}
+		else
+			{
+			fwrite($fp, $buffer);
+			fclose($fp);
+			}
+		}
 
 	// The history file is written. Now update the game log.
 

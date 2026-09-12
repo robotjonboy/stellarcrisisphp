@@ -201,7 +201,7 @@ Tech screen (sc3):
   1. Group create attempts by destination.
   2. If the game already has `num_planets >= max_planets`, skip that destination entirely (pike leaves those builders unconsumed).
   3. Sum BR of participating builders; if ≥ `planet_create_cost / 10`, create system with avg ag/min/fuel, name it, mark explored for creator(s), increment `num_planets`.
-  4. If all creators shared one origin system, open a jump between origin and new system.
+  4. Open bidirectional jumps between the new system and every origin system builders operated from (single- or multi-origin).
   5. Otherwise (attempted create under the planet cap): consume all participating builders whether success or failure.
 - History / missives for create success (and preferably failure notification — pike notes this as incomplete).
 - UI offers create for any adjacent empty cell (pike); do **not** gate the order list on a single ship’s BR — multiple builders pool BR at resolution.
@@ -329,7 +329,7 @@ Recommended order (options foundation first so ships and series packs share one 
 ## Testing notes (for later implementation)
 
 - Combat: carriers vs attacks in enemy system (nuking after mutual survival); carrier vs 2DV; carrier + minefield; fuel-ratio interaction.
-- Builder: success/fail thresholds; multi-origin create (jump behavior); explored-only for creator.
+- Builder: success/fail thresholds; multi-origin create opens jumps from all origins; explored-only for creator.
 - Morpher: morph loss consume; morph to cloaker auto-cloak; no morph while cloaked; italic identity after morph.
 - Tech: restricted cap, trade-in does not refund selection, barred absent, developed at join.
 - Ship limit includes building and dismantling orders.
