@@ -817,7 +817,8 @@ function update_game($series, &$game, $update_time)
 			$open_jump = (count($origins) === 1);
 
 			$jumps = $open_jump ? $origin : '';
-			$sys_name = 'System '.$destination;
+			$map_stub = array();
+			$sys_name = nameSystem($map_stub);
 			$values = array();
 			$values[] = 'game_id = '.(int)$game['id'];
 			$values[] = 'series_id = '.(int)$series['id'];
