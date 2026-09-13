@@ -296,7 +296,20 @@ function shipsScreen_processing($vars)
 					// Note that the orders of the ship does not change. We only change its location;
 					// this way, the update_game() code does not need to be changed. We are in fact
 					// emulating a build cancelation and a re-issuing of building orders on another planet.
-					sc_query('UPDATE ships SET location = "'.xlateToGalactic($order_arguments).'" WHERE id = '.$ship_id);
+					$new_location = xlateToGalactic($order_arguments);
+
+					// A relocated colony build still costs 1 population, and the destination must keep at least 1.
+					if ($ship['type'] == 'Colony')
+						{
+						$destination = getSystem($game['id'], $new_location);
+						if (!$destination or $destination['owner'] != $player['name'] or sc3MaxColonyBuilds($destination['population']) < 1)
+							{
+							sendGameMessage($player, 'Colony build left at '.xlateToLocal($ship['location']).'; moving it to '.xlateToLocal($new_location).' would drop population below 1.');
+							continue;
+							}
+						}
+
+					sc_query('UPDATE ships SET location = "'.$new_location.'" WHERE id = '.$ship_id);
 
 					// Adjust populations if this is a colony ship and we are switching planets.
 					if ($ship['type'] == 'Colony')
@@ -306,7 +319,7 @@ function shipsScreen_processing($vars)
 						$conditions[1] = 'coordinates = "'.$ship['location'].'"';
 						sc_query('UPDATE systems SET population = (population+1) WHERE '.implode(' AND ', $conditions));
 
-						$conditions[1] = 'coordinates = "'.xlateToGalactic($order_arguments).'"';
+						$conditions[1] = 'coordinates = "'.$new_location.'"';
 						sc_query('UPDATE systems SET population = (population-1) WHERE '.implode(' AND ', $conditions));
 						}
 					}
@@ -932,7 +945,8 @@ function getValidOrders($series, $game, $ship, $player)
 		$conditions[] = 'game_id = '.$game['id'];
 		$conditions[] = 'owner = "'.$ship['owner'].'"';
 		$conditions[] = 'coordinates <> "'.$ship['location'].'"';
-		$conditions[] = 'population >= '.sc3MinPopToBuild($series);
+		$pop_needed = ($ship['type'] == 'Colony' ? sc3MinPopToBuildColony($series) : sc3MinPopToBuild($series));
+		$conditions[] = 'population >= '.$pop_needed;
 		
 		$select = sc_query('SELECT coordinates FROM systems WHERE '.implode(' AND ', $conditions).' ORDER BY name, coordinates ASC');
 		while ($system = $select->fetch_assoc())

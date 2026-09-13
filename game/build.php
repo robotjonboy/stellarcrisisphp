@@ -24,18 +24,29 @@ function buildScreen($vars)
 	$conditions[] = 'game_id = '.$game['id'];
 	$conditions[] = 'owner = "'.$mysqli->real_escape_string($vars['name']).'"';
 	$conditions[] = 'population >= '.$min_pop;
-	$select = sc_query('SELECT name, coordinates, homeworld FROM systems WHERE '.implode(' AND ', $conditions).' ORDER BY name, coordinates ASC');
+	$select = sc_query('SELECT name, coordinates, homeworld, population FROM systems WHERE '.implode(' AND ', $conditions).' ORDER BY name, coordinates ASC');
 
   	if (!$select->num_rows)
     	{
     	echo '<div class=messageBold>You have no planets with enough population for building.</div>';
 	    return footer();
 	   	}
-	
+
+	$colony_min_pop = sc3MinPopToBuildColony($series);
 	$build_at = array();
+	$colony_build_at = array();
+	$max_colony_builds = 0;
 	while ($planet = $select->fetch_assoc())
-		$build_at[] = '<option value="'.xlateToLocal($planet['coordinates']).'"'.($planet['homeworld'] ? ' selected' : '').'>'.
-				 	  $planet['name'].' ('.xlateToLocal($planet['coordinates']).')';
+		{
+		$option = '<option value="'.xlateToLocal($planet['coordinates']).'"'.($planet['homeworld'] ? ' selected' : '').'>'.
+				  $planet['name'].' ('.xlateToLocal($planet['coordinates']).')';
+		$build_at[] = $option;
+		if ((int)$planet['population'] >= $colony_min_pop)
+			{
+			$colony_build_at[] = $option;
+			$max_colony_builds = max($max_colony_builds, sc3MaxColonyBuilds($planet['population']));
+			}
+		}
 
 	// Get all the legal BRs the player can build a ship at.
 	$br_list = array();
@@ -64,6 +75,11 @@ function buildScreen($vars)
 	$build_counts = array();
 	for ($x = 0; $x <= $server['max_build_ships']; $x++)
 		$build_counts[] = '<option>'.$x;
+
+	$colony_build_counts = array();
+	$colony_count_cap = min($server['max_build_ships'], $max_colony_builds);
+	for ($x = 0; $x <= $colony_count_cap; $x++)
+		$colony_build_counts[] = '<option>'.$x;
 ?>
 <div>
 <table style="margin-left: auto; margin-right: auto;">
@@ -78,13 +94,27 @@ function buildScreen($vars)
 	foreach (explode(' ', $player['techs']) as $tech)
 		{
 		if ($tech === '') continue;
+
+		if ($tech === 'Colony' && !$colony_build_at)
+			{
 ?>
 	<tr>
 		<td><?php echo htmlspecialchars($tech); ?></td>
-		<th><select name="builds[<?php echo htmlspecialchars($tech); ?>][count]"><?php echo implode('', $build_counts); ?></select></th>
+		<td colspan=4>No planet can spare a colonist. Population cannot drop below 1.</td>
+	</tr>
+<?php
+			continue;
+			}
+
+		$row_counts = ($tech === 'Colony' ? $colony_build_counts : $build_counts);
+		$row_locations = ($tech === 'Colony' ? $colony_build_at : $build_at);
+?>
+	<tr>
+		<td><?php echo htmlspecialchars($tech); ?></td>
+		<th><select name="builds[<?php echo htmlspecialchars($tech); ?>][count]"><?php echo implode('', $row_counts); ?></select></th>
 		<th><input type=text name="builds[<?php echo htmlspecialchars($tech); ?>][name]" size=15 maxlength=20></th>
 		<th><select name="builds[<?php echo htmlspecialchars($tech); ?>][br]"><?php echo implode('', $br_list); ?></select></th>
-		<th><select name="builds[<?php echo htmlspecialchars($tech); ?>][location]"><?php echo implode('', $build_at); ?></select></th>
+		<th><select name="builds[<?php echo htmlspecialchars($tech); ?>][location]"><?php echo implode('', $row_locations); ?></select></th>
 	</tr>
 <?php
 		}
@@ -149,6 +179,22 @@ function buildScreen_processing($vars)
 				{
 				$outbuild[] = 'You cannot build ships at '.xlateToGalactic($build_location).'.';
 				continue;
+				}
+
+			if ($ship_type === 'Colony')
+				{
+				$already = (array_key_exists($system['id'], $departing_colonists) ? $departing_colonists[$system['id']] : 0);
+				$available = sc3MaxColonyBuilds($system['population']) - $already;
+				if ($available < 1)
+					{
+					$outbuild[] = 'You cannot build colony ships at '.$system['name'].' ('.$build_location.'); population would drop below 1.';
+					continue;
+					}
+				if ($build_count > $available)
+					{
+					$outbuild[] = 'Only '.$available.' colony ship'.($available == 1 ? '' : 's').' can be built at '.$system['name'].' ('.$build_location.'); population cannot drop below 1.';
+					$build_count = $available;
+					}
 				}
 				
 			if (!in_array($ship_type, explode(' ', $player['techs'])))

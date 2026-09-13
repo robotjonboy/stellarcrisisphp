@@ -147,6 +147,20 @@ function sc3MinPopToBuild($series)
 	return (int)$server['builder_population'];
 }
 
+# Colony ships each cost 1 population. A system must keep at least 1, so a planet
+# can only start a colony build if it already meets the series minimum and can
+# spare a colonist. A pop-1 system with min pop 1 cannot build colonies.
+function sc3MinPopToBuildColony($series)
+{
+	return max(sc3MinPopToBuild($series), 2);
+}
+
+# How many colony ships can still be started at this population without dropping below 1.
+function sc3MaxColonyBuilds($population)
+{
+	return max(0, (int)$population - 1);
+}
+
 function sc3EngineerLoss($series_or_game)
 {
 	global $server;
