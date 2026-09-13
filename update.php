@@ -785,6 +785,9 @@ function update_game($series, &$game, $update_time)
 
 	// Process builder create orders (post-combat, before gates — matches pike).
 	// $create[destination] = list of ship ids
+	// Builders pool BR only within the same empire or Shared HQ clusters.
+	// Rival empires that each meet the create cost still produce one system (avg stats)
+	// with jumps from every successful origin.
 	foreach (array_keys($create) as $destination)
 	{
 		$ship_count_row = sc_query('SELECT COUNT(*) AS c FROM systems WHERE game_id = '.(int)$game['id']);
@@ -792,8 +795,6 @@ function update_game($series, &$game, $update_time)
 		if ((int)$num['c'] >= $max_planets)
 			continue; // at cap: leave builders unconsumed
 
-		$work = 0;
-		$origins = array();
 		$alive_builders = array();
 		foreach ($create[$destination] as $ship_id)
 		{
@@ -801,21 +802,76 @@ function update_game($series, &$game, $update_time)
 			if (!$ship || $ship['type'] !== 'Builder')
 				continue;
 			$alive_builders[] = $ship;
-			$work += (float)$ship['br'] * 10;
-			$origins[$ship['location']] = true;
 		}
 
-		$built = false;
-		if ($work >= $planet_create_cost && count($alive_builders))
+		if (!count($alive_builders))
+			continue;
+
+		// Partition into Shared HQ connected components (same owner always pools).
+		$owners = array();
+		foreach ($alive_builders as $ship)
+			$owners[$ship['owner']] = true;
+		$owner_list = array_keys($owners);
+		$parent = array();
+		foreach ($owner_list as $owner)
+			$parent[$owner] = $owner;
+
+		$owner_count = count($owner_list);
+		for ($i = 0; $i < $owner_count; $i++)
 		{
-			$creator = $alive_builders[0];
+			for ($j = $i + 1; $j < $owner_count; $j++)
+			{
+				if (!areSharedHQ($game['id'], $owner_list[$i], $owner_list[$j]))
+					continue;
+				$a = $owner_list[$i];
+				$b = $owner_list[$j];
+				while ($parent[$a] !== $a)
+					$a = $parent[$a];
+				while ($parent[$b] !== $b)
+					$b = $parent[$b];
+				if ($a !== $b)
+					$parent[$b] = $a;
+			}
+		}
+
+		$pools = array();
+		foreach ($alive_builders as $ship)
+		{
+			$root = $ship['owner'];
+			while ($parent[$root] !== $root)
+				$root = $parent[$root];
+			if (!isset($pools[$root]))
+				$pools[$root] = array('ships' => array(), 'work' => 0, 'origins' => array(), 'owners' => array());
+			$pools[$root]['ships'][] = $ship;
+			$pools[$root]['work'] += (float)$ship['br'] * 10;
+			$pools[$root]['origins'][$ship['location']] = true;
+			$pools[$root]['owners'][$ship['owner']] = true;
+		}
+
+		$successful_pools = array();
+		foreach ($pools as $pool)
+			if ($pool['work'] >= $planet_create_cost)
+				$successful_pools[] = $pool;
+
+		$successful_owners = array();
+		if (count($successful_pools))
+		{
+			$origins = array();
+			foreach ($successful_pools as $pool)
+			{
+				foreach ($pool['origins'] as $origin => $unused)
+					$origins[$origin] = true;
+				foreach ($pool['owners'] as $owner => $unused)
+					$successful_owners[$owner] = true;
+			}
+
 			$origin_list = array_keys($origins);
 			$avg_ag = (int)$series['avg_ag'];
 			$avg_min = (int)$series['avg_min'];
 			$avg_fuel = (int)$series['avg_fuel'];
 			$max_pop = max($avg_min, $avg_fuel);
 
-			// Link the new system to every origin builders operated from.
+			// One system with single-create stats; jumps to every successful origin.
 			$jumps = implode(' ', $origin_list);
 			$map_stub = array();
 			$sys_name = nameSystem($map_stub);
@@ -850,37 +906,52 @@ function update_game($series, &$game, $update_time)
 				}
 			}
 
-			// Explored for creator
-			$owner_player = getPlayer($game['id'], $creator['owner']);
-			$values = array();
-			$values[] = 'series_id = '.(int)$series['id'];
-			$values[] = 'game_number = '.(int)$game['game_number'];
-			$values[] = 'game_id = '.(int)$game['id'];
-			$values[] = 'empire = "'.addslashes($creator['owner']).'"';
-			if ($owner_player)
-				$values[] = 'player_id = '.(int)$owner_player['id'];
-			$values[] = 'coordinates = "'.addslashes($destination).'"';
-			$values[] = 'update_explored = '.(int)$game['update_count'];
-			sc_query('INSERT INTO explored SET '.implode(',', $values));
+			foreach (array_keys($successful_owners) as $owner_name)
+			{
+				$owner_player = getPlayer($game['id'], $owner_name);
+				if ($owner_player)
+				{
+					$conditions = array();
+					$conditions[] = 'player_id = "'.(int)$owner_player['id'].'"';
+					$conditions[] = 'coordinates = "'.addslashes($destination).'"';
+					sc_query('DELETE FROM explored WHERE '.implode(' AND ', $conditions));
+				}
 
-			if ($owner_player)
-				$buffered_missive[$owner_player['id']]['actions'][] =
-					'<!--U:cre-->'.$sys_name.' was successfully created.';
-			$history[] = array($destination, $creator['owner'], 'created', '');
-			$built = true;
+				$values = array();
+				$values[] = 'series_id = '.(int)$series['id'];
+				$values[] = 'game_number = '.(int)$game['game_number'];
+				$values[] = 'game_id = '.(int)$game['id'];
+				$values[] = 'empire = "'.addslashes($owner_name).'"';
+				if ($owner_player)
+					$values[] = 'player_id = '.(int)$owner_player['id'];
+				$values[] = 'coordinates = "'.addslashes($destination).'"';
+				$values[] = 'update_explored = '.(int)$game['update_count'];
+				sc_query('INSERT INTO explored SET '.implode(',', $values));
+
+				if ($owner_player)
+				{
+					addExploredToFriends($owner_player, $mysqli->insert_id);
+					$buffered_missive[$owner_player['id']]['actions'][] =
+						'<!--U:cre-->'.$sys_name.' was successfully created.';
+				}
+				$history[] = array($destination, $owner_name, 'created', '');
+			}
 		}
 
-		// Consume builders (whether success or fail), when under planet cap
+		// Consume builders (whether success or fail), when under planet cap.
+		$notified_fail = array();
 		foreach ($alive_builders as $ship)
 		{
 			sc_query('DELETE FROM ships WHERE id = '.$ship['id']);
-			if (!$built)
-			{
-				$owner_player = getPlayer($game['id'], $ship['owner']);
-				if ($owner_player)
-					$buffered_missive[$owner_player['id']]['actions'][] =
-						'<!--U:cref-->The effort to create a system at '.$destination.' failed.';
-			}
+			if (isset($successful_owners[$ship['owner']]))
+				continue;
+			if (isset($notified_fail[$ship['owner']]))
+				continue;
+			$notified_fail[$ship['owner']] = true;
+			$owner_player = getPlayer($game['id'], $ship['owner']);
+			if ($owner_player)
+				$buffered_missive[$owner_player['id']]['actions'][] =
+					'<!--U:cref-->The effort to create a system at '.$destination.' failed.';
 		}
 	}
 

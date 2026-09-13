@@ -1241,6 +1241,19 @@ function importExplored($ignorant_player, $other_player)
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
+# True if $empire_a and $empire_b are the same empire, or at Shared HQ (diplomacy status 6).
+#
+
+function areSharedHQ($game_id, $empire_a, $empire_b)
+{
+	if ($empire_a === $empire_b)
+		return true;
+
+	$diplomacy = getDiplomacyWithOpponent($game_id, $empire_a, $empire_b);
+	return ($diplomacy && (int)$diplomacy['status'] === 6);
+}
+
+#----------------------------------------------------------------------------------------------------------------------#
 # Add explored record ID $explored_id to $player's friends.
 # This is used to add a planet to Shared HQ friends during exploration.
 #

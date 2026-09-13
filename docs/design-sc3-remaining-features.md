@@ -200,11 +200,13 @@ Tech screen (sc3):
 - Resolution (post-combat, with/near gate phase per pike ordering):
   1. Group create attempts by destination.
   2. If the game already has `num_planets >= max_planets`, skip that destination entirely (pike leaves those builders unconsumed).
-  3. Sum BR of participating builders; if ≥ `planet_create_cost / 10`, create system with avg ag/min/fuel, name it, mark explored for creator(s), increment `num_planets`.
-  4. Open bidirectional jumps between the new system and every origin system builders operated from (single- or multi-origin).
-  5. Otherwise (attempted create under the planet cap): consume all participating builders whether success or failure.
+  3. Partition builders at that destination into pools: same empire, or empires at **Shared HQ** (diplomacy status 6). Alliance / Trade / Truce alone do **not** pool. Enemies never pool.
+  4. A pool succeeds if its Σ BR ≥ `planet_create_cost / 10`.
+  5. If at least one pool succeeds: create **one** system with avg ag/min/fuel (same stats as a single successful create), name it, mark explored + success missive for every successful pool’s owner(s), open bidirectional jumps to **every origin used by any successful pool**. Rival successes still yield one system; each creator sees the expected world plus any unexpected links from other successful origins.
+  6. Otherwise (no successful pool under the planet cap): consume all participating builders and notify failure.
+  7. On any attempt under the planet cap (success or failure): consume all participating builders at that destination.
 - History / missives for create success (and preferably failure notification — pike notes this as incomplete).
-- UI offers create for any adjacent empty cell (pike); do **not** gate the order list on a single ship’s BR — multiple builders pool BR at resolution.
+- UI offers create for any adjacent empty cell (pike); do **not** gate the order list on a single ship’s BR — pooling is resolved at update.
 
 **Max planets:** Lugdunum pike used a server-global hard cap (`int max_planets = 1000`) with no per-series setting. This port makes it **per series**:
 
@@ -329,7 +331,7 @@ Recommended order (options foundation first so ships and series packs share one 
 ## Testing notes (for later implementation)
 
 - Combat: carriers vs attacks in enemy system (nuking after mutual survival); carrier vs 2DV; carrier + minefield; fuel-ratio interaction.
-- Builder: success/fail thresholds; multi-origin create opens jumps from all origins; explored-only for creator.
+- Builder: Shared HQ-only pooling; rival multi-origin creates merge to one avg-stat system with all successful links; explored/success for each successful owner.
 - Morpher: morph loss consume; morph to cloaker auto-cloak; no morph while cloaked; italic identity after morph.
 - Tech: restricted cap, trade-in does not refund selection, barred absent, developed at join.
 - Ship limit includes building and dismantling orders.

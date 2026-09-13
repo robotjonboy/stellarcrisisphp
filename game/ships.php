@@ -1071,8 +1071,8 @@ function getValidOrders($series, $game, $ship, $player)
 			break;
 		case 'Builder':
 			// Create orders are always offered for empty adjacent cells.
-			// Success is decided at update by summing all builders aiming at the same destination
-			// (Σ BR >= planet_create_cost / 10); individual ships need not meet the threshold alone.
+			// Success is decided at update by summing builders in the same empire or Shared HQ
+			// cluster at that destination (Σ BR >= planet_create_cost / 10).
 			list($x,$y) = explode(',', $ship['location']);
 
 			foreach (potentialJumps($x,$y) as $jump)
