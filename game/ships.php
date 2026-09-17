@@ -207,7 +207,7 @@ function shipsScreen_processing($vars)
 	$player = $vars['player_data'];
 	$empire = $vars['empire_data'];
 	
-	if ($vars['gameAction'] == 'Cancel All Builds')
+	if (isset($vars['gameAction']) && $vars['gameAction'] == 'Cancel All Builds')
 		{
 		// First, restore the population penalty for colony ships.
 		$conditions = array();

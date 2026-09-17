@@ -113,8 +113,11 @@ function statViewer_processing($vars)
 	if (isset($vars['bridier']))	//both bridier & bridier_established
 		return bridierScores($vars);
 		
-	if ($vars['action'] == 'Search' or $vars['search_name'])
+	// Search-result buttons submit search_name and no action.
+	if ((isset($vars['action']) && $vars['action'] == 'Search') || !empty($vars['search_name']))
 		return searchEmpire($vars);
+
+	return statViewer($vars);
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -219,16 +222,16 @@ function bridierScores($vars)
 	
 	// Default to displaying only if they've got a result in the last 8 weeks.
 	
-	if ($vars['bridier']['active'])
+	if (!empty($vars['bridier']['active']))
 		$conditions[] = 'bridier_update > '.(time()-8*7*86400);
 	
-	if ($vars['bridier']['active_established'])
+	if (!empty($vars['bridier']['active_established']))
 		{
 		$conditions[] = 'bridier_update > '.(time()-8*7*86400);
 		$conditions[] = 'bridier_index = 100';
 		}
 
-	if ($vars['bridier']['all_established'])
+	if (!empty($vars['bridier']['all_established']))
 		$conditions[] = 'bridier_index = 100';
 
 	$query = 'SELECT * FROM empires WHERE '.implode(' AND ', $conditions).' '.
@@ -237,10 +240,10 @@ function bridierScores($vars)
 	$select = sc_query($query);	
 	$active_players = $select->num_rows;	
 		
-	if ($vars['bridier']['active'])				$caption = "(Game result within last 8 weeks.)";
-	if ($vars['bridier']['active_established'])	$caption = "(Established players, game result within last 8 weeks.)";
-	if ($vars['bridier']['all'])				$caption = "(All players with any Bridier result.)";
-	if ($vars['bridier']['all_established'])	$caption = "(All established players, no time limit.)";
+	if (!empty($vars['bridier']['active']))				$caption = "(Game result within last 8 weeks.)";
+	if (!empty($vars['bridier']['active_established']))	$caption = "(Established players, game result within last 8 weeks.)";
+	if (!empty($vars['bridier']['all']))				$caption = "(All players with any Bridier result.)";
+	if (!empty($vars['bridier']['all_established']))	$caption = "(All established players, no time limit.)";
 ?>
 <div>
 <input type=hidden name="name" value="<?php echo $vars['name']; ?>">
@@ -301,10 +304,10 @@ function bridierScores($vars)
 
 	echo '<div style="text-align: center; margin-top: 10pt;">';
 
-	if ($vars['bridier']['all'])				echo 'Show Only Active Bridier Scores <input type=submit name="bridier[active]" value="Go">';
-	if ($vars['bridier']['active'])				echo 'Show All Bridier Scores <input type=submit name="bridier[all]" value="Go">';
-	if ($vars['bridier']['active_established'])	echo 'Show All Established Bridier Scores <input type=submit name="bridier[all_established]" value="Go">';
-	if ($vars['bridier']['all_established'])	echo 'Show Only Active Players <input type=submit name="bridier[active_established]" value="Go">';
+	if (!empty($vars['bridier']['all']))				echo 'Show Only Active Bridier Scores <input type=submit name="bridier[active]" value="Go">';
+	if (!empty($vars['bridier']['active']))				echo 'Show All Bridier Scores <input type=submit name="bridier[all]" value="Go">';
+	if (!empty($vars['bridier']['active_established']))	echo 'Show All Established Bridier Scores <input type=submit name="bridier[all_established]" value="Go">';
+	if (!empty($vars['bridier']['all_established']))	echo 'Show Only Active Players <input type=submit name="bridier[active_established]" value="Go">';
 
 	echo '</div>';
 
