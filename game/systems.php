@@ -8,7 +8,6 @@ function systemsScreen($vars)
 	$player = $vars['player_data'];
 	$empire = $vars['empire_data'];
 	$coordinates = array_key_exists('zoomed_planet', $vars) ? $vars['zoomed_planet'] : null;
-	$cjp_check_all = array_key_exists('cjp_check_all', $vars) ? $vars['cjp_check_all'] : null;
 	
 	// If the system we want to show has not been explored, it's probably from a scouting report.
 	// Go to the related screen instead.
@@ -34,7 +33,6 @@ function systemsScreen($vars)
 		}
 
 	echo '<div><table width="100%" border=0 style="text-align: center;">';
-	echo "*******".(array_key_exists('cjp_check_all', $vars) ? $vars['cjp_check_all'] : '').$cjp_check_all;
 
 	$x = 0; // Used to track how many lines we've fetched.
 	$ship_inventory = shipInventory($series, $player);
@@ -161,18 +159,11 @@ function systemsScreen($vars)
 		// No scouting reports in blood games.
 		if ($series['diplomacy'] != 2)
 		{
-			//cjp  add checked if check all
-			if ($cjp_check_all)
-				$cjp_check= 'checked ';
-			else
-				$cjp_check = '';
-			$cjp_check= 'checked '; //force until can pass check_all
-
 			$scout_report_checkbox = '<input '.
 								'type=checkbox '.
+								'checked '.
 								'name="scouting_systems[]" '.
 								'value="'.xlateToLocal($system['coordinates']).'" '.
-								$cjp_check.
 								'>'.
 								'<br>'.
 								'<span class=smallText>'.
@@ -305,10 +296,8 @@ function systemsScreen($vars)
 					'<input type=submit '.
 							'name=gameAction '.
 							'value="Full Scouting Report">'.
-
 				'</td>'.
 			'</tr>';
-		//cjp show check all button then value =systems
 	}
 	echo '</table>'.
 			'</div>'.
@@ -320,6 +309,29 @@ function systemsScreen($vars)
 		echo localSystemOrders($vars, xlateToGalactic($coordinates));
 
 	footer();
+}
+
+#----------------------------------------------------------------------------------------------------------------------#
+# Local coordinates of every system this player has explored, for Full Scouting Report.
+#
+
+function allExploredLocalCoordinates($player)
+{
+	$from_conditions = array();
+	$from_conditions[] = 'systems.game_id = explored.game_id';
+	$from_conditions[] = 'systems.coordinates = explored.coordinates';
+
+	$sql = 'SELECT DISTINCT systems.coordinates, explored.id AS exploredid '.
+			'FROM systems INNER JOIN explored ON ('.implode(' AND ', $from_conditions).') '.
+			'WHERE explored.player_id = '.((int)$player['id']).' '.
+			'ORDER BY explored.id';
+	$select = sc_query($sql);
+
+	$coordinates = array();
+	while ($row = $select->fetch_assoc())
+		$coordinates[] = xlateToLocal($row['coordinates']);
+
+	return $coordinates;
 }
 
 #----------------------------------------------------------------------------------------------------------------------#

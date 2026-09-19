@@ -159,6 +159,12 @@ function gameAction($vars)
 				unset($vars['zoomed_planet']);
 				$vars['gameAction'] = 'Systems';
 				}
+			else if (isset($vars['gameAction']) && $vars['gameAction'] == 'Full Scouting Report')
+				{
+				systemsScreen_processing($vars);
+				// Include every explored system, ignoring which boxes were unchecked.
+				$vars['scouting_systems'] = allExploredLocalCoordinates($player);
+				}
 			else
 				{
 				systemsScreen_processing($vars);
@@ -177,15 +183,6 @@ function gameAction($vars)
 		case 'Notes':	   	notesScreen_processing($vars);							break;
 		case 'Scouting Report':	
 			if (scoutingScreen_processing($vars)) $vars['gameAction'] = 'Systems';			
-			break;
-		//cjp - add check all
-		case 'Full Scouting Report':	
-			$vars['cjp_check_all'] = 1;
-			if (scoutingScreen_processing($vars)) 
-			{
-				//systemsScreen_processing($vars);
-				$vars['gameAction'] = 'Systems';
-			}
 			break;
 		default:		sendGameMessage($player, 'Invalid play action.');
   	}
@@ -227,10 +224,8 @@ function gameAction($vars)
 		case 'All Systems':
 		case 'Update System':	if ($map_allowed) return systemsScreen($vars);
 		case 'Scouting Report':		if ($map_allowed) return scoutingScreen($vars);
-		case 'Full Scouting Report':	
-			// redraw system list with checked boxes
-			$cjp_check_all = 1;
-			if ($map_allowed) return systemsScreen($vars);
+		case 'Full Scouting Report':
+			if ($map_allowed) return scoutingScreen($vars);
 	 	case 'Map':					if ($map_allowed) return mapScreen($vars);
 	 	case 'Mini-Map':			if ($map_allowed) return miniMapScreen($vars);
 	 	case 'Diplomacy':			return diplomacyScreen($vars);
@@ -511,7 +506,6 @@ echo '<body'.($empire['auto_update'] ? ' onLoad="setTimeout('.$gotoDoc.','.($tim
 <input type=hidden name=game_id value="<?php echo $game['id']; ?>">
 <input type=hidden name=section value="game">
 <input type=hidden name=play value="<?php echo $title; ?>">
-<?php //echo $cjp_check_all. '=========='; ?>
 
 <div class=pageTitle><?php echo $player['name'].' '.$title.': '.$series['name'].' '.$game['game_number']; ?></div>
 <?php

@@ -305,8 +305,6 @@ function scoutingScreen($vars)
 						   'style="margin-left: auto; margin-right: auto;">';
 
 		$tmp_reports = array();
-		//cjp
-		$tmp_reports[] = '<tr>[[['.$cjp_check_all.'</tr>';
 		
 		foreach ($vars['scouting_systems'] as $coordinates)
 		{
