@@ -312,7 +312,7 @@ function miniMapScreen($vars)
 	$select = sc_query($query, __FILE__.'*'.__LINE__);
 	while ($row = $select->fetch_assoc())
 		{
-		if ($minimap_data[$row['coordinates']]) continue;
+		if (isset($minimap_data[$row['coordinates']])) continue;
 		
 		$minimap_data[$row['coordinates']]['explored'] = false;
 		$minimap_data[$row['coordinates']]['owner'] = $row['owner'];
