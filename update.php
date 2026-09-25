@@ -1012,7 +1012,7 @@ function update_game($series, &$game, $update_time)
 					if ($stargate['type'] == 'Jumpgate') {
 						//process jumpgate loss
 
-						$jumpgate_loss = $game['ship_type_options']['Jumpgate']['loss'];
+						$jumpgate_loss = sc3JumpgateLoss($game);
 						//error_log('jumpgate_loss: ' . $jumpgate_loss);
 						if ($jumpgate_loss > 0) {
 							if ($jumpgate_loss >= $stargate['br'] || ($stargate['max_br'] - $jumpgate_loss) < $jumpgate_loss) {

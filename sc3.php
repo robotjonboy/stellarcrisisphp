@@ -176,6 +176,12 @@ function sc3CarrierLoss($series_or_game)
 	return (float)$loss;
 }
 
+function sc3JumpgateLoss($series_or_game)
+{
+	$loss = sc3GetOptionField($series_or_game, 'Jumpgate', 'loss', 0.25);
+	return (float)$loss;
+}
+
 function sc3MorpherLoss($series_or_game)
 {
 	$loss = sc3GetOptionField($series_or_game, 'Morpher', 'loss', 0.5);
