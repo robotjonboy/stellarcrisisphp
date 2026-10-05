@@ -499,8 +499,7 @@ echo '<body'.($empire['auto_update'] ? ' onLoad="setTimeout('.$gotoDoc.','.($tim
 ?>
 </head>
 <form method=post action="sc.php">
-<input type=hidden name=name value="<?php echo $player['name']; ?>">
-<input type=hidden name=pass value="<?php echo $empire['password']; ?>">
+<?php authHiddenFields($player['name']); ?>
 <input type=hidden name=series_id value="<?php echo $series['id']; ?>">
 <input type=hidden name=game_number value="<?php echo $game['game_number']; ?>">
 <input type=hidden name=game_id value="<?php echo $game['id']; ?>">

@@ -54,8 +54,7 @@ function editSeries($vars, $message = '')
 	// NOT $empire['empireID'];  BUT  $empire['id'];   OR   $vars['empireID'];
 
 ?>
-	<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
-	<input type=hidden name="pass" value="<?php echo $vars['pass']; ?>">
+<?php authHiddenFields($vars['name']); ?>
 	<input type=hidden name="editSeriesID" value="<?php echo $vars['editSeriesID']; ?>">
 	<input type=hidden name="empireID" value="<?php echo $empire['id']; ?>">
 	<input type=hidden name="page" value="editSeries">

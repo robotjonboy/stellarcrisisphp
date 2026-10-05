@@ -4,17 +4,17 @@ if ($debug) echo "serverconfig.php <p>";
 /* local constants - adjust these to your system */
 $server['admin_email'] = 'admin@localhost';
 $server['domainname'] = 'localhost';
-$server['app_path'] = 'sc/sc.php';
-$server['servername'] = 'Rocket Empires';
+$server['app_path'] = '/~jonboy/sc/sc.php';
+$server['servername'] = 'Ronin';
 $server['mysql_host'] ='localhost';
-$server['mysql_user'] ='root';
-//$server['mysql_password'] ='32mysql';
+$server['mysql_user'] ='jonboy';
 $server['mysql_password'] ='';
+//$server['mysql_password'] ='';
 $server['mysql_database'] = 'sc';
 $server['show_memory_usage'] = true;
 
 /* universal */
-$server['version'] = '3.0.1 ';
+$server['version'] = '3.0.2 ';
 $server['faq_url'] = 'https://scopen.rocketempires.com/beginnerresources.html';
 $server['sc_room_url'] = '../sc_room/SC_main.shtml';
 $server['sc_wiki_url'] = '../pmwiki/pmwiki.php';
@@ -33,11 +33,14 @@ $server['histories_per_page'] = 9;
 $server['history_css_path'] = './'; // directory; relative to history directory
 $server['history_image_path'] = '../images/'; // directory; relative to history directory
 $server['history_read_URL'] = 'http://'.$server['domainname'].'/sc/history/'; // e.g., http://your.server/path/
-$server['history_write_path'] = 'history/'; // directory; relative to server root
+// Relative paths are resolved against the app directory (where sc.php lives), not the web docroot.
+// For an install at .../sc/sctest/, use 'history/' — not 'sctest/history/'.
+$server['history_write_path'] = 'history/';
 $server['icon_count'] = 152;
 $server['icon_upload_allowed'] = true;
 $server['local_coordinates'] = true;
 $server['max_build_ships'] = 8;
+$server['max_planets_custom'] = 2000;
 $server['max_search_results'] = 50;
 $server['minimap_threshold'] = 100;
 $server['multiemp_warning'] = true;

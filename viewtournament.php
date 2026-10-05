@@ -7,8 +7,7 @@ function viewTournament($vars, $message = '')
 	standardHeader('Tournaments', $empire);
 	
 ?>
-<input type=hidden name=name value="<? echo $vars['name']; ?>">
-<input type=hidden name=pass value="<? echo $vars['pass']; ?>">
+<?php authHiddenFields($vars['name']); ?>
 <input type=hidden name="empireID" value="<? echo $empire['id']; ?>">
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="tournaments">

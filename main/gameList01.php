@@ -255,8 +255,7 @@ function gameList($vars)
 ?>
 <div class=pageTitle><? echo $vars['name']; ?>: Game List</div>
 <div>
-<input type=hidden name="name" value="<? echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<? echo $vars['pass']; ?>">
+<?php authHiddenFields($vars['name']); ?>
 <input type=hidden name="empireID" value="<? echo $empire['id']; ?>">
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="gameList">
@@ -422,8 +421,7 @@ function passwordGameList($vars)
 ?>
 <div class=pageTitle><? echo $vars['name']; ?>: Game List</div>
 
-<input type=hidden name=name value="<? echo $vars['name']; ?>">
-<input type=hidden name=pass value="<? echo $vars['pass']; ?>">
+<?php authHiddenFields($vars['name']); ?>
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="gameList">
 <?

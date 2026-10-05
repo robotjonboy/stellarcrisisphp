@@ -13,8 +13,7 @@ function statViewer($vars, $message = '')
 
 	standardHeader('Stat Viewer', $empire);
 ?>
-<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<?php echo $vars['pass']; ?>">
+<?php authHiddenFields($vars['name']); ?>
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="statViewer">
 <div class=pageTitle>Stat Viewer</div>
@@ -158,8 +157,7 @@ function topTen($vars)
 	standardHeader('Top Ten '.$label, $empire);
 ?>
 <div>
-<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<?php echo $vars['pass']; ?>">
+<?php authHiddenFields($vars['name']); ?>
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="statViewer">
 <div class=pageTitle>Top Ten <?php echo $label; ?></div>
@@ -246,8 +244,7 @@ function bridierScores($vars)
 	if (!empty($vars['bridier']['all_established']))	$caption = "(All established players, no time limit.)";
 ?>
 <div>
-<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<?php echo $vars['pass']; ?>">
+<?php authHiddenFields($vars['name']); ?>
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="statViewer">
 <div class=pageTitle>Bridier Scores</div>
@@ -324,8 +321,7 @@ function searchEmpire($vars)
 
 	standardHeader('Stat Viewer', $empire);
 ?>
-<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<?php echo $vars['pass']; ?>">
+<?php authHiddenFields($vars['name']); ?>
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="statViewer">
 <div class=pageTitle>Stat Viewer</div>

@@ -5,8 +5,7 @@ function startSeries($vars)
 	
 	standardHeader('Start Series', $empire);
 ?>
-<input type=hidden name="name" value="<? echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<? echo $vars['pass']; ?>">
+<?php authHiddenFields($vars['name']); ?>
 <input type=hidden name="empireID" value="<? echo $empire['id']; ?>">
 <input type=hidden name="section" value="admin">
 <input type=hidden name="page" value="startSeries">
@@ -193,7 +192,9 @@ function startSeries_processing($vars)
 		case 'Game List':		return gameList($vars);
 		case 'Game History':	return gameHistory($vars, '', 0, array());
 		case 'Administration':	return mainPage_admin($vars);
-		case 'Logout':			return mainPage();
+		case 'Logout':
+			auth_soft_revoke_token(sc_post('token'));
+			return mainPage();
 		}
 	
 	if ($vars['confirm'] == 'Cancel')

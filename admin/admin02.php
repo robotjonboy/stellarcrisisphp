@@ -2,6 +2,8 @@
 require('../server.php');
 require('../debug.php');
 require('../sql.php');
+require('../scfunctions.php');
+require('../auth.php');
 #----------------------------------------------------------------------------------------------------------------------#
 require('createSeries.php');
 require('dbCleanup.php');
@@ -39,26 +41,7 @@ if ($server['show_memory_usage']) //local setting
    }
  }
 
-// Check to see how the submitter can be authenticated.
-$authenticated = false;
-$authenticated_as_admin = false;
-if (isset($_POST['name']) and isset($_POST['pass']))
-	{
-	$sql  = 'SELECT name, is_admin FROM empires ';
-	$sql .= 'WHERE name = "'.$_POST['name'].'" ';
-	$sql .= 'AND password = "'.$_POST['pass'].'"';
-	$select = sc_query($sql);
-
-	if ($authenticated = $select->num_rows) //another intentional usage of a single =; and again, I didn't write this
-		{
-		$line = $select->fetch_assoc();
-		$authenticated_as_admin = $line['is_admin'];
-		
-		// Make sure the name is capitalized correctly in the $_POST array from now on 
-		// by taking the value from the database.
-		$_POST['name'] = $line['name'];
-		}
-	}
+auth_run_gate();
  
 	adminAction($_POST);
 	
@@ -105,17 +88,14 @@ function mainPage_admin($vars)
 
 	standardHeader('Admin', $empire);
 
-	echo "<div class=pageTitle>".$empire['name']." : Administration</div>";
-?>
-<input type=hidden name="name" value="<? echo $empire['name']; ?>">
-<input type=hidden name="pass" value="<? echo $empire['password']; ?>">
-<input type=hidden name="section" value="admin">
-<input type=hidden name="empireID" value="<? echo $vars['empireID']; ?>"><!--cjp-->
-<input type=hidden name="page" value="main">
+	echo "<div class=pageTitle>".$empire['name']." : Administration</div>\n";
+	authHiddenFields($empire['name']);
+	echo "<input type=hidden name=\"section\" value=\"admin\">
+<input type=hidden name=\"empireID\" value=\"".$vars['empireID']."\"><!--cjp-->
+<input type=hidden name=\"page\" value=\"main\">";
 
-<?
 	echo drawButtons($empire).serverTime().onlinePlayers().empireMissive($empire);
-?>
+	echo '
 <img class=spacerule src="images/spacerule.jpg" width="100%">
 
 <div style="text-align: center;">
@@ -136,8 +116,7 @@ function mainPage_admin($vars)
 	<option value="viewErrs">View Errors
 </select>
 <input type=submit name="go" value="Go" disabled>
-</div>
-<?
+</div>';
 	footer();
 }
 

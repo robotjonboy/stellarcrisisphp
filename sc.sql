@@ -99,7 +99,8 @@ CREATE TABLE IF NOT EXISTS `empires` (
   `max_military_power` int(11) NOT NULL DEFAULT '0',
   `nuked` smallint(6) NOT NULL DEFAULT '0',
   `nukes` smallint(6) NOT NULL DEFAULT '0',
-  `password` varchar(20) NOT NULL DEFAULT '',
+  `password` varchar(20) DEFAULT NULL,
+  `password_hash` varchar(255) DEFAULT NULL,
   `real_name` tinytext NOT NULL,
   `ruined` smallint(6) NOT NULL DEFAULT '0',
   `show_coordinates` enum('1','0') NOT NULL DEFAULT '1',
@@ -108,9 +109,29 @@ CREATE TABLE IF NOT EXISTS `empires` (
   `url` tinytext,
   `validation_info` varchar(50) NOT NULL DEFAULT '',
   `wins` smallint(6) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`name`,`password`),
+  PRIMARY KEY (`name`),
   UNIQUE KEY `id` (`id`),
   KEY `bridier_index` (`bridier_index`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `auth_tokens`
+--
+
+CREATE TABLE IF NOT EXISTS `auth_tokens` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `empire_id` int(11) NOT NULL,
+  `token_hash` char(64) NOT NULL,
+  `created_at` int(11) NOT NULL,
+  `expires_at` int(11) NOT NULL,
+  `last_used_at` int(11) DEFAULT NULL,
+  `revoked_at` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `token_hash` (`token_hash`),
+  KEY `empire_id` (`empire_id`),
+  KEY `expires_at` (`expires_at`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------

@@ -29,7 +29,9 @@ function mainAction($vars, $file)
 			case 'Game History':	return gameHistory($vars);
 			case 'Administration':	return mainPage_admin($vars);
 			case 'Tournaments':	return tournaments($vars);
-			case 'Logout':		return mainPage();
+			case 'Logout':
+				auth_soft_revoke_token(sc_post('token'));
+				return mainPage();
 			case 'View':		return viewTournament($vars);
 		}
 	}

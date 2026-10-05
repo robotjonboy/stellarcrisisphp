@@ -29,11 +29,10 @@ function editMessage($vars)
 		}
 		
 	$message .= '<div style="font-size: smaller;">It should be entered in HTML format.</div>';
+	authHiddenFields($vars['name']);
 	echo "
 <div class=pageTitle>Message of the day</div>
 <div>
-<input type=hidden name=\"name\" value=\"" . $vars['name'] . "\">
-<input type=hidden name=\"pass\" value=\"" . $vars['pass'] . "\">
 <input type=hidden name=\"message_type\" value=\"" . $type . "\">
 <input type=hidden name=\"section\" value=\"admin\">
 <input type=hidden name=\"page\" value=\"editMessage\">

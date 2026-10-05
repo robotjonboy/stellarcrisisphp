@@ -55,6 +55,7 @@ require('scfunctions.php');
 require('server.php');
 require('debug.php');
 require('sql.php');
+require('auth.php');
 require('admin/admin.php');
 require('ship_types.php');  //contains global $ship_types array
 require('sc3.php');
@@ -117,25 +118,8 @@ if (sc_post('page') != 'admin') {
 	checkForTournamentUpdates();
 }
 
-// Check to see how the submitter can be authenticated.
-$authenticated = false;
-$authenticated_as_admin = false;
-if (strlen(sc_post('name')) and strlen(sc_post('pass')))
-{
-	$sql  = 'SELECT name, is_admin FROM empires ';
-	$sql .= 'WHERE name = "'.$mysqli->real_escape_string(sc_post('name')).'" ';
-	$sql .= 'AND password = "'.$mysqli->real_escape_string(sc_post('pass')).'"';
-	$select = sc_query($sql);
-
-	if ($authenticated = $select->num_rows)
-	{
-		$authenticated_as_admin = sc_result($select, 0, 1);
-		
-		// Make sure the name is capitalized correctly in the $_POST array from now on 
-		// by taking the value from the database.
-		$_POST['name'] = sc_result($select, 0, 0);
-	}
-}
+// Dual-path auth: session token or verifying password (see auth.php / design-password-security.md).
+auth_run_gate();
 
 #----------------------------------------------------------------------------------------------------------------------#
 if (isset($_GET['seriesParameters']))
@@ -351,7 +335,7 @@ function mainPage()
 
 function login($vars)
 {
-	global $server;
+	global $server, $authenticated, $authenticated_as_admin, $auth_response_token;
 
 	if (!strlen($vars['name']) or !strlen($vars['pass'])) 
 		return loginFailed('You must enter a name and a password.');
@@ -365,33 +349,35 @@ function login($vars)
 
 	if ($empire = getEmpire($vars['name']))
   	{
-		if ($empire['password'] == $vars['pass'])
+		if (auth_verify_password($empire, $vars['pass']))
 		{
+			$vars['name'] = $empire['name'];
+			$_POST['name'] = $empire['name'];
+
     		$sql='UPDATE empires SET last_login = '.time().', ';
 			$sql.='last_ip = "'.$_SERVER['REMOTE_ADDR'].'" ';
-			$sql.='WHERE name = "'.$vars['name'].'"';
+			$sql.='WHERE id = '.(int)$empire['id'];
     		sc_query($sql);
 
 			// Reset the cookie holding the login name for another 24 hours.
-			setcookie('sc_login', $vars['name'], (time()+86400), '/');
+			setcookie('sc_login', $empire['name'], (time()+86400), '/');
+
+			$authenticated = true;
+			$authenticated_as_admin = auth_is_admin($empire);
 
 			// Check to see if this is the completion of an empire creation
 			if (preg_match('/^C/', $empire['validation_info']))
 			{
-				list($code, $newpass) = explode('/', $empire['validation_info']);
-				sc_query
-				('
-					UPDATE empires 
-					SET password = "'.$newpass.'", 
-					validation_info = "" 
-					WHERE name = "'.$vars['name'].'"
-				');
-				$vars['pass'] = $newpass;
+				list($code, $newpass) = explode('/', $empire['validation_info'], 2);
+				auth_store_password_hash($empire, $newpass);
+				sc_query('UPDATE empires SET validation_info = "" WHERE id = '.(int)$empire['id']);
+				$auth_response_token = auth_issue_token($empire);
 				sendEmpireMessage($empire, 'Empire created.');
 				return chooseIconPage($vars);
 			}
-			else
-     			return gameList($vars);
+
+			$auth_response_token = auth_issue_token($empire);
+			return gameList($vars);
 		}
 		else 
 			return loginFailed('Incorrect password.');
@@ -552,8 +538,7 @@ function iconUploadPage($vars)
 ?>
 </form>
 <form enctype="multipart/form-data" action="sc.php" method=post>
-<input type=hidden name=name value="<?php echo $vars['name']; ?>">
-<input type=hidden name=pass value="<?php echo $vars['pass']; ?>">
+<?php authHiddenFields($vars['name']); ?>
 <input type=hidden name=section value="main">
 <input type=hidden name=page value="iconUpload">
 <div class=pageTitle>
@@ -596,8 +581,7 @@ function chooseIconPage($vars)
 <div>
 <input type=hidden name=iconChoice value=yes>
 <input type=hidden name=fromEmpireCreation value="<?php echo (array_key_exists('createEmpire', $vars) && strlen($vars['createEmpire']) ? 1 : 0); ?>">
-<input type=hidden name=name value="<?php echo $vars['name']; ?>">
-<input type=hidden name=pass value="<?php echo $vars['pass']; ?>">
+<?php authHiddenFields($vars['name']); ?>
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="editProfile">
 

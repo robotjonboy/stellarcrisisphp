@@ -2,11 +2,10 @@
 function dbClean($vars)
 {
 	standardHeader('Database Cleanup', $vars['empire_data']);
+	authHiddenFields($vars['name']);
 echo "
 <div class=pageTitle>Database Cleanup</div>
 <div>
-<input type=hidden name=\"name\" value=\"" . $vars['name'] . "\">
-<input type=hidden name=\"pass\" value=\"" . $vars['pass'] . "\">
 <input type=hidden name=\"section\" value=\"admin\">
 <input type=hidden name=\"page\" value=\"dbClean\">";
 

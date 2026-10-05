@@ -32,8 +32,7 @@ function gameHistory($vars)
 	$select = sc_query('SELECT * FROM gamelog'.$conditions.' ORDER BY id DESC LIMIT '.$limit);
 ?>
 <div>
-<input type=hidden name=name value="<?php echo $vars['name']; ?>">
-<input type=hidden name=pass value="<?php echo $vars['pass']; ?>">
+<?php authHiddenFields($vars['name']); ?>
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="gameHistory">
 <input type=hidden name="first_record" value="<?php echo $vars['first_record']; ?>">

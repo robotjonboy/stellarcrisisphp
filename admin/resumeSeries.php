@@ -5,8 +5,7 @@ function resumeSeries($vars)
 ?>
 <div class=pageTitle>Resume a Series</div>
 
-<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<?php echo $vars['pass']; ?>">
+<?php authHiddenFields($vars['name']); ?>
 <input type=hidden name="section" value="admin">
 <input type=hidden name="page" value="resumeSeries">
 <?php

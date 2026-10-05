@@ -16,8 +16,7 @@ function addTournament($vars)
 	
 	standardHeader('Add Tournament', $empire);
 ?>
-<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<?php echo $vars['pass']; ?>">
+<?php authHiddenFields($vars['name']); ?>
 <input type=hidden name="empireID" value="<?php echo $empire['id']; ?>">
 <input type=hidden name="section" value="admin">
 <input type=hidden name="page" value="addTournament">
@@ -94,7 +93,9 @@ function addTournament_processing($vars)
 		case 'Game List':		return gameList($vars);
 		case 'Game History':	return gameHistory($vars, '', 0, array());
 		case 'Administration':	return mainPage_admin($vars);
-		case 'Logout':			return mainPage();
+		case 'Logout':
+			auth_soft_revoke_token(sc_post('token'));
+			return mainPage();
 		}
 	
 	if ($vars['confirm'] == 'Cancel')

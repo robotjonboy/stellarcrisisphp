@@ -6,8 +6,7 @@ function killGame($vars)
 	standardHeader('Kill Game', $empire);
 ?>
 <div class=pageTitle>Kill a Game</div>
-<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<?php echo $vars['pass']; ?>">
+<?php authHiddenFields($vars['name']); ?>
 <input type=hidden name="section" value="admin">
 <input type=hidden name="page" value="killGame">
 <?php

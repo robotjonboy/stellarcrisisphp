@@ -51,7 +51,7 @@ function createEmpire($vars, $message = '')
 
 function createEmpire_processing($vars)
 {
-	global $server, $authenticated, $mysqli;
+	global $server, $authenticated, $authenticated_as_admin, $auth_response_token, $mysqli;
 
 	// If the person reloads the screen resulting from empire creation, go to the game list instead of triggering
 	// a duplicate insert error.
@@ -113,13 +113,15 @@ function createEmpire_processing($vars)
 		$values[] = 'join_date = "'.time().'"';
 		$values[] = 'tos_accepted = "'.((array_key_exists('accept_tos', $vars) && $vars['accept_tos']) ? 1 : 0).'"';
 		$values[] = 'comment = "'.$mysqli->real_escape_string($vars['comment']).'"';
+		$values[] = 'password = NULL';
 		
 		if ($server['require_valid_email'])
 			{
 			$temp_pass = randomString();
+			$temp_hash = password_hash($temp_pass, PASSWORD_DEFAULT);
 			
-			$values[] = 'password = "'.$temp_pass.'"';
-			$values[] = 'validation_info = "C/'.$vars['pass'].'"';
+			$values[] = 'password_hash = "'.$mysqli->real_escape_string($temp_hash).'"';
+			$values[] = 'validation_info = "C/'.$mysqli->real_escape_string($vars['pass']).'"';
 			
 			$mailsent = mail($vars['email'], $server['servername']." Empire Creation", 
 							 "Welcome to ".$server['servername']."! To complete the creation of your empire\n".
@@ -138,18 +140,24 @@ function createEmpire_processing($vars)
 			}
 		else
 			{
-			$values[] = 'password = "'.$vars['pass'].'"';
+			$pass_hash = password_hash($vars['pass'], PASSWORD_DEFAULT);
+			$values[] = 'password_hash = "'.$mysqli->real_escape_string($pass_hash).'"';
 			$values[] = 'validation_info = ""';
 			}
 		
 		$sql='INSERT INTO empires SET '.implode(', ', $values);
 		sc_query($sql);
+
+		$empire = getEmpire($vars['name']);
 		
 		if ($server['require_valid_email'])
 			return newEmpireLogin($vars);
 		else
 			{
-			sendEmpireMessage(getEmpire($vars['name']), 'Empire created.');
+			$authenticated = true;
+			$authenticated_as_admin = false;
+			$auth_response_token = auth_issue_token($empire);
+			sendEmpireMessage($empire, 'Empire created.');
 			return chooseIconPage($vars);
 			}
 		}
@@ -168,22 +176,33 @@ function randomString()
 # Adds an email address to a block list and deletes the related empire.
 function blockEmail($address, $tpass)
 {
+	global $mysqli;
+
 	standardHeader('Email Address Blocking');
 	
-	$select = sc_query('SELECT * FROM empires WHERE email = "'.$address.'" AND NOT validation_info REGEXP "^C"');
+	$select = sc_query('SELECT * FROM empires WHERE email = "'.$mysqli->real_escape_string($address).'" AND NOT validation_info REGEXP "^C"');
 	
 	if ($select->num_rows > 0)
 		echo 'You may not block the address of a registered empire.';
 	else
 		{
-		$select = sc_query('SELECT * FROM empires WHERE email = "'.$address.'" AND password = "'.$tpass.'"');
-		if (!$select->num_rows)
+		$select = sc_query('SELECT * FROM empires WHERE email = "'.$mysqli->real_escape_string($address).'" AND validation_info REGEXP "^C"');
+		$ok = false;
+		$empire = null;
+		while ($row = $select->fetch_assoc())
+		{
+			if (auth_verify_password($row, $tpass))
+			{
+				$ok = true;
+				$empire = $row;
+				break;
+			}
+		}
+		if (!$ok)
 			echo 'Invalid temporary password.'; 
 		else
 			{
-			$empire = mysql_fetch_array($select);
-			
-			sc_query('DELETE FROM empires WHERE email = "'.$address.'"');
+			sc_query('DELETE FROM empires WHERE email = "'.$mysqli->real_escape_string($address).'"');
 			
 			$result = mysql_query('SELECT * FROM blockedemail WHERE email="'.$address.'"');
 			

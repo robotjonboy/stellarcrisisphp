@@ -8,8 +8,7 @@ function customSeries($vars)
 	standardHeader('Custom Series', $empire);
 ?>
 <div>
-<input type=hidden name=name value="<?php echo $vars['name']; ?>">
-<input type=hidden name=pass value="<?php echo $vars['pass']; ?>">
+<?php authHiddenFields($vars['name']); ?>
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="customSeries">
 
@@ -198,8 +197,7 @@ function createCustomSeries($vars)
 ?>
 <div class=pageTitle><?php echo $vars['name']; ?>: Create a Custom Series</div>
 <div>
-<input type=hidden name=name value="<?php echo $vars['name']; ?>">
-<input type=hidden name=pass value="<?php echo $vars['pass']; ?>">
+<?php authHiddenFields($vars['name']); ?>
 <input type=hidden name=section value="main">
 <input type=hidden name=page value="createCustomSeries">
 <?php

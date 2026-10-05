@@ -32,7 +32,9 @@ function adminAction($vars)
 		case 'Game List':		return gameList($vars);
 		case 'Game History':	return gameHistory($vars);
 		case 'Administration':	return mainPage_admin($vars);
-		case 'Logout':			return mainPage();
+		case 'Logout':
+			auth_soft_revoke_token(sc_post('token'));
+			return mainPage();
 		}
 
 	//admin menu items
@@ -67,9 +69,9 @@ function mainPage_admin($vars)
 	standardHeader('Admin', $empire);
 
 	echo "<div class=pageTitle>".$empire['name']." : Administration</div>
-
-<input type=hidden name=\"name\" value=\"" . $empire['name'] . "\">
-<input type=hidden name=\"pass\" value=\"" . $empire['password'] . "\">
+";
+	authHiddenFields($empire['name']);
+	echo "
 <input type=hidden name=\"section\" value=\"admin\">
 <input type=hidden name=\"empireID\" value=\"" . $vars['empireID'] . "\"><!--cjp-->
 <input type=hidden name=\"page\" value=\"main\">";

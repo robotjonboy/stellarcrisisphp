@@ -285,8 +285,7 @@ function gameList($vars)
 ?>
 <div class=pageTitle><?php echo $vars['name']; ?>: Game List</div>
 <div>
-<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<?php echo $vars['pass']; ?>">
+<?php authHiddenFields($vars['name']); ?>
 <input type=hidden name="empireID" value="<?php echo $empire['id']; ?>">
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="gameList">
@@ -485,8 +484,7 @@ function passwordGameList($vars)
 ?>
 <div class=pageTitle><?php echo $vars['name']; ?>: Game List</div>
 
-<input type=hidden name=name value="<?php echo $vars['name']; ?>">
-<input type=hidden name=pass value="<?php echo $vars['pass']; ?>">
+<?php authHiddenFields($vars['name']); ?>
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="gameList">
 <?php
@@ -922,8 +920,7 @@ function instantMessageCompose($vars)
 ?>
 <div class=pageTitle><?php echo htmlspecialchars($vars['name']); ?>: Send Message</div>
 <img class=spacerule src="images/spacerule.jpg" width="100%" height=10 alt="spacerule.jpg">
-<input type=hidden name="name" value="<?php echo htmlspecialchars($vars['name']); ?>">
-<input type=hidden name="pass" value="<?php echo htmlspecialchars($vars['pass']); ?>">
+<?php authHiddenFields($vars['name']); ?>
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="instantMessage">
 <input type=hidden name="recipient" value="<?php echo htmlspecialchars($recipient); ?>">

@@ -8,8 +8,7 @@ function editProfile($vars)
 	standardHeader('Edit Profile', $empire);
 ?>
 <div>
-<input type=hidden name="name" value="<?php echo $empire['name']; ?>">
-<input type=hidden name="pass" value="<?php echo $empire['password']; ?>">
+<?php authHiddenFields($empire['name']); ?>
 <input type=hidden name="section" value="main">
 <input type=hidden name="page" value="editProfile">
 <input type=hidden name="old_origin" value="<?php echo $empire['map_origin']; ?>">
@@ -25,11 +24,11 @@ function editProfile($vars)
 <table style="margin-left: auto; margin-right: auto;">
 	<tr>
 		<th style="text-align: right;">Password:</th>
-		<td><input type=password name="pass_new" size=20 maxlength=20 value="<?php echo $empire['password']; ?>"></td>
+		<td><input type=password name="pass_new" size=20 maxlength=20 value=""></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Verify Password:</th>
-		<td><input type=password name="pass_check" size=20 maxlength=20 value="<?php echo $empire['password']; ?>"></td>
+		<td><input type=password name="pass_check" size=20 maxlength=20 value=""></td>
 	</tr>
 	<tr>
 		<th style="text-align: right;">Real Name:</th>
@@ -91,7 +90,7 @@ function editProfile($vars)
 
 function editProfile_processing($vars)
 {
-	global $server;
+	global $server, $auth_response_token;
 	
 	$empire = $vars['empire_data'];
 
@@ -108,7 +107,21 @@ function editProfile_processing($vars)
 			$values[] = 'icon = "alien'.$icon.'.gif"';
 		else if (!array_key_exists('iconUpload', $vars) || !$vars['iconUpload'])
 			{
-			$values[] = 'password = "'.$vars['pass_new'].'"';
+			$pass_new = array_key_exists('pass_new', $vars) ? $vars['pass_new'] : '';
+			$pass_check = array_key_exists('pass_check', $vars) ? $vars['pass_check'] : '';
+
+			if (strlen($pass_new) || strlen($pass_check))
+			{
+				if ($pass_new !== $pass_check)
+				{
+					sendEmpireMessage($empire, 'The two password fields were different. Please try again.');
+					return editProfile($vars);
+				}
+				auth_store_password_hash($empire, $pass_new);
+				auth_soft_revoke_all_tokens($empire);
+				$auth_response_token = auth_issue_token($empire);
+			}
+
 			$values[] = 'real_name = "'.$vars['real_name'].'"';
 			
 			if ($vars['email'] != $empire['email']) 

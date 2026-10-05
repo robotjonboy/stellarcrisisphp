@@ -25,7 +25,19 @@ Stellar Crisis has a long history of competitive play.  Past competitions includ
 2. Create a database in mysql or mariadb to house the stellar crisis data.  Run the sc.sql script to create the tables and insert the initial data. (eg mysql -u user -p --database=stellarcrisis <sc.sql)
 3. Copy the code into a directory that will be served by apache.  If on shared hosting, this is usually a "public_html" directory.  Optionally, the code may be put into a subfolder (eg publichtml/sc).
 4. Configure the database connection information in serverconfig.php
-5. Create an admin account.  (eg insert into empires (name, last_ip, password, is_admin, validation_info, comment, email, real_name) values ('admin', '', 'password', '1', '', '', 'email', 'admin');)
+5. Create an admin account with a hashed password. From a shell on the server, generate a hash and insert the row, for example:
+
+```
+php -r 'echo password_hash("your-password-here", PASSWORD_DEFAULT), "\n";'
+```
+
+Then (paste the hash into the INSERT):
+
+```
+INSERT INTO empires (name, last_ip, password, password_hash, is_admin, validation_info, comment, email, real_name)
+VALUES ('admin', '', NULL, '$2y$10$...paste-hash-here...', '1', '', '', 'email', 'admin');
+```
+
 6. Delete the utility directory, or otherwise make sure it is not accessible to the general public.
 7. If apache is running, you should now be able to navigate to sc.php, login, and create some series.  Have fun!
 
@@ -116,6 +128,32 @@ ALTER TABLE history
 ```
 
 If the server already ran the SC3 remaining-features script above, also run `upgrade_sc3_jumpgate_series.sql`. That fills ship-type options for existing sc3 series that only have Jumpgate: classic ships stay developable (Attack/Science/Colony start Developed), Jumpgate is left as-is, and Carrier/Builder/Morpher are Barred. The script is included at the end of `upgrade_sc3.sql` for first-time upgrades and is safe to re-run.
+
+# Upgrade (password hashing and session tokens)
+These instructions are for an existing server that still stores empire passwords in plaintext and uses a hidden `pass` field for session continuity. Deploy the new PHP code and run:
+
+```
+mysql -u user -p --database=your_database < upgrade_password_security.sql
+```
+
+That script:
+
+1. Changes the `empires` primary key from `(name, password)` to `(name)`
+2. Makes `empires.password` nullable (legacy plaintext until each account upgrades)
+3. Adds `empires.password_hash`
+4. Creates the `auth_tokens` table (session tokens; soft-revoke via `revoked_at`, no hard deletes)
+
+Behavior after the upgrade:
+
+- Existing plaintext passwords keep working until each player next authenticates with their password
+- On that success, the server writes `password_hash`, sets `password` to NULL, and issues a session token
+- Authenticated pages use a hidden `token` field instead of echoing the password
+- Old open tabs that still POST `pass` continue to work if the password verifies against the hash
+- Token lifetime is up to one year; logout and password changes soft-revoke tokens
+
+Design notes: `docs/design-password-security.md`.
+
+Do not run this script twice on the same database without checking whether `password_hash` / `auth_tokens` already exist.
 
 # License
 Stellar Crisis PHP is available under The GPL v2.0

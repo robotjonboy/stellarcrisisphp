@@ -94,7 +94,8 @@ mysql_query('CREATE TABLE fleets ('.implode(',', $fields).') TYPE=MyISAM;') or d
 $fields = array();
 $fields[] = 'id int(11) NOT NULL auto_increment';
 $fields[] = 'name varchar(20) NOT NULL default ""';
-$fields[] = 'password varchar(20) NOT NULL default ""';
+$fields[] = 'password varchar(20) default NULL';
+$fields[] = 'password_hash varchar(255) default NULL';
 $fields[] = 'real_name varchar(50) NOT NULL default ""';
 $fields[] = 'email varchar(50) NOT NULL default ""';
 $fields[] = 'icon varchar(64) NOT NULL default "alien1.gif"';
@@ -115,11 +116,25 @@ $fields[] = 'show_coordinates enum("1","0") NOT NULL default "1"';
 $fields[] = 'map_origin varchar(11) NOT NULL default "0,0"';
 $fields[] = 'show_icons enum("1","0") NOT NULL default "0"';
 $fields[] = 'join_date int(11) NOT NULL default "1018409756"';
-$fields[] = 'PRIMARY KEY  (name,password)';
+$fields[] = 'PRIMARY KEY  (name)';
 $fields[] = 'UNIQUE KEY id (id)';
 $fields[] = 'KEY bridier_index (bridier_index)';
 
 mysql_query('CREATE TABLE empires ('.implode(',', $fields).') TYPE=MyISAM;') or die('SQL CREATE error for table "empires".');
+
+mysql_query('CREATE TABLE auth_tokens (
+  id int(11) NOT NULL auto_increment,
+  empire_id int(11) NOT NULL,
+  token_hash char(64) NOT NULL,
+  created_at int(11) NOT NULL,
+  expires_at int(11) NOT NULL,
+  last_used_at int(11) default NULL,
+  revoked_at int(11) default NULL,
+  PRIMARY KEY (id),
+  KEY token_hash (token_hash),
+  KEY empire_id (empire_id),
+  KEY expires_at (expires_at)
+) TYPE=MyISAM;') or die('SQL CREATE error for table "auth_tokens".');
 
 # --------------------------------------------------------
 

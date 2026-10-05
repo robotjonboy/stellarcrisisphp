@@ -4,9 +4,8 @@ function createSeries($vars)
 	$empire = $vars['empire_data'];
 	
 	standardHeader('Create Series', $empire);
+	authHiddenFields($vars['name']);
 echo "
-<input type=hidden name=\"name\" value=\"" . $vars['name'] . "\">
-<input type=hidden name=\"pass\" value=\"" . $vars['pass'] . "\">
 <input type=hidden name=\"empireID\" value=\"" . $empire['id'] . "\">
 <input type=hidden name=\"section\" value=\"admin\">
 <input type=hidden name=\"page\" value=\"createSeries\">";
@@ -229,7 +228,9 @@ function createSeries_processing($vars)
 		case 'Game List':		return gameList($vars);
 		case 'Game History':	return gameHistory($vars, '', 0, array());
 		case 'Administration':	return mainPage_admin($vars);
-		case 'Logout':			return mainPage();
+		case 'Logout':
+			auth_soft_revoke_token(sc_post('token'));
+			return mainPage();
 		}
 	
 	if ($vars['confirm'] == 'Cancel')

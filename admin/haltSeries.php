@@ -5,8 +5,7 @@ function haltSeries($vars)
 ?>
 <div class=pageTitle>Halt series</div>
 
-<input type=hidden name="name" value="<?php echo $vars['name']; ?>">
-<input type=hidden name="pass" value="<? echo $vars['pass']; ?>">
+<?php authHiddenFields($vars['name']); ?>
 <input type=hidden name="section" value="admin">
 <input type=hidden name="page" value="haltSeries">
 <?php

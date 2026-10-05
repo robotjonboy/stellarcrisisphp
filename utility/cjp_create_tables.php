@@ -89,7 +89,8 @@ $fields[] = 'max_economic_power int(11) NOT NULL default "0"';
 $fields[] = 'max_military_power int(11) NOT NULL default "0"';
 $fields[] = 'nuked smallint(6) NOT NULL default "0"';
 $fields[] = 'nukes smallint(6) NOT NULL default "0"';
-$fields[] = 'password varchar(20) NOT NULL default ""';
+$fields[] = 'password varchar(20) default NULL';
+$fields[] = 'password_hash varchar(255) default NULL';
 $fields[] = 'real_name tinytext NOT NULL default ""';
 $fields[] = 'ruined smallint(6) NOT NULL default "0"';
 $fields[] = 'show_coordinates enum("1","0") NOT NULL default "1"';
@@ -99,7 +100,7 @@ $fields[] = 'url tinytext';
 $fields[] = 'validation_info varchar(50) NOT NULL default ""';  //cjp - emailed check key
 $fields[] = 'wins smallint(6) NOT NULL default "0"';
 
-$fields[] = 'PRIMARY KEY  (name,password)';
+$fields[] = 'PRIMARY KEY  (name)';
 $fields[] = 'UNIQUE KEY id (id)';
 $fields[] = 'KEY bridier_index (bridier_index)';
 
@@ -117,7 +118,21 @@ else
 	echo 'Table Empires created or already exists.<br/>';
 }
 
-mysql_query('INSERT INTO empires set name="admin" password="admin" is_admin="1"');
+mysql_query('INSERT INTO empires set name="admin" password_hash="'.password_hash('admin', PASSWORD_DEFAULT).'" password=NULL is_admin="1"');
+
+mysql_query('CREATE TABLE IF NOT EXISTS auth_tokens (
+  id int(11) NOT NULL auto_increment,
+  empire_id int(11) NOT NULL,
+  token_hash char(64) NOT NULL,
+  created_at int(11) NOT NULL,
+  expires_at int(11) NOT NULL,
+  last_used_at int(11) default NULL,
+  revoked_at int(11) default NULL,
+  PRIMARY KEY (id),
+  KEY token_hash (token_hash),
+  KEY empire_id (empire_id),
+  KEY expires_at (expires_at)
+) TYPE=MyISAM;');
 
 #--------------------------------------------------------------------------------------------------------------------#
 # Explored planets
