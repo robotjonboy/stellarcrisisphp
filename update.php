@@ -17,6 +17,226 @@ function localize($galacticCoord, $player, $homeworlds)
 }
 
 #--------------------------------------------------------------------------------------------------------------------#
+# Snapshot systems for endGame's static map (used on early surrender/draw exits).
+#
+
+function snapshotSystemsMap($game_id)
+{
+	$saved_map = array();
+	$query = sc_query('SELECT * FROM systems WHERE game_id = '.(int)$game_id, __FILE__.'*'.__LINE__);
+	while ($system = $query->fetch_assoc())
+	{
+		if ($system['annihilated'])
+			$owner = '=annihilated=';
+		else if (!$system['owner'])
+			$owner = '=unowned=';
+		else
+			$owner = $system['owner'];
+
+		$saved_map[$system['coordinates']] = array(
+			'mineral' => $system['mineral'],
+			'fuel' => $system['fuel'],
+			'agriculture' => $system['agriculture'],
+			'population' => $system['population'],
+			'owner' => $owner,
+		);
+	}
+	return $saved_map;
+}
+
+#--------------------------------------------------------------------------------------------------------------------#
+# Clear an empire's presence without a ship-nuke (no mineral/fuel halving, no 'nuked' history).
+#
+
+function clearEmpirePresence($game_id, $player)
+{
+	$game_id = (int)$game_id;
+	$name = $player['name'];
+	$id = (int)$player['id'];
+
+	sc_query('DELETE FROM ships WHERE game_id = '.$game_id.' AND owner = "'.$name.'"', __FILE__.'*'.__LINE__);
+	sc_query('DELETE FROM fleets WHERE game_id = '.$game_id.' AND owner = "'.$name.'"', __FILE__.'*'.__LINE__);
+	sc_query('DELETE FROM explored WHERE game_id = '.$game_id.' AND empire = "'.$name.'"', __FILE__.'*'.__LINE__);
+	sc_query('DELETE FROM diplomacies WHERE game_id = '.$game_id.' AND (empire = "'.$name.'" OR opponent = "'.$name.'")', __FILE__.'*'.__LINE__);
+	sc_query('DELETE FROM scouting_reports WHERE player_id = "'.$id.'"', __FILE__.'*'.__LINE__);
+	sc_query('DELETE FROM messages WHERE player_id = "'.$id.'"', __FILE__.'*'.__LINE__);
+
+	$fields = array();
+	$fields[] = 'homeworld = ""';
+	$fields[] = 'owner = ""';
+	$fields[] = 'population = 0';
+	sc_query('UPDATE systems SET '.implode(',', $fields).' WHERE game_id = '.$game_id.' AND owner = "'.$name.'"', __FILE__.'*'.__LINE__);
+}
+
+#--------------------------------------------------------------------------------------------------------------------#
+# End the game as a draw (shared by mutual draw and mutual surrender).
+#
+
+function endGameAsDraw($series, $game, &$history, $saved_map, $team_labels = false)
+{
+	if (!count($saved_map))
+		$saved_map = snapshotSystemsMap($game['id']);
+
+	$select = sc_query('SELECT * FROM players WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
+	while ($player = $select->fetch_assoc())
+	{
+		$info = ($team_labels ? 'Team '.$player['team'] : '');
+		$history[] = array('', $player['name'], 'draw', $info);
+
+		$empire = getEmpire($player['name']);
+		sendEmpireMessage($empire, '<span class=red>'.$series['name'].' '.$game['game_number'].'</span> has ended in a draw.');
+	}
+
+	endGame($series, $game, $history, $saved_map);
+}
+
+#--------------------------------------------------------------------------------------------------------------------#
+# Bridier adjustments for a single winner (2-player). Appends history rows.
+#
+
+function applyBridierForWinner($game, $winner_player, &$history)
+{
+	if ($game['bridier'] < 0)
+		return;
+
+	$empire = getEmpire($winner_player['name']);
+	$bridier_query = sc_query('SELECT * FROM bridier WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
+	$bdata = $bridier_query->fetch_assoc();
+	if (!$bdata)
+		return;
+
+	if ($winner_player['name'] == $bdata['empire1'])
+	{
+		$opponent = getEmpire($bdata['empire2']);
+		list($a, $b) = calculateBridier($empire['bridier_rank'], $empire['bridier_index'], $bdata['starting_rank2'], $bdata['starting_index2']);
+		$win = $a;
+		list($a, $b) = calculateBridier($bdata['starting_rank1'], $bdata['starting_index1'], $opponent['bridier_rank'], $opponent['bridier_index']);
+		$lose = $b;
+		$winner = '1';
+		$loser = '2';
+	}
+	else
+	{
+		$opponent = getEmpire($bdata['empire1']);
+		list($a, $b) = calculateBridier($empire['bridier_rank'], $empire['bridier_index'], $bdata['starting_rank1'], $bdata['starting_index1']);
+		$win = $a;
+		list($a, $b) = calculateBridier($bdata['starting_rank2'], $bdata['starting_index2'], $opponent['bridier_rank'], $opponent['bridier_index']);
+		$lose = $b;
+		$winner = '2';
+		$loser = '1';
+	}
+
+	$values = array();
+	$values[] = 'winner = '.$winner;
+	$values[] = 'ending_rank'.$winner.' = '.($empire['bridier_rank']+$win);
+	$values[] = 'ending_rank'.$loser.' = '.($opponent['bridier_rank']-$lose);
+	$values[] = 'end_time = '.time();
+	sc_query('UPDATE bridier SET '.implode(', ',$values).' WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
+
+	$new_index = $empire['bridier_index'] - ($win > 25 ? 50 : 2*$win);
+
+	$binfo = $bdata['starting_rank'.$winner].','.$empire['bridier_rank'].",$win,".($empire['bridier_rank']+$win).
+		'/'.$bdata['starting_index'.$winner].','.$empire['bridier_index'].','.(2*$win).",$new_index";
+	$history[] = array('', $bdata['empire'.$winner], 'bridier', $binfo);
+
+	$values = array();
+	$values[] = 'bridier_rank = '.($empire['bridier_rank']+$win);
+	$values[] = 'bridier_index = '.($new_index < 100 ? 100 : $new_index);
+	$values[] = 'bridier_update = '.time();
+	$values[] = 'bridier_delta = '.$win;
+	sc_query('UPDATE empires SET '.implode(', ',$values).' WHERE id = '.$empire['id'], __FILE__.'*'.__LINE__);
+
+	$new_index = $opponent['bridier_index'] - ($lose > 25 ? 50 : 2*$lose);
+
+	$binfo = $bdata['starting_rank'.$loser].','.$opponent['bridier_rank'].",$lose,".($opponent['bridier_rank']-$lose).
+		'/'.$bdata['starting_index'.$loser].','.$opponent['bridier_index'].','.(2*$lose).",$new_index";
+	$history[] = array('', $bdata['empire'.$loser], 'bridier', $binfo);
+
+	$values = array();
+	$values[] = 'bridier_rank = '.($opponent['bridier_rank']-$lose);
+	$values[] = 'bridier_index = '.($new_index < 100 ? 100 : $new_index);
+	$values[] = 'bridier_update = '.time();
+	$values[] = 'bridier_delta = -'.$lose;
+	sc_query('UPDATE empires SET '.implode(', ',$values).' WHERE id = '.$opponent['id'], __FILE__.'*'.__LINE__);
+}
+
+#--------------------------------------------------------------------------------------------------------------------#
+# One-sided 2-player surrender: halt update, award nuke+win, clear board without nuke icon.
+#
+
+function resolveSurrenderWin($series, $game, $surrendering_player, $winner_player, &$history)
+{
+	$saved_map = snapshotSystemsMap($game['id']);
+
+	$history[] = array('', $surrendering_player['name'], 'surrender', '');
+	$history[] = array('', $winner_player['name'], 'won', '');
+
+	sc_query('UPDATE empires SET nuked = (nuked+1) WHERE name = "'.$surrendering_player['name'].'"', __FILE__.'*'.__LINE__);
+	sc_query('UPDATE empires SET nukes = (nukes+1), wins = (wins+1) WHERE name = "'.$winner_player['name'].'"', __FILE__.'*'.__LINE__);
+
+	$loser_empire = getEmpire($surrendering_player['name']);
+	$winner_empire = getEmpire($winner_player['name']);
+	sendEmpireMessage($loser_empire, 'You surrendered to '.$winner_player['name'].' in <span class=red>'.$series['name'].' '.$game['game_number'].'</span>.');
+	sendEmpireMessage($winner_empire, $surrendering_player['name'].' has surrendered. You have won <span class=red>'.$series['name'].' '.$game['game_number'].'</span>.');
+
+	clearEmpirePresence($game['id'], $surrendering_player);
+	sc_query('DELETE FROM players WHERE id = '.(int)$surrendering_player['id'], __FILE__.'*'.__LINE__);
+	sc_query('UPDATE games SET player_count = (player_count-1) WHERE id = '.$game['id'], __FILE__.'*'.__LINE__);
+
+	applyBridierForWinner($game, $winner_player, $history);
+
+	endGame($series, $game, $history, $saved_map);
+}
+
+#--------------------------------------------------------------------------------------------------------------------#
+# One-sided team surrender: halt update, award nukes+wins to remaining team, clear without nuke icons.
+#
+
+function resolveTeamSurrenderWin($series, $game, $winning_team, $surrendering_team, &$history)
+{
+	$saved_map = snapshotSystemsMap($game['id']);
+	$surrender_count = 0;
+
+	$select = sc_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND ABS(team) = '.(int)$surrendering_team, __FILE__.'*'.__LINE__);
+	while ($player = $select->fetch_assoc())
+	{
+		if ($player['team'] > 0)
+		{
+			$history[] = array('', $player['name'], 'surrender', 'Team '.$player['team']);
+			sc_query('UPDATE empires SET nuked = (nuked+1) WHERE name = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
+			$surrender_count++;
+			// Already-eliminated teammates (team < 0) were removed from player_count earlier.
+			sc_query('UPDATE games SET player_count = (player_count-1) WHERE id = '.$game['id'], __FILE__.'*'.__LINE__);
+		}
+
+		clearEmpirePresence($game['id'], $player);
+		sc_query('DELETE FROM players WHERE id = '.(int)$player['id'], __FILE__.'*'.__LINE__);
+
+		$empire = getEmpire($player['name']);
+		sendEmpireMessage($empire, 'Your team has surrendered in <span class=red>'.$series['name'].' '.$game['game_number'].'</span>.');
+	}
+
+	// Active winners and previously eliminated teammates on the winning side.
+	$select = sc_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND ABS(team) = '.(int)$winning_team, __FILE__.'*'.__LINE__);
+	while ($player = $select->fetch_assoc())
+	{
+		$empire = getEmpire($player['name']);
+		$nuked_note = ($player['team'] < 0 ? ' (nuked)' : '');
+		$history[] = array('', $player['name'], 'won', 'Team '.$winning_team.$nuked_note);
+
+		$nuke_bonus = ($player['team'] > 0 && $surrender_count > 0) ? ', nukes = (nukes+'.$surrender_count.')' : '';
+		sc_query('UPDATE empires SET wins = (wins+1)'.$nuke_bonus.' WHERE name = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
+
+		if ($player['team'] > 0)
+			sendEmpireMessage($empire, 'The opposing team has surrendered. You have won <span class=red>'.$series['name'].' '.$game['game_number'].'</span>.');
+		else
+			sendEmpireMessage($empire, 'Your team has won <span class=red>'.$series['name'].' '.$game['game_number'].'</span>.');
+	}
+
+	endGame($series, $game, $history, $saved_map);
+}
+
+#--------------------------------------------------------------------------------------------------------------------#
 # Return values:
 #
 #	- 0: The game has updated and is now over.
@@ -80,83 +300,72 @@ function update_game($series, &$game, $update_time)
 
 	srand(time()); //cjp make rand() work properly
 
-	// We check team draws and team surrenders before running the update because of the voting nature
-	// of team diplomacy; if an emp gets eliminated during the turn it could change the voting.
+	// Diplomacy end-states that halt the update (before ships / combat / ruin).
+	// Team voting rules in getTeamDiplomacy() are unchanged; only post-resolution behavior.
 	if ($series['team_game'])
 	{
-		// Get team diplomacy settings for team games - $team_offer index specifies the team being offered to.
+		// $team_offer index = team being offered TO (opposing team from the offerer).
 		$team_offer = getTeamDiplomacy($game);
-		
-		// Test for draw.
+		$team2_surrendering = ($team_offer[1] == 0);
+		$team1_surrendering = ($team_offer[2] == 0);
+
+		// Mutual draw.
 		if ($team_offer[1] == 1 and $team_offer[2] == 1)
 		{
-			// Both teams choose to draw.
-			$missive_update = '<font color=FF0000>'.
-							$series['name'].' '.
-							$game['game_number'].
-							'</font> has ended in a draw.<br>';
-			
-			// Send a messages to the players, and record the event.
-			$select = sc_query('SELECT * FROM players WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
-			while ($player = $select->fetch_assoc())
-			{
-				$history[] = array('', $player['name'], 'draw', 'Team '.$player['team']);
-				
-				$empire = getEmpire($player['name']);
-				sendEmpireMessage($empire, '<span class=red>'.$series['name'].' '.$game['game_number'].'</span> has ended in a draw.');
-			}
-
-			// Game's over... cleanup time.
-			endGame($series, $game, $history, $saved_map);
+			endGameAsDraw($series, $game, $history, $saved_map, true);
 			return 0;
 		}
 
-		// Check for surrenders- I *will* let both sides surrender at once if they really want! :P
-		// $team specifies the team being offered TO-- i.e. the opposing team from the emp making the offer
-		// The award of victory will happen normally at the end of the update
-		for ($team = 1; $team <= 2; $team++)
+		// Mutual surrender — same outcome as a draw (no wins / nuke credits).
+		if ($team1_surrendering and $team2_surrendering)
 		{
-			$offering_team = ($team == 1 ? 2 : 1);
+			endGameAsDraw($series, $game, $history, $saved_map, true);
+			return 0;
+		}
 
-			if ($team_offer[$team] == '0')
-			{				
-				$select = sc_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND ABS(team) = '.$offering_team, __FILE__.'*'.__LINE__);
-				while ($player = $select->fetch_assoc())
+		// One-sided team surrender: halt, award nuke(s)+win, no ship resolution.
+		if ($team2_surrendering)
+		{
+			resolveTeamSurrenderWin($series, $game, 1, 2, $history);
+			return 0;
+		}
+		if ($team1_surrendering)
+		{
+			resolveTeamSurrenderWin($series, $game, 2, 1, $history);
+			return 0;
+		}
+	}
+	else if (!empty($series['can_surrender']) && (int)$game['player_count'] == 2)
+	{
+		$players = array();
+		$select = sc_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND team >= 0', __FILE__.'*'.__LINE__);
+		while ($player = $select->fetch_assoc())
+			$players[] = $player;
+
+		if (count($players) == 2)
+		{
+			$dip_a = getDiplomacyWithOpponent($game['id'], $players[0]['name'], $players[1]['name']);
+			$dip_b = getDiplomacyWithOpponent($game['id'], $players[1]['name'], $players[0]['name']);
+
+			if ($dip_a && $dip_b)
+			{
+				$a_surrenders = ($dip_a['offer'] == 0);
+				$b_surrenders = ($dip_b['offer'] == 0);
+
+				if ($a_surrenders && $b_surrenders)
 				{
-					// Only players still left are actually surrendering
-					if ( $player['team'] > 0 )
-						$history[] = array( '', $player['name'], 'surrender', 'Team '.$player['team'] );
-					
-					sc_query('DELETE FROM ships WHERE game_id = '.$game['id'].' AND owner = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
-					sc_query('DELETE FROM fleets WHERE game_id = '.$game['id'].' AND owner = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
-					sc_query('DELETE FROM explored WHERE game_id = '.$game['id'].' AND empire = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
-					sc_query('DELETE FROM diplomacies WHERE game_id = '.$game['id'].' AND empire = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
-
-					// We can delete this here because we are sending the message and setting the nuked immediately (below)
-					sc_query('DELETE FROM players WHERE id = '.$player['id'], __FILE__.'*'.__LINE__);
-					sc_query('DELETE FROM scouting_reports WHERE player_id = "'.$player['id'].'"', __FILE__.'*'.__LINE__);
-					sc_query('DELETE FROM messages WHERE player_id = "'.$player['id'].'"', __FILE__.'*'.__LINE__);
-					sc_query('UPDATE games SET player_count = (player_count-1) WHERE id = '.$game['id'], __FILE__.'*'.__LINE__);
-					
-					if ($player['team'] > 0)
-						sc_query('UPDATE empires SET nuked = (nuked + 1) WHERE name = "'.$player['name'].'"', __FILE__.'*'.__LINE__);
-
-					$fields = array();
-					$fields[] = 'homeworld = ""';
-					$fields[] = 'owner = ""';
-					$fields[] = 'population = 0';
-					
-					sc_query('UPDATE systems SET '.implode(',', $fields).' WHERE game_id = '.$game['id'].' AND owner = "'.$player['name'].'"');
-				
-					$empire = getEmpire($player['name']);
-					sendEmpireMessage($empire, 'Your team has surrendered in <span class=red>'.$series['name'].' '.$game['game_number'].'</span>.');
+					endGameAsDraw($series, $game, $history, $saved_map, false);
+					return 0;
 				}
-
-				$select = sc_query('SELECT * FROM players WHERE game_id = '.$game['id'].' AND team = '.$team, __FILE__.'*'.__LINE__);
-				while ($player = $select->fetch_assoc())
+				if ($a_surrenders)
 				{
-					$empire = getEmpire($player['name']);
-					sendEmpireMessage($empire, 'The opposing team has surrendered in <span class=red>'.$series['name'].' '.$game['game_number'].'</span>.');
+					resolveSurrenderWin($series, $game, $players[0], $players[1], $history);
+					return 0;
+				}
+				if ($b_surrenders)
+				{
+					resolveSurrenderWin($series, $game, $players[1], $players[0], $history);
+					return 0;
 				}
 			}
 		}
@@ -240,25 +449,22 @@ function update_game($series, &$game, $update_time)
 														 )
 					)
 				{
-					// Prevent two people from surrendering to each other. In this case, revert to war for both.
-					if ($diplomacy['offer'] == 0 and $opponent['offer'] == 0)
-						sc_query('UPDATE diplomacies SET status = "2" WHERE id = '.$diplomacy['id'],
-									   __FILE__.'*'.__LINE__);
-					else if ($diplomacy['offer'] == 0)
+					// Surrender is resolved before ship orders (early exit). Never queue
+					// deferred surrender into $eliminated, and never persist status 0.
+					if ($diplomacy['offer'] == 0 or $opponent['offer'] == 0)
 					{
-						// Handle surrender. If a player surrenders, the other player does not have to do anything.
-						// When the update occurs (i.e., now!), the player surrendering is nuked.
-						$eliminated[] = array('victim' => $diplomacy['empire'], 
-												'doer' => $diplomacy['opponent'], 
-												'method' => 'surrender');
+						// Should have early-exited for legal 2-player surrender; leave status unchanged.
 					}
 					else
 					{
-						if ($diplomacy['offer'] == 0 and $opponent['offer'] == 0) $new_status = 2;
-						else if ($diplomacy['offer'] == 1 and $opponent['offer'] == 1) $new_status = 1;
+						if ($diplomacy['offer'] == 1 and $opponent['offer'] == 1) $new_status = 1;
 						else if ($diplomacy['offer'] == 1 or $opponent['offer'] == 1) 
 							$new_status = $diplomacy['status'];
 						else $new_status = min($diplomacy['offer'], $opponent['offer']);
+
+						// Hardening: surrender is not a living diplomatic status for combat/nukes.
+						if ($new_status < 1)
+							$new_status = 2;
 						
 						if ($new_status > 1 and 
 							$new_status != $diplomacy['status'] and 
@@ -1881,71 +2087,8 @@ function update_game($series, &$game, $update_time)
 
 			sendEmpireMessage($empire, 'You have won <span class=red>'.$series['name'].' '.$game['game_number'].'</span>.');
 
-			// do Bridier-- we can do this inside the loop ONLY becuase Bridier games have just one winner
-			// code currently relies on $player containing the info for that winner
-			if ( $game['bridier'] >= 0 )
-				{
-				$bridier_query = sc_query('SELECT * FROM bridier WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
-				$bdata = $bridier_query->fetch_assoc();
-				if ( $player['name'] == $bdata['empire1'] )
-					{
-					$opponent = getEmpire( $bdata['empire2'] );
-					// have to calculate twice-- once against each empires starting socre!
-					list( $a, $b ) = calculateBridier( $empire['bridier_rank'], $empire['bridier_index'], $bdata['starting_rank2'], $bdata['starting_index2'] );
-					$win = $a;
-					list( $a, $b ) = calculateBridier( $bdata['starting_rank1'], $bdata['starting_index1'], $opponent['bridier_rank'], $opponent['bridier_index'] );
-					$lose = $b;
-					$winner = '1';
-					$loser = '2';
-					}
-				else
-					{
-					$opponent = getEmpire( $bdata['empire1'] );
-					// have to calculate twice-- once against each empires starting socre!
-					list( $a, $b ) = calculateBridier( $empire['bridier_rank'], $empire['bridier_index'], $bdata['starting_rank1'], $bdata['starting_index1'] );
-					$win = $a;
-					list( $a, $b ) = calculateBridier( $bdata['starting_rank2'], $bdata['starting_index2'], $opponent['bridier_rank'], $opponent['bridier_index'] );
-					$lose = $b;
-					$winner = '2';
-					$loser = '1';
-					}
-
-				// update bridier results table
-				$values = array();
-				$values[] = 'winner = '.$winner;
-				$values[] = 'ending_rank'.$winner.' = '.($empire['bridier_rank']+$win);
-				$values[] = 'ending_rank'.$loser.' = '.($opponent['bridier_rank']-$lose);
-				$values[] = 'end_time = '.time();
-				sc_query('UPDATE bridier SET '.implode(', ',$values).' WHERE game_id = '.$game['id'], __FILE__.'*'.__LINE__);
-				
-				// and then update the empire records
-				
-				$new_index = $empire['bridier_index'] - ( $win>25 ? 50 : 2*$win );
-				
-				$binfo = $bdata['starting_rank'.$winner].','.$empire['bridier_rank'].",$win,".($empire['bridier_rank']+$win).
-					'/'.$bdata['starting_index'.$winner].','.$empire['bridier_index'].','.(2*$win).",$new_index";
-				$history[] = array( '', $bdata['empire'.$winner], 'bridier', $binfo );
-				
-				$values = array();
-				$values[] = 'bridier_rank = '.($empire['bridier_rank']+$win);
-				$values[] = 'bridier_index = '.( $new_index<100 ? 100 : $new_index );
-				$values[] = 'bridier_update = '.time();
-				$values[] = 'bridier_delta = '.$win;
-				sc_query('UPDATE empires SET '.implode(', ',$values).' WHERE id = '.$empire['id'], __FILE__.'*'.__LINE__);
-
-				$new_index = $opponent['bridier_index'] - ( $lose>25 ? 50 : 2*$lose );
-
-				$binfo = $bdata['starting_rank'.$loser].','.$opponent['bridier_rank'].",$lose,".($opponent['bridier_rank']-$lose).
-					'/'.$bdata['starting_index'.$loser].','.$opponent['bridier_index'].','.(2*$lose).",$new_index";
-				$history[] = array( '', $bdata['empire'.$loser], 'bridier', $binfo );
-				
-				$values = array();
-				$values[] = 'bridier_rank = '.($opponent['bridier_rank']-$lose);
-				$values[] = 'bridier_index = '.( $new_index<100 ? 100 : $new_index );
-				$values[] = 'bridier_update = '.time();
-				$values[] = 'bridier_delta = -'.$lose;
-				sc_query('UPDATE empires SET '.implode(', ',$values).' WHERE id = '.$opponent['id'], __FILE__.'*'.__LINE__);
-				}
+			// Bridier: safe inside the loop only because Bridier games have a single winner.
+			applyBridierForWinner($game, $player, $history);
 			}
 			
 		// Now process any previously nuked players in team games-- winning team has wins coming,
