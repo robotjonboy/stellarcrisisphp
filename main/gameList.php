@@ -125,7 +125,7 @@ function gameList($vars)
 		$select = sc_query('SELECT * FROM '.$tables.' WHERE '.implode(' AND ', $conditions).' ORDER BY invitations.id');
 		while ($row = $select->fetch_assoc())
 			{
-			if ($excluded_games[$row['game_id']]) continue;
+			if (isset($excluded_games) && is_array($excluded_games) && array_key_exists($row['game_id'], $excluded_games) && $excluded_games[$row['game_id']]) continue;
 
 			$series = $row;
 
