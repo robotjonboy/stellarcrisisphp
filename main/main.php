@@ -13,7 +13,7 @@ function mainAction($vars, $file)
 {
 	global $authenticated;
 
-	if (!$authenticated and $vars['page'] != 'createEmpire')
+	if (!$authenticated and ($vars['page'] ?? '') != 'createEmpire')
 		return loginFailed('Identity check failed.');
 		
 	$empire = getEmpire($vars['name']);
@@ -36,7 +36,7 @@ function mainAction($vars, $file)
 		}
 	}
 		
-	switch ($vars['page'])
+	switch ($vars['page'] ?? '')
 		{
 		case 'gameList':
 		case 'passwordGameList':	gameList_processing($vars);			break;
@@ -49,6 +49,10 @@ function mainAction($vars, $file)
 		case 'createCustomSeries':	createCustomSeries_processing($vars);	break;
 		case 'createEmpire':		createEmpire_processing($vars);		break;
 		case 'tournaments':		tournaments_processing($vars);		break; //tournaments.php
+		default:
+			if (!$authenticated)
+				return loginFailed('Identity check failed.');
+			return gameList($vars);
 		}
 }
 ?>
