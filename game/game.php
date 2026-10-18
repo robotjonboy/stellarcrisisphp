@@ -37,7 +37,7 @@ function xlateToLocal($galacticCoord)
 	if (!$server['local_coordinates'])
 		return $galacticCoord; // translation to galactic and getOffset should be disabled as well
 
-	list($x, $y) = explode(',', $galacticCoord);
+	list($x, $y) = array_map('intval', explode(',', $galacticCoord));
 
 	return ($x-$hwX).','.($y-$hwY);
 }
@@ -51,7 +51,7 @@ function xlateToGalactic($localCoord)
 	if (!$server['local_coordinates'])
 		return $localCoord; // translation to local and getOffset should be disabled as well
 
-	list($x, $y) = explode(',', $localCoord);
+	list($x, $y) = array_map('intval', explode(',', $localCoord));
 	
 	return ($x+$hwX).','.($y+$hwY);
 }
@@ -113,11 +113,17 @@ function gameAction($vars)
   	$select = sc_query('SELECT coordinates FROM systems WHERE game_id = "'.((int)$game['id']).
   	                         '" AND homeworld = "'.$mysqli->real_escape_string($vars['name']).'"');
 	$homeworld = $select->fetch_assoc();
+
+	if (!$homeworld || !isset($homeworld['coordinates']) || strpos($homeworld['coordinates'], ',') === false)
+		{
+		sendEmpireMessage($empire, 'That game has no map data. It may have failed to generate; start or join a new game.');
+		return gameList($vars);
+		}
 	
 	// Here we set the global $hwX and $hwY variables. They are used on many game screens
 	// whenever we need to convert to local coordinate space and back.
-	list($hwX, $hwY) = explode(',', $homeworld['coordinates']);
-	list($offset_x, $offset_y) = explode(',', $player['map_origin']);
+	list($hwX, $hwY) = array_map('intval', explode(',', $homeworld['coordinates']));
+	list($offset_x, $offset_y) = array_map('intval', explode(',', $player['map_origin']));
 	
 	$hwX -= $offset_x;
 	$hwY -= $offset_y;

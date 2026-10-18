@@ -145,7 +145,7 @@ Asselstine
 Assuan
 Assumption
 Astorville
-Asunci¢n
+AsunciÛn
 Athens
 Atherley
 Atherton
@@ -360,7 +360,7 @@ Blytheswood
 Bobcaygeon
 Bochum
 Bogarttown
-Bogot†
+Bogot·
 Bois-des-Filion
 Boisbriand
 Bologna
@@ -857,7 +857,7 @@ Drummond Centre
 Drummondville
 Dryden
 Dryden's Corner
-DÅsseldorf
+D¸sseldorf
 Dubai
 Dublin
 Dubreuilville
@@ -1178,7 +1178,7 @@ Goderich
 Godfrey
 Goettingen
 Gogama
-GoiÉnia
+Goi‚nia
 Golden Lake
 Gooderham
 Gordon
@@ -1477,14 +1477,14 @@ Josephburg
 Joyceville
 Joyland Beach
 Joyvista Estates
-Ju†rez
+Ju·rez
 Juddhaven
 Judgeville
 Juneau
 Junetown
 Juniper Island
 Jura
-Kîln
+Kˆln
 Kaboni
 Kagawong
 Kakabeka Falls
@@ -1775,7 +1775,7 @@ Lynhurst
 Lynnville
 Lyon
 Lyons
-M†laga
+M·laga
 M'Chigeeng
 Mabee's Corners
 Macamic
@@ -1808,7 +1808,6 @@ Maguire
 Maidstone
 Mainz
 Maitland
-Malaga
 Malahide
 Malakoff
 Malartic
@@ -1919,7 +1918,7 @@ McRoberts Corner
 Meadowvale
 Meaford
 Mecca
-Medell°n
+MedellÌn
 Medina
 Melanchton
 Melbourne

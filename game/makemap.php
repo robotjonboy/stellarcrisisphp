@@ -1144,7 +1144,7 @@ function mirrorMap( &$big_map, $n_players, $lower_limit, $upper_limit )
 			$temp['jumps'] = $big_map[$home]['jumps'];
 			$temp['coordinates'] = $home;
 			$big_map[$home] = $temp;					// old HW has new HW's old data
-			$home = coord;
+			$home = $coord;
 		} 
 	}
 	
