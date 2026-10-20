@@ -248,6 +248,17 @@ function update_game($series, &$game, $update_time)
 	global $missive, $history, $server, $ship_types, $moving_ships, $mysqli;
 
 	$effective_moving = getEffectiveMovingShips($game['game_type'] ?? 'sc2');
+
+	// Timed/cron updates often load $game with SELECT * FROM games (no options join).
+	// Loss/cost helpers read game ship_type_options; without them Morpher/Carrier/etc.
+	// fall back to hard-coded defaults (e.g. Morpher loss 0.5 instead of GP's 0.05).
+	if (($game['game_type'] ?? '') === 'sc3' && empty($game['ship_type_options']))
+	{
+		$game['ship_type_options'] = array();
+		$opts = sc_query('SELECT * FROM game_ship_type_options WHERE game_id = '.(int)$game['id']);
+		while ($line = $opts->fetch_assoc())
+			$game['ship_type_options'][$line['ship_type']] = $line;
+	}
 	
 	//ysql_query('BEGIN');
 	
