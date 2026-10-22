@@ -1168,7 +1168,7 @@ function update_game($series, &$game, $update_time)
 			$owner_player = getPlayer($game['id'], $ship['owner']);
 			if ($owner_player)
 				$buffered_missive[$owner_player['id']]['actions'][] =
-					'<!--U:cref-->The effort to create a system at '.$destination.' failed.';
+					'<!--U:cref-->The effort to create a system at '.localize($destination, $ship['owner'], $homeworlds).' failed.';
 		}
 	}
 
