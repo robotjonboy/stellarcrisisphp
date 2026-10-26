@@ -24,9 +24,6 @@ function mapScreen($vars)
 		$y_max = $x_max = 0; // If galactic coordinates are negative, could this be a problem?
 		}
 
-	// This array will be used to reference the existence of links between any two planets.
-	$jump_presence = array();
-	
 	$explored = array();
 	$systems = array();
 	$icons = array();
@@ -57,39 +54,42 @@ function mapScreen($vars)
 	
 	$scouted_query = 'SELECT '.implode(',', $fields).', "no" AS explored FROM scouting_reports WHERE scouting_reports.player_id = '.$player['id'];
 
-	$select = sc_query($explored_query.' UNION '.$scouted_query);
-	while ($row = $select->fetch_assoc())
+	// Load explored systems first, then scouting reports. A UNION of the two can return both
+	// rows for the same planet; the later scout snapshot used to overwrite live jump data.
+	$map_queries = array($explored_query, $scouted_query);
+	foreach ($map_queries as $query_index => $query)
 		{
-		$systems[ $row['coordinates'] ]['coordinates'] 	= $row['coordinates'];
-		$systems[ $row['coordinates'] ]['owner'] 		= $row['owner'];
-		$systems[ $row['coordinates'] ]['annihilated'] 	= $row['annihilated'];
-		$systems[ $row['coordinates'] ]['jumps'] 		= $row['jumps'];
-		$systems[ $row['coordinates'] ]['mineral']		= $row['mineral'];
-		$systems[ $row['coordinates'] ]['agriculture']	= $row['agriculture'];
-		$systems[ $row['coordinates'] ]['fuel']			= $row['fuel'];
-		$systems[ $row['coordinates'] ]['population']	= $row['population'];
-		$systems[ $row['coordinates'] ]['name'] 		= $row['name'];
-		$systems[ $row['coordinates'] ]['explored'] 	= $row['explored'];
-
-    	// Don't do this if we're zooming in: the range was set from the clicked-on system.
-    	if ($zoomed_planet == '')
-    		{
-			list($x,$y) = preg_split('/,/', $row['coordinates']);
-
-    		$x_min = min($x, $x_min);
-    		$x_max = max($x, $x_max);
-    		$y_min = min($y, $y_min);
-    		$y_max = max($y, $y_max);
-			}
-
-		$jumps = ($row['jumps'] ? explode(' ', $row['jumps']) : array());
-		
-		foreach ($jumps as $jump)
+		$select = sc_query($query);
+		while ($row = $select->fetch_assoc())
 			{
-			$jump_presence[$jump][$row['coordinates']] = true;			
-			$jump_presence[$row['coordinates']][$jump] = true;
+			if ($query_index == 1 && isset($systems[$row['coordinates']]))
+				continue;
+
+			$systems[ $row['coordinates'] ]['coordinates'] 	= $row['coordinates'];
+			$systems[ $row['coordinates'] ]['owner'] 		= $row['owner'];
+			$systems[ $row['coordinates'] ]['annihilated'] 	= $row['annihilated'];
+			$systems[ $row['coordinates'] ]['jumps'] 		= $row['jumps'];
+			$systems[ $row['coordinates'] ]['mineral']		= $row['mineral'];
+			$systems[ $row['coordinates'] ]['agriculture']	= $row['agriculture'];
+			$systems[ $row['coordinates'] ]['fuel']			= $row['fuel'];
+			$systems[ $row['coordinates'] ]['population']	= $row['population'];
+			$systems[ $row['coordinates'] ]['name'] 		= $row['name'];
+			$systems[ $row['coordinates'] ]['explored'] 	= $row['explored'];
+
+			// Don't do this if we're zooming in: the range was set from the clicked-on system.
+			if ($zoomed_planet == '')
+				{
+				list($x,$y) = preg_split('/,/', $row['coordinates']);
+
+				$x_min = min($x, $x_min);
+				$x_max = max($x, $x_max);
+				$y_min = min($y, $y_min);
+				$y_max = max($y, $y_max);
+				}
 			}
 		}
+
+	$jump_presence = buildMapJumpPresence($systems);
 
 	// Before we actually start building the map, we'll also build an array of friendly/enemy ship counts
 	// for each planet. This used to be done with a seperate query for EVERY planet.
@@ -433,5 +433,89 @@ function systemNameColor($player, $planet_owner)
 		case 5:				return 'green'; // Alliance
 		case 6:				return 'blue'; // Shared HQ
 		}
+}
+
+#----------------------------------------------------------------------------------------------------------------------#
+# Map jump lists are mixed-age: live data for explored systems, snapshots for scouted ones.
+# A link used to be drawn if either end listed it, so a stale scout of the far side kept a
+# closed jump visible after a later scout or after exploring the near side. Prefer live data,
+# then the more recently scouted end (update number is stored in the scouted name as " [N]").
+#
+
+function parseMapJumps($jumps)
+{
+	if ($jumps === null || $jumps === '')
+		return array();
+
+	$list = array();
+	foreach (explode(' ', $jumps) as $jump)
+		{
+		$jump = trim($jump);
+		if ($jump !== '')
+			$list[] = $jump;
+		}
+
+	return $list;
+}
+
+function mapSystemHasJump($system, $destination)
+{
+	return in_array($destination, parseMapJumps($system['jumps']), true);
+}
+
+function mapSystemRecency($system)
+{
+	if (isset($system['explored']) && $system['explored'] === 'yes')
+		return PHP_INT_MAX;
+
+	if (!empty($system['name']) && preg_match('/\[(\d+)\]\s*$/', $system['name'], $match))
+		return (int)$match[1];
+
+	return 0;
+}
+
+function mapShouldDrawJump($systems, $a, $b)
+{
+	$a_known = isset($systems[$a]);
+	$b_known = isset($systems[$b]);
+	if (!$a_known && !$b_known)
+		return false;
+
+	$a_has = $a_known && mapSystemHasJump($systems[$a], $b);
+	$b_has = $b_known && mapSystemHasJump($systems[$b], $a);
+
+	if ($a_known && $b_known)
+		{
+		$a_rev = mapSystemRecency($systems[$a]);
+		$b_rev = mapSystemRecency($systems[$b]);
+		if ($a_rev > $b_rev)
+			return $a_has;
+		if ($b_rev > $a_rev)
+			return $b_has;
+		}
+
+	return ($a_has || $b_has);
+}
+
+function buildMapJumpPresence($systems)
+{
+	$jump_presence = array();
+
+	foreach ($systems as $from => $system)
+		{
+		foreach (parseMapJumps($system['jumps']) as $to)
+			{
+			if (isset($jump_presence[$from][$to]))
+				continue;
+
+			if (mapShouldDrawJump($systems, $from, $to))
+				{
+				$jump_presence[$from][$to] = true;
+				$jump_presence[$to][$from] = true;
+				}
+			}
+		}
+
+	return $jump_presence;
 }
 ?>

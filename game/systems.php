@@ -653,7 +653,6 @@ function localNeighborhoodMap($vars, $center_local)
 	$in_list = '"'.implode('","', $coord_list).'"';
 
 	$systems = array();
-	$jump_presence = array();
 	$icons = array();
 	$colors_for_owner = array();
 
@@ -680,12 +679,6 @@ function localNeighborhoodMap($vars, $center_local)
 	while ($row = $select->fetch_assoc())
 		{
 		$systems[$row['coordinates']] = $row;
-		$jumps = ($row['jumps'] ? explode(' ', $row['jumps']) : array());
-		foreach ($jumps as $jump)
-			{
-			$jump_presence[$jump][$row['coordinates']] = true;
-			$jump_presence[$row['coordinates']][$jump] = true;
-			}
 		}
 
 	$scout_fields = array();
@@ -711,13 +704,9 @@ function localNeighborhoodMap($vars, $center_local)
 			continue;
 
 		$systems[$row['coordinates']] = $row;
-		$jumps = ($row['jumps'] ? explode(' ', $row['jumps']) : array());
-		foreach ($jumps as $jump)
-			{
-			$jump_presence[$jump][$row['coordinates']] = true;
-			$jump_presence[$row['coordinates']][$jump] = true;
-			}
 		}
+
+	$jump_presence = buildMapJumpPresence($systems);
 
 	// Ship counts for explored systems in the neighborhood (same rules as mapScreen).
 	$ship_counts = array();

@@ -1256,6 +1256,11 @@ function addExploredToFriends($player, $explored_id)
 		{
 		$recipient = getPlayer($player['game_id'], $row['opponent']);
 
+		// First, delete any scouting reports for this planet, or they'll overwrite the explored record on the map.
+		sc_query( 'DELETE FROM scouting_reports '.
+						'WHERE player_id = '.$recipient['id'].' '.
+						'AND coordinates = "'.$explored['coordinates'].'"');
+
 		// First we get rid of an existing record that was contributed by this player.
 		$conditions = array();
 		$conditions[] = 'player_id = "'.$recipient['id'].'"';
