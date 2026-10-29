@@ -33,6 +33,14 @@ select option {
   background-color: white;
 }
 
+/* Chrome/Safari drop the native highlight on unfocused listboxes unless a
+   background-image is set; keep checked options visible after focus leaves. */
+select option:checked {
+  background-color: #2670c2;
+  background-image: linear-gradient(#2670c2, #2670c2);
+  color: #fff;
+}
+
 textarea {
  background-color: white;
 }
