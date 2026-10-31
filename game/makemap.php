@@ -991,18 +991,18 @@ function twistMap(&$big_map, $n_players, $lower_limit, $upper_limit)
 	foreach ( $directions as $edge )
 	    if ( $boundaries[$edge]['players'] == $max_players )
 	    {
-	        if ( count($boundaries[$edge]['links']) > $max_planets )
+	        if ( count($boundaries[$edge]['links']) > $max_links )
 	            {
 	                $picked_boundary = $edge;
 	                $max_players = $boundaries[$edge]['players'];
-	                $max_planets = count($boundaries[$edge]['links']);
+	                $max_links = count($boundaries[$edge]['links']);
 	            }
 	    }
 	    else if ( $boundaries[$edge]['players'] > $max_players )
 	    {
 	        	$picked_boundary = $edge;
 	            $max_players = $boundaries[$edge]['players'];
-	            $max_planets = count($boundaries[$edge]['links']);
+	            $max_links = count($boundaries[$edge]['links']);
 	    }
 
 	// calculate the transform for the chosen boundary
