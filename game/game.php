@@ -485,6 +485,7 @@ function gameHeader($vars, $title)
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel=StyleSheet href="styles.css" type="text/css">
+<link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
 <script src="sc.js" type="text/javascript"></script>
 <?php
 	if ($empire['draw_background'] == 0)

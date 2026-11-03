@@ -82,12 +82,8 @@ echo "
 		<th style=\"text-align: right;\">Cloakers appear as attacks:</th>
 		<td>
 			<select name=\"cloakers_as_attacks\">
-				<option value=0 
-				   " . ($series['cloakers_as_attacks'] == 0 ? ' selected' : '') . ">
-				   No
-				<option value=1 
-				   " . ($series['cloakers_as_attacks'] == 1 ? ' selected' : '') . ">
-				   Yes
+				<option value=0 selected>No
+				<option value=1>Yes
 			</select>
 		</td>
 	</tr>
@@ -95,8 +91,8 @@ echo "
 		<th style=\"text-align: right;\">Cloakers build cloaked:</th>
 		<td>
 			<select name=\"build_cloakers_cloaked\">
-				<option value=1 " . ($series['build_cloakers_cloaked'] == 1 ? ' selected' : '') . ">Yes
-				<option value=0 " . ($series['build_cloakers_cloaked'] == 0 ? ' selected' : '') . ">No
+				<option value=1 selected>Yes
+				<option value=0>No
 			</select>
 		</td>
 	</tr>
@@ -219,7 +215,7 @@ function createSeries_processing($vars)
 	$vars['empire_data'] = getEmpire($vars['name']);
 	$empire = $vars['empire_data'];
 
-	switch ($vars['action'])
+	switch ($vars['action'] ?? '')
 		{
 		case 'Password Games':	return passwordGameList($vars);
 		case 'Custom Series':	return customSeries($vars);
@@ -233,7 +229,7 @@ function createSeries_processing($vars)
 			return mainPage();
 		}
 	
-	if ($vars['confirm'] == 'Cancel')
+	if (($vars['confirm'] ?? '') == 'Cancel')
 		{
 		sendEmpireMessage($empire, 'Series creation cancelled.');
 		return mainPage_admin($vars);

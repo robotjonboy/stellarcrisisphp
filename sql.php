@@ -162,7 +162,7 @@ function getSeries($id)
 
 	$series = $select->fetch_assoc();
 
-	if ($series['game_type'] == 'sc3') {
+	if ($series && $series['game_type'] == 'sc3') {
 		$result = sc_query('select * from series_ship_type_options where series_id = ' . $series['id']);
 
 		$series['ship_type_options'] = [];
@@ -187,7 +187,7 @@ function getSeriesByName($name)
 
 	$series = $select->fetch_assoc();
 
-	if ($series['game_type'] == 'sc3') {
+	if ($series && $series['game_type'] == 'sc3') {
 		$result = sc_query('select * from series_ship_type_options where series_id = ' . $series['id']);
 
 		$series['ship_type_options'] = [];
@@ -211,7 +211,7 @@ function getGame($series_id, $game_number)
 
 	$game = $select->fetch_assoc();
 
-	if ($game['game_type'] == 'sc3') {
+	if ($game && $game['game_type'] == 'sc3') {
 		$result = sc_query('select * from game_ship_type_options where game_id = ' . $game['id']);
 	
 		$game['ship_type_options'] = [];

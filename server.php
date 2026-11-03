@@ -1,8 +1,13 @@
 <?php
 #echo( "server.php <p>");
 
-// Get server variables from seperate file. -depends where called from
-@include('serverconfig.php'); 
+// Get server variables from a separate file.
+// SC_CONFIG_PATH (container / bind-mount) wins over the in-tree serverconfig.php.
+$sc_config_path = getenv('SC_CONFIG_PATH');
+if ($sc_config_path !== false && $sc_config_path !== '')
+	include($sc_config_path);
+else
+	@include('serverconfig.php');
 //@include('../serverconfig.php'); 
 #echo "server.php <p>";
 

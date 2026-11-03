@@ -161,7 +161,7 @@ function standardHeader($title, $empire = array())
 	</script>
 	<script src="sc.js" type="text/javascript"></script>
 	<link rel="stylesheet" href="styles.css" type="text/css">
-	<link rel="shortcut icon" href="/sc/favicon.ico" type="image/x-icon" />
+	<link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon" />
 <?php
 //2008-04-05 added shortcut icon above
 	if ($empire)

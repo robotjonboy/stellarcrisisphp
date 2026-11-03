@@ -23,7 +23,7 @@ function adminAction($vars)
 	$vars['empire_data'] = $empire;
 
 	//standard menu bar
-	switch ($vars['action'])
+	switch ($vars['action'] ?? '')
 		{
 		case 'Password Games':	return passwordGameList($vars);
 		case 'Custom Series':	return customSeries($vars);
@@ -38,7 +38,7 @@ function adminAction($vars)
 		}
 
 	//admin menu items
-	switch ($vars['page'])
+	switch ($vars['page'] ?? '')
 		{
 		case 'main':			mainPage_admin_processing($vars);	break;
 		case 'createSeries':	createSeries_processing($vars);		break;

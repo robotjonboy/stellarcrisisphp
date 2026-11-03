@@ -41,6 +41,37 @@ VALUES ('admin', '', NULL, '$2y$10$...paste-hash-here...', '1', '', '', 'email',
 6. Delete the utility directory, or otherwise make sure it is not accessible to the general public.
 7. If apache is running, you should now be able to navigate to sc.php, login, and create some series.  Have fun!
 
+# Container (all-in-one)
+
+A single Debian image runs Apache, PHP, and MariaDB. Game state lives on one volume. Games still update only when someone hits `sc.php` (no background ticker). Design: `docs/design-aio-container.md`.
+
+Needs about 1 GB RAM. Do not `kill -9` the container; use `docker stop` so MyISAM can flush.
+
+```
+cp .env.example .env
+# edit SC_ADMIN_PASSWORD
+docker-compose up -d --build
+```
+
+That is the **hyphenated** Compose v1 command (`docker-compose`). Docker 20.x on Debian often has that binary and **not** the Compose v2 plugin, so `docker compose up -d --build` (space, no hyphen) fails with `unknown shorthand flag: 'd' in -d`. If `docker compose version` works on your machine, you can use that form instead.
+
+Or:
+
+```
+docker build -f docker/Dockerfile -t sc-aio .
+docker run -d --name sc --stop-timeout 30 -p 8080:80 -v sc-data:/data \
+  -e SC_ADMIN_PASSWORD=changeme \
+  -e SC_SERVER_NAME="Stellar Crisis" \
+  -e SC_PUBLIC_URL=http://localhost:8080 \
+  sc-aio
+```
+
+Open `http://localhost:8080/sc.php`, log in as `admin` with `SC_ADMIN_PASSWORD`, then create a series. First boot can take a few minutes while `sc.sql` (the words dictionary) loads.
+
+`utility/`, `*.sql`, `docs/`, `reference/`, and `serverconfig.php` are blocked from the web. TLS belongs on a reverse proxy; set `SC_PUBLIC_URL` to the public `https://` origin if you use one.
+
+Backup: `docker stop sc`, copy the `sc-data` volume (or `/data` in the container), then start again. A SQL dump alone does not include history HTML or custom icons.
+
 # Upgrade
 These instructions are to upgrade a server that is running code from before the addition of tournaments.
 Run the Following mysql script:
