@@ -1,0 +1,28 @@
+# One-service wrapper around the Stellar Crisis AIO image.
+# Copy .env.example to .env and set SC_ADMIN_PASSWORD before first boot.
+
+version: "3.8"
+
+services:
+  sc:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: sc-aio
+    ports:
+      - "8081:80"
+    volumes:
+      - sc-data:/data
+    environment:
+      SC_ADMIN_PASSWORD: ${SC_ADMIN_PASSWORD:-}
+      SC_ADMIN_NAME: ${SC_ADMIN_NAME:-admin}
+      SC_ADMIN_EMAIL: ${SC_ADMIN_EMAIL:-admin@localhost}
+      SC_SERVER_NAME: ${SC_SERVER_NAME:-Stellar Crisis}
+      SC_PUBLIC_URL: ${SC_PUBLIC_URL:-http://localhost:8081}
+      SC_DOMAIN: ${SC_DOMAIN:-localhost}
+      TZ: ${TZ:-America/New_York}
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+volumes:
+  sc-data:

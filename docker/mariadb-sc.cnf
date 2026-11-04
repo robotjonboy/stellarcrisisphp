@@ -1,0 +1,24 @@
+[mysqld]
+datadir = /data/mysql
+bind-address = 127.0.0.1
+port = 3306
+skip-networking = 0
+skip-name-resolve
+socket = /run/mysqld/mysqld.sock
+pid-file = /run/mysqld/mysqld.pid
+
+character-set-server = latin1
+collation-server = latin1_swedish_ci
+sql_mode = NO_AUTO_VALUE_ON_ZERO,NO_ENGINE_SUBSTITUTION
+default-storage-engine = MyISAM
+
+skip-log-bin
+innodb_buffer_pool_size = 64M
+max_allowed_packet = 64M
+
+[client]
+socket = /run/mysqld/mysqld.sock
+default-character-set = latin1
+
+[mysql]
+default-character-set = latin1

@@ -1,0 +1,22 @@
+.git
+.gitignore
+.cursor
+.env
+.env.*
+!.env.example
+docker-compose.override.yml
+
+# Host secrets and live data — never bake these into the image
+serverconfig.php
+errorlog.html
+debug_data.html
+sql backups/
+history/*.html
+images/aliens/custom/*
+!images/aliens/custom/.gitkeep
+
+# Editor / agent junk
+*.swp
+*~
+.DS_Store
+agent-transcripts/
