@@ -104,7 +104,7 @@ function editProfile_processing($vars)
 		$values = array();
 
 		if (array_key_exists('iconChoice', $vars) && $vars['iconChoice'])
-			$values[] = 'icon = "alien'.$icon.'.gif"';
+			$values[] = 'icon = "alien'.((int)$icon).'.gif"';
 		else if (!array_key_exists('iconUpload', $vars) || !$vars['iconUpload'])
 			{
 			$pass_new = array_key_exists('pass_new', $vars) ? $vars['pass_new'] : '';
@@ -122,7 +122,7 @@ function editProfile_processing($vars)
 				$auth_response_token = auth_issue_token($empire);
 			}
 
-			$values[] = 'real_name = "'.$vars['real_name'].'"';
+			$values[] = 'real_name = "'.sc_escape($vars['real_name']).'"';
 			
 			if ($vars['email'] != $empire['email']) 
 				{
@@ -130,7 +130,7 @@ function editProfile_processing($vars)
 					{
 					$valid_code = randomString();
 					
-					$values[] = 'validation_info = "E/'.$valid_code.'/'.$vars['email'].'"';
+					$values[] = 'validation_info = "E/'.sc_escape($valid_code).'/'.sc_escape($vars['email']).'"';
 					
 					$message = 'This message is being sent to you because you requested a change of email address for your empire '.$vars['name'].'. '.
 							   'To complete your change of address, please visit the following link:'."\n\n".
@@ -147,19 +147,21 @@ function editProfile_processing($vars)
 												   'in that email to complete the change of your email address.');
 					 }
 				else
-					$values[] = 'email = "'.$vars['email'].'"';
+					$values[] = 'email = "'.sc_escape($vars['email']).'"';
 				}
 			else
-				$values[] = 'email = "'.$vars['email'].'"';
+				$values[] = 'email = "'.sc_escape($vars['email']).'"';
 					
 			$values[] = 'email_visible = "'.(array_key_exists('show_email', $vars) && $vars['show_email'] ? 1 : 0).'"';
-			$values[] = 'comment = "'.addslashes($vars['comment']).'"';
+			$values[] = 'comment = "'.sc_escape($vars['comment']).'"';
 			$values[] = 'auto_update = "'.($vars['auto_update'] ? 1 : 0).'"';
 			$values[] = 'show_coordinates = "'.($vars['show_coordinates'] ? 1 : 0).'"';
 			$values[] = 'show_icons = "'.(array_key_exists('show_icons', $vars) && $vars['show_icons'] ? 1 : 0).'"';
 			$values[] = 'draw_background = "'.($vars['draw_background'] ? 1 : 0).'"';
-			$values[] = 'custom_bg_url = '.($vars['custom_bg_url'] ? '"'.str_replace(' ', '%20', $vars['custom_bg_url']).'"' : 'NULL');
-			$values[] = 'background_attachment = "'.$vars['background_attachment'].'"';
+			$bg_url = array_key_exists('custom_bg_url', $vars) ? trim($vars['custom_bg_url']) : '';
+			$values[] = 'custom_bg_url = '.($bg_url !== '' ? '"'.sc_escape(str_replace(' ', '%20', $bg_url)).'"' : 'NULL');
+			$attachment = (isset($vars['background_attachment']) && $vars['background_attachment'] === 'fixed') ? 'fixed' : 'scroll';
+			$values[] = 'background_attachment = "'.$attachment.'"';
 			$values[] = 'list_ships_by_system = "'.($vars['list_ships_by'] == "Location" ? 1 : 0).'"';
 
 			if (array_key_exists('new_origin', $vars) && $vars['old_origin'] != $vars['new_origin'])
@@ -167,7 +169,7 @@ function editProfile_processing($vars)
 				if (sscanf($vars['map_origin'], '%d,%d', $x, $y) == 2)
 					{
 					if ($x > -9999 and $x < 9999 and $y > -9999 and $y < 9999)
-						$values[] = 'map_origin = "'.$vars['map_origin'].'"';
+						$values[] = 'map_origin = "'.((int)$x).','.((int)$y).'"';
 					}
 				else
 					$message = 'Invalid map origin entered.';
@@ -176,7 +178,7 @@ function editProfile_processing($vars)
 	
 		if (count($values))
 			{
-			sc_query('UPDATE empires SET '.implode(', ', $values).' WHERE name = "'.$vars['name'].'"');
+			sc_query('UPDATE empires SET '.implode(', ', $values).' WHERE name = "'.sc_escape($vars['name']).'"');
 			sendEmpireMessage($empire, 'Profile Updated.');
 			
 			$vars['empire_data'] = getEmpire($vars['name']);
@@ -212,7 +214,7 @@ function finishChangeEmail($empname, $vcode)
 		
 		if ($vcode == $valcode)
 			{
-			sc_query('UPDATE empires SET email="'.$email.'", validation_info="" WHERE name = "'.$empname.'"', __FILE__.'*'.__LINE__);
+			sc_query('UPDATE empires SET email="'.sc_escape($email).'", validation_info="" WHERE name = "'.sc_escape($empname).'"', __FILE__.'*'.__LINE__);
 			echo "Email address updated.";
 			}
 		else

@@ -66,15 +66,16 @@ Choose the category of messages you wish to display.
 	}
 	
 	// set default display filter
-	echo "<center>".(array_key_exists('message_history_filter', $vars) ? $vars['message_history_filter'] : '')."</center>";
-	if (!array_key_exists('message_history_filter', $vars) || $vars['message_history_filter'] == "" )
-		$filter="broadcast";
+	$allowed_filters = array('broadcast', 'private', 'team', 'scout', 'update', 'Instant', 'all');
+	if ($filter === '' || !in_array($filter, $allowed_filters, true))
+		$filter = 'broadcast';
+	echo '<center>'.htmlspecialchars($filter, ENT_QUOTES).'</center>';
 
 	$conditions = array();
-	$conditions[] = 'player_id = '.$player['id'];
+	$conditions[] = 'player_id = '.((int)$player['id']);
 	// no type condition for "all" otherwise match filter
 	if ($filter == 'Instant') $conditions[] = 'type = ""';
-	else if ($filter != 'all') $conditions[] = 'type = "'.$filter.'"';
+	else if ($filter != 'all') $conditions[] = 'type = "'.sc_escape($filter).'"';
 
 	$order = (array_key_exists('reverse_order', $vars) && $vars['reverse_order'] ? 'ASC' : 'DESC');
 
@@ -154,10 +155,12 @@ function messageHistory_processing($vars)
 			// deleting messages that don't belong to them.
 			foreach ($vars['deleteMessage'] as $message_id)
 				{
+				$message_id = (int)$message_id;
+				if ($message_id <= 0) continue;
 				sc_query('DELETE 
 								FROM messages 
 								WHERE id = '.$message_id.' 
-								AND player_id = '.$player['id']);
+								AND player_id = '.((int)$player['id']));
 				$affected_rows += $mysqli->affected_rows;
 				}
 				

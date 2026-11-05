@@ -330,15 +330,23 @@ function searchEmpire($vars)
 ?>
 <img class=spacerule src="images/spacerule.jpg" alt="spacerule.jpg">
 <?php
+	$search_raw = array_key_exists('search_name', $vars) ? (string)$vars['search_name'] : '';
+
 	// Try an exact match first.
-	$exact_search = sc_query('SELECT * FROM empires WHERE name = "'.$vars['search_name'].'"');
+	$exact_search = sc_query('SELECT * FROM empires WHERE name = "'.sc_escape($search_raw).'"');
 	
 	// If the search string was empty, assume we want everything. Not that this will matter on a server with lots of players.
-	if ($vars['search_name'] == '') $vars['search_name'] = '%';
-	else $vars['search_name'] = str_replace('*', '%', $vars['search_name']);
+	if ($search_raw === '')
+		$like_pattern = '%';
+	else
+		{
+		// Escape LIKE metacharacters after SQL escaping so %/_ from user input are literal.
+		$like_pattern = str_replace(array('\\', '%', '_'), array('\\\\', '\\%', '\\_'), $search_raw);
+		$like_pattern = str_replace('*', '%', $like_pattern);
+		}
 	
 	// Now try multiple matches.
-	$fuzzy_search = sc_query('SELECT * FROM empires WHERE name LIKE "%'.$vars['search_name'].'%" ORDER BY name ASC');
+	$fuzzy_search = sc_query('SELECT * FROM empires WHERE name LIKE "%'.sc_escape($like_pattern).'%" ORDER BY name ASC');
 	
 	// If we get one match either way, show it.
 	if ($exact_search->num_rows == 1 or $fuzzy_search->num_rows == 1)

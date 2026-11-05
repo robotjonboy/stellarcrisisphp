@@ -14,8 +14,8 @@ function notesScreen($vars)
 
 function notesScreen_processing($vars)
 {
-	$notes = ($vars['notes'] ? '"'.addslashes($vars['notes']).'"' : 'NULL');
+	$notes = (!empty($vars['notes']) ? '"'.sc_escape($vars['notes']).'"' : 'NULL');
 
-	sc_query('UPDATE players SET notes = '.$notes.' WHERE id = '.$vars['player_data']['id']);
+	sc_query('UPDATE players SET notes = '.$notes.' WHERE id = '.((int)$vars['player_data']['id']));
 }
 ?>

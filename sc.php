@@ -1434,7 +1434,7 @@ function formatMessage($message)
 
 function sanitizeString($string)
 {
-	return addslashes(htmlspecialchars($string));
+	return sc_escape(htmlspecialchars($string));
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -1622,8 +1622,8 @@ function sendEmpireMessage($empire, $message)
 {
 	$values = array();
 	$values[] = 'time = '.time();
-	$values[] = 'empire_id = '.$empire['id'];
-	$values[] = 'text = "'.addslashes($message).'"';
+	$values[] = 'empire_id = '.((int)$empire['id']);
+	$values[] = 'text = "'.sc_escape($message).'"';
 
 	sc_query('INSERT INTO messages SET '.implode(',', $values));
 }

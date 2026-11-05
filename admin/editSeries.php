@@ -479,35 +479,36 @@ function editSeries_processing($vars)
 	// load fields for update
 	$values = array();
 	//id is auto increment
-	$values[] = 'name = "'.$vars['series_name'].'"';
-	$values[] = 'game_type = "'.$vars['game_type'].'"';
+	$map_type = isset($map_types[$vars['map_type']]) ? $map_types[$vars['map_type']] : 'standard';
+	$values[] = 'name = "'.sc_escape($vars['series_name']).'"';
+	$values[] = 'game_type = "'.sc_escape($vars['game_type']).'"';
 	// keep rest of fields in alpha order
-	$values[] = 'average_resources = "'.$vars['avg_min'].'"';
-	$values[] = 'avg_ag = "'.$vars['avg_ag'].'"';
-	$values[] = 'avg_fuel = "'.$vars['avg_fuel'].'"';
-	$values[] = 'avg_min = "'.$vars['avg_min'].'"';
-	$values[] = 'bridier_allowed = "'.$vars['bridier_allowed'].'"';
-	$values[] = 'build_cloakers_cloaked = "'.$vars['build_cloakers_cloaked'].'"';
-	$values[] = 'can_draw = "'.$vars['can_draw'].'"';
-	$values[] = 'can_surrender = "'.$vars['can_surrender'].'"';
-	$values[] = 'cloakers_as_attacks = "'.$vars['cloakers_as_attacks'].'"';
+	$values[] = 'average_resources = "'.((float)$vars['avg_min']).'"';
+	$values[] = 'avg_ag = "'.((float)$vars['avg_ag']).'"';
+	$values[] = 'avg_fuel = "'.((float)$vars['avg_fuel']).'"';
+	$values[] = 'avg_min = "'.((float)$vars['avg_min']).'"';
+	$values[] = 'bridier_allowed = "'.((int)!empty($vars['bridier_allowed'])).'"';
+	$values[] = 'build_cloakers_cloaked = "'.((int)!empty($vars['build_cloakers_cloaked'])).'"';
+	$values[] = 'can_draw = "'.((int)!empty($vars['can_draw'])).'"';
+	$values[] = 'can_surrender = "'.((int)!empty($vars['can_surrender'])).'"';
+	$values[] = 'cloakers_as_attacks = "'.((int)!empty($vars['cloakers_as_attacks'])).'"';
 	//creator
 	//custom
-	$values[] = 'diplomacy = "'.$vars['diplomacy'].'"';
+	$values[] = 'diplomacy = "'.((int)$vars['diplomacy']).'"';
 	//game_count
 	//halted
-	$values[] = 'map_compression = "'.$map_compression.'"';
-	$values[] = 'map_type = "'.$map_types[$vars['map_type']].'"';
-	$values[] = 'map_visible = "'.$vars['map_visible'].'"';
-	$values[] = 'max_players = "'.$vars['max_players'].'"';
-	$values[] = 'max_wins = "'.$vars['max_wins'].'"';
-	$values[] = 'min_wins = "'.$vars['min_wins'].'"';
-	$values[] = 'systems_per_player = "'.$vars['systems_per_player'].'"';
-	$values[] = 'team_game = "'.$vars['team_game'].'"';
-	$values[] = 'tech_multiple = "'.$vars['tech_multiple'].'"';
-	$values[] = 'update_time = "'.$vars['update_time'].'"';
-	$values[] = 'visible_builds = "'.$vars['visible_builds'].'"';
-	$values[] = 'weekend_updates = "'.$vars['weekend_updates'].'"';
+	$values[] = 'map_compression = "'.((float)$map_compression).'"';
+	$values[] = 'map_type = "'.sc_escape($map_type).'"';
+	$values[] = 'map_visible = "'.((int)!empty($vars['map_visible'])).'"';
+	$values[] = 'max_players = "'.((int)$vars['max_players']).'"';
+	$values[] = 'max_wins = "'.((int)$vars['max_wins']).'"';
+	$values[] = 'min_wins = "'.((int)$vars['min_wins']).'"';
+	$values[] = 'systems_per_player = "'.((int)$vars['systems_per_player']).'"';
+	$values[] = 'team_game = "'.((int)!empty($vars['team_game'])).'"';
+	$values[] = 'tech_multiple = "'.((float)$vars['tech_multiple']).'"';
+	$values[] = 'update_time = "'.((int)$vars['update_time']).'"';
+	$values[] = 'visible_builds = "'.((int)!empty($vars['visible_builds'])).'"';
+	$values[] = 'weekend_updates = "'.((int)$vars['weekend_updates']).'"';
 	$values = array_merge($values, sc3SeriesLevelValuesFromVars($vars, false));
 
 	debugecho("14: pre mysql update");
@@ -526,8 +527,7 @@ function editSeries_processing($vars)
 		' WHERE series_id = '.$vars['editSeriesID'].' AND player_count = 0');
 
 	debugecho("14: pre sendEmpireMessage");
-	$empire = [];
-	$empire['id'] = $vars['empireID'];
+	$empire = $vars['empire_data'];
 	sendEmpireMessage($empire, 'Series <span style="color: red;">'.stripslashes($vars['series_name']).'</span> successfully updated.');
 	debugecho("14: afater sendEmpireMessage");
 

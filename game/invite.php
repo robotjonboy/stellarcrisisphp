@@ -142,11 +142,11 @@ function inviteScreen_processing(&$vars)
 				// Sanitize.
 				$text = htmlspecialchars($vars['messageText']);				
 				$text = str_replace("\n", '<br>', $text);
-				$values[] = 'message = "'.addslashes($text).'"';
+				$values[] = 'message = "'.sc_escape($text).'"';
 				}
 			
 			if ($series['team_game'])
-				$values[] = 'team = '.$vars['invite_team'];
+				$values[] = 'team = '.((int)$vars['invite_team']);
 
 			sc_query('INSERT INTO invitations SET '.implode(',', $values));
 			

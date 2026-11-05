@@ -2,11 +2,15 @@
 function editMessage($vars)
 {
 	global $mysqli;
+
+	$allowed_types = array('motd', 'privacy', 'policy', 'tos', 'news');
+	if (!isset($vars['message_type']) || !in_array($vars['message_type'], $allowed_types, true))
+		$vars['message_type'] = 'motd';
 	
 	$empire = $vars['empire_data'];
 	standardHeader('Edit Message', $empire);
 	
-	$select = sc_query('SELECT text FROM messages WHERE type = "'.$vars['message_type'].'" LIMIT 1');
+	$select = sc_query('SELECT text FROM messages WHERE type = "'.sc_escape($vars['message_type']).'" LIMIT 1');
 	$row = $select->fetch_assoc();
 	
 	switch ($vars['message_type'])
@@ -53,8 +57,13 @@ function editMessage($vars)
 
 function editMessage_processing($vars)
 {
-	sc_query('DELETE FROM messages WHERE type = "'.$vars['message_type'].'"');
-	sc_query('INSERT INTO messages SET type = "'.$vars['message_type'].'", text = "'.addslashes($vars['message']).'"');
+	$allowed_types = array('motd', 'privacy', 'policy', 'tos', 'news');
+	if (!isset($vars['message_type']) || !in_array($vars['message_type'], $allowed_types, true))
+		$vars['message_type'] = 'motd';
+
+	sc_query('DELETE FROM messages WHERE type = "'.sc_escape($vars['message_type']).'"');
+	sc_query('INSERT INTO messages SET type = "'.sc_escape($vars['message_type']).
+		'", text = "'.sc_escape($vars['message']).'"');
 
 	sendEmpireMessage($vars['empire_data'], 'Message updated.');
 	return mainPage_admin($vars);

@@ -151,7 +151,7 @@ function techScreen_processing($vars)
 		$owned = array_values(array_filter($owned, function ($t) use ($tech) { return $t !== $tech; }));
 		$new_techs = implode(' ', $owned);
 		$new_r = max(0, ((int)($player['restricted_techs'] ?? 0)) - 1);
-		sc_query('UPDATE players SET techs = "'.addslashes($new_techs).'", traded_in = traded_in + 1, restricted_techs = '.$new_r.' WHERE id = '.$player['id']);
+		sc_query('UPDATE players SET techs = "'.sc_escape($new_techs).'", traded_in = traded_in + 1, restricted_techs = '.$new_r.' WHERE id = '.((int)$player['id']));
 		return sendGameMessage($player, 'You have forgotten '.$tech.'.');
 	}
 
@@ -167,7 +167,7 @@ function techScreen_processing($vars)
 			$extra = '';
 			if ($status === 'Restricted')
 				$extra = ', restricted_techs = restricted_techs + 1';
-			sc_query('UPDATE players SET techs = CONCAT(techs, " '.$vars['newTech'].'")'.$extra.' WHERE id = '.$player['id']);
+			sc_query('UPDATE players SET techs = CONCAT(techs, " '.sc_escape($vars['newTech']).'")'.$extra.' WHERE id = '.((int)$player['id']));
 			return sendGameMessage($player, 'You have developed '.$vars['newTech'].'.');
 		}
 	}

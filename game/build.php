@@ -148,7 +148,7 @@ function buildScreen_processing($vars)
 		$current_ship_count = 0;
 		if ($max_ships > 0)
 		{
-			$r = sc_query('SELECT COUNT(*) AS c FROM ships WHERE game_id = '.(int)$game['id'].' AND owner = "'.addslashes($vars['name']).'"');
+			$r = sc_query('SELECT COUNT(*) AS c FROM ships WHERE game_id = '.(int)$game['id'].' AND owner = "'.sc_escape($vars['name']).'"');
 			$row = $r->fetch_assoc();
 			$current_ship_count = (int)$row['c'];
 		}
@@ -266,17 +266,17 @@ function buildScreen_processing($vars)
 				$departing_colonists[$system['id']] = (array_key_exists($system['id'], $departing_colonists) ? $departing_colonists[$system['id']] : 0) + $build_count;
 						
 			$values = array();
-			$values[] = 'series_id = '.$vars['series_id'];
-			$values[] = 'game_number = '.$vars['game_number'];
-			$values[] = 'game_id = '.$game['id'];
-			$values[] = 'player_id = '.$player['id'];
-			$values[] = 'name = "'.$build_name.'"';
+			$values[] = 'series_id = '.((int)$vars['series_id']);
+			$values[] = 'game_number = '.((int)$vars['game_number']);
+			$values[] = 'game_id = '.((int)$game['id']);
+			$values[] = 'player_id = '.((int)$player['id']);
+			$values[] = 'name = "'.sc_escape($build_name).'"';
 			$values[] = 'br = '.$br;
 			$values[] = 'max_br = '.$br;
-			$values[] = 'type = "'.$ship_type.'"';
-			$values[] = 'location = "'.xlateToGalactic($build_location).'"';
+			$values[] = 'type = "'.sc_escape($ship_type).'"';
+			$values[] = 'location = "'.sc_escape(xlateToGalactic($build_location)).'"';
 			$values[] = 'orders = "build"';
-			$values[] = 'owner = "'.$vars['name'].'"';
+			$values[] = 'owner = "'.sc_escape($vars['name']).'"';
 			$values[] = 'build_cost = '.$build_cost;
 			$values[] = 'maintenance_cost = '.$maintenance_cost;
 			$values[] = 'fuel_cost = '.$fuel_cost;
@@ -299,7 +299,7 @@ function buildScreen_processing($vars)
 
 		// Farewell, colonists!
 		foreach (array_keys($departing_colonists) as $system_id)
-			sc_query('UPDATE systems SET population = (population-'.$departing_colonists[$system_id].') WHERE id = '.$system_id);
+			sc_query('UPDATE systems SET population = (population-'.((int)$departing_colonists[$system_id]).') WHERE id = '.((int)$system_id));
 
 		recalculateRatios($vars);
 		

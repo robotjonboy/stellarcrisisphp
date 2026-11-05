@@ -73,7 +73,7 @@ function mainPage_admin($vars)
 	authHiddenFields($empire['name']);
 	echo "
 <input type=hidden name=\"section\" value=\"admin\">
-<input type=hidden name=\"empireID\" value=\"" . $vars['empireID'] . "\"><!--cjp-->
+<input type=hidden name=\"empireID\" value=\"" . (int)$empire['id'] . "\">
 <input type=hidden name=\"page\" value=\"main\">";
 
 

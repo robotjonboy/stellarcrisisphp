@@ -237,9 +237,19 @@ function diplomacyScreen_processing($vars)
 	$game = $vars['game_data'];
 	$player = $vars['player_data'];
 	
-	if (isset($vars['diplomacy']))
+	if (isset($vars['diplomacy']) && is_array($vars['diplomacy']))
 		foreach ($vars['diplomacy'] as $id => $offer)
-			sc_query('UPDATE diplomacies SET offer = "'.$offer.'" WHERE id = '.$id);
+			{
+			$id = (int)$id;
+			$offer = (int)$offer;
+			if ($id <= 0) continue;
+			// Diplomacy offer levels are 0–5; reject anything else.
+			if ($offer < 0 || $offer > 5) continue;
+			sc_query('UPDATE diplomacies SET offer = "'.$offer.'"'.
+				' WHERE id = '.$id.
+				' AND game_id = '.((int)$game['id']).
+				' AND empire = "'.sc_escape($player['name']).'"');
+			}
 	
 	// To enforce alliance limits we drop excess alliance offers (not existing alliances).
 	// Count current alliances plus pending alliance offers against the game's max_allies.

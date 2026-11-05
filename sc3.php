@@ -383,8 +383,8 @@ function sc3PropagateOptionsToEmptyGames($series_id)
 		{
 			$values = array();
 			$values[] = 'game_id = '.$gid;
-			$values[] = 'ship_type = \''.addslashes($row['ship_type']).'\'';
-			$values[] = 'status = \''.addslashes($row['status']).'\'';
+			$values[] = 'ship_type = \''.sc_escape($row['ship_type']).'\'';
+			$values[] = 'status = \''.sc_escape($row['status']).'\'';
 			if ($row['range_multiplier'] !== null && $row['range_multiplier'] !== '')
 				$values[] = 'range_multiplier = '.$row['range_multiplier'];
 			if ($row['loss'] !== null && $row['loss'] !== '')

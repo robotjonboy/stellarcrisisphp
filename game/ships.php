@@ -247,6 +247,7 @@ function shipsScreen_processing($vars)
 
 		foreach ($vars['ship_name'] as $ship_id => $new_ship_name)
 			{
+			$ship_id = (int)$ship_id;
 			if (!$ship = getShipByID($ship_id)) continue;
 			
 			// This should take care of cheating where someone enters a ship ID that's not his.
@@ -309,37 +310,38 @@ function shipsScreen_processing($vars)
 							}
 						}
 
-					sc_query('UPDATE ships SET location = "'.$new_location.'" WHERE id = '.$ship_id);
+					sc_query('UPDATE ships SET location = "'.sc_escape($new_location).'" WHERE id = '.$ship_id);
 
 					// Adjust populations if this is a colony ship and we are switching planets.
 					if ($ship['type'] == 'Colony')
 						{
 						$conditions = array();
-						$conditions[0] = 'game_id = '.$game['id'];
-						$conditions[1] = 'coordinates = "'.$ship['location'].'"';
+						$conditions[0] = 'game_id = '.((int)$game['id']);
+						$conditions[1] = 'coordinates = "'.sc_escape($ship['location']).'"';
 						sc_query('UPDATE systems SET population = (population+1) WHERE '.implode(' AND ', $conditions));
 
-						$conditions[1] = 'coordinates = "'.$new_location.'"';
+						$conditions[1] = 'coordinates = "'.sc_escape($new_location).'"';
 						sc_query('UPDATE systems SET population = (population-1) WHERE '.implode(' AND ', $conditions));
 						}
 					}
 				else if ($orders == 'fleet')
 					{
+					$fleet_arg = (int)$order_arguments;
 					$values = array();
-					$values[] = 'fleet_id = '.$order_arguments;
+					$values[] = 'fleet_id = '.$fleet_arg;
 					$values[] = 'orders = "fleet"';
-					$values[] = 'order_arguments = "'.$order_arguments.'"';
+					$values[] = 'order_arguments = "'.$fleet_arg.'"';
 					sc_query('UPDATE ships SET '.implode(',', $values).' WHERE id = '.$ship_id);
 					}
 				else
 					{
 					$values = array();
-					$values[] = 'orders = "'.$orders.'"';
+					$values[] = 'orders = "'.sc_escape($orders).'"';
 					
 					if ($orders == 'morph')
-						$values[] = 'order_arguments = "'.$order_arguments.'"';
-					else if (preg_match('/' . $orders . '/', 'explore|move|send|open|close|create'))
-						$values[] = 'order_arguments = "'.xlateToGalactic($order_arguments).'"';
+						$values[] = 'order_arguments = "'.sc_escape($order_arguments).'"';
+					else if (preg_match('/' . preg_quote($orders, '/') . '/', 'explore|move|send|open|close|create'))
+						$values[] = 'order_arguments = "'.sc_escape(xlateToGalactic($order_arguments)).'"';
 					else
 						$values[] = 'order_arguments = \'\'';
 
@@ -652,12 +654,13 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 		{
 		foreach ($vars['ship_name'] as $ship_id => $new_ship_name)
 			{
+			$ship_id = (int)$ship_id;
 			if (!$ship = getShipByID($ship_id)) continue;
 			if ($ship['owner'] != $player['name']) continue;
 			
 			// Update the ship's name; we specify the owner field to make sure no cheater affects fleets he doesn't own.
 			if ($ship['name'] != $new_ship_name)
-				sc_query('UPDATE ships SET name = "'.addslashes($new_ship_name).'" WHERE id = '.$ship_id);
+				sc_query('UPDATE ships SET name = "'.sanitizeString($new_ship_name).'" WHERE id = '.$ship_id);
 				
 			$dirty_orders = explode(':', $vars['ship_orders'][$ship_id]);
 			list($orders, $order_arguments) = $dirty_orders;
@@ -683,29 +686,30 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 				
 				$values = array();
 				
-				if (preg_match('/' . $orders . '/', 'explore|move'))
+				if (preg_match('/' . preg_quote($orders, '/') . '/', 'explore|move'))
 					{
 					$values[] = 'fleet_id = 0';
-					$values[] = 'orders = "'.$orders.'"';
-					$values[] = 'order_arguments = "'.xlateToGalactic($arguments).'"';
+					$values[] = 'orders = "'.sc_escape($orders).'"';
+					$values[] = 'order_arguments = "'.sc_escape(xlateToGalactic($arguments)).'"';
 					}
 				else if ($orders == 'fleet')
 					{
-					$values[] = 'fleet_id = '.$arguments;
+					$fleet_arg = (int)$arguments;
+					$values[] = 'fleet_id = '.$fleet_arg;
 					$values[] = 'orders = "fleet"';
-					$values[] = 'order_arguments = "'.$arguments.'"';
+					$values[] = 'order_arguments = "'.$fleet_arg.'"';
 					}
 				else if (preg_match('/close|open/', $orders))
 					{
 					$values[] = 'fleet_id = 0';
-					$values[] = 'orders = "'.$orders.'"';
-					$values[] = 'order_arguments = "'.xlateToGalactic($arguments).'"';
+					$values[] = 'orders = "'.sc_escape($orders).'"';
+					$values[] = 'order_arguments = "'.sc_escape(xlateToGalactic($arguments)).'"';
 					}
 				else
 					{
 					$values[] = 'fleet_id = 0';
-					$values[] = 'orders = "'.$orders.'"';
-					$values[] = 'order_arguments = "'.$arguments.'"';
+					$values[] = 'orders = "'.sc_escape($orders).'"';
+					$values[] = 'order_arguments = "'.sc_escape($arguments).'"';
 					}
 
 				sc_query('UPDATE ships SET '.implode(',', $values).' WHERE id = '.$ship_id);
@@ -717,11 +721,12 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 		{
 		foreach ($vars['fleet_name'] as $fleet_id => $new_fleet_name)
 			{
+			$fleet_id = (int)$fleet_id;
 			if (!$fleet = getFleetByID($fleet_id)) continue;
 			if ($fleet['owner'] != $vars['name']) continue;
 
 			if ($fleet['name'] != $new_fleet_name)
-				sc_query('UPDATE fleets SET name = "'.addslashes($new_fleet_name).'" WHERE id = '.$fleet_id);
+				sc_query('UPDATE fleets SET name = "'.sanitizeString($new_fleet_name).'" WHERE id = '.$fleet_id);
 				
 			list($orders, $order_arguments) = explode(':', $vars['fleet_orders'][$fleet_id]);
 
@@ -758,9 +763,9 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 						$values[] = 'fleet_id = '.$fleet_id;
 						
 						$conditions = array();
-						$conditions[] = 'game_id = '.$game['id'];		
-						$conditions[] = 'owner = "'.$vars['name'].'"';
-						$conditions[] = 'location = "'.$fleet['location'].'"';
+						$conditions[] = 'game_id = '.((int)$game['id']);		
+						$conditions[] = 'owner = "'.sc_escape($vars['name']).'"';
+						$conditions[] = 'location = "'.sc_escape($fleet['location']).'"';
 						$conditions[] = 'fleet_id = 0';
 						$conditions[] = 'FIND_IN_SET(type, "Stargate,Jumpgate,Satellite,Minefield") = 0';
 						$conditions[] = 'orders = "standby"';				
@@ -772,10 +777,10 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 					case 'colonize':
 					case 'terraform':
 					case 'invade':
-						sc_query('UPDATE fleets SET orders = "'.$orders.'", order_arguments = \'\' WHERE id = '.$fleet_id);
+						sc_query('UPDATE fleets SET orders = "'.sc_escape($orders).'", order_arguments = \'\' WHERE id = '.$fleet_id);
 						break;
 					case 'move':
-						$arguments = xlateToGalactic($order_arguments);							
+						$arguments = sc_escape(xlateToGalactic($order_arguments));							
 						sc_query('UPDATE fleets SET orders = "move", order_arguments = "'.$arguments.'" WHERE id = '.$fleet_id);
 						break;
 					}
@@ -783,29 +788,34 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 			}
 		}
 
-	if (isset($vars['expand']))
+	if (isset($vars['expand']) && is_array($vars['expand']))
 		{
-		sc_query('UPDATE fleets SET collapsed = "0" WHERE id = '.key($vars['expand']).' AND owner = "'.$player['name'].'"');
+		$fleet_id = (int)key($vars['expand']);
+		sc_query('UPDATE fleets SET collapsed = "0" WHERE id = '.$fleet_id.
+			' AND owner = "'.sc_escape($player['name']).'"');
 		return sendGameMessage($player, 'Fleet expanded.');
 		}
-	else if (isset($vars['collapse']))
+	else if (isset($vars['collapse']) && is_array($vars['collapse']))
 		{
-		sc_query('UPDATE fleets SET collapsed = "1" WHERE id = '.key($vars['collapse']).' AND owner = "'.$player['name'].'"');
+		$fleet_id = (int)key($vars['collapse']);
+		sc_query('UPDATE fleets SET collapsed = "1" WHERE id = '.$fleet_id.
+			' AND owner = "'.sc_escape($player['name']).'"');
 		return sendGameMessage($player, 'Fleet collapsed.');
 		}
 
 	if (array_key_exists('new_fleet:create', $vars) && $vars['new_fleet:create'])
 		{
 		$vars['new_fleet_name'] = ($vars['new_fleet_name'] == '' ? nameFleet() : $vars['new_fleet_name']);
+		$fleet_location = sc_escape(xlateToGalactic($vars['new_fleet_location']));
 
 		$field_values = array();
-		$field_values[] = 'series_id = '.$vars['series_id'];
-		$field_values[] = 'game_number = '.$vars['game_number'];
-		$field_values[] = 'game_id = '.$game['id'];
-		$field_values[] = 'player_id = '.$player['id'];
-		$field_values[] = 'name = "'.addslashes(htmlspecialchars($vars['new_fleet_name'])).'"';
-		$field_values[] = 'owner = "'.$vars['name'].'"';
-		$field_values[] = 'location = "'.xlateToGalactic($vars['new_fleet_location']).'"';
+		$field_values[] = 'series_id = '.((int)$vars['series_id']);
+		$field_values[] = 'game_number = '.((int)$vars['game_number']);
+		$field_values[] = 'game_id = '.((int)$game['id']);
+		$field_values[] = 'player_id = '.((int)$player['id']);
+		$field_values[] = 'name = "'.sc_escape(htmlspecialchars($vars['new_fleet_name'])).'"';
+		$field_values[] = 'owner = "'.sc_escape($vars['name']).'"';
+		$field_values[] = 'location = "'.$fleet_location.'"';
 		$field_values[] = 'orders = "standby"';
 		$field_values[] = "order_arguments = ''";
 
@@ -816,32 +826,33 @@ function fleetsScreen_processing($vars, $ships_processed = false)
 	else if (array_key_exists('new_fleet:create_and_gather', $vars) && $vars['new_fleet:create_and_gather'])
 		{
 		$vars['new_fleet_name'] = ($vars['new_fleet_name'] == '' ? nameFleet() : $vars['new_fleet_name']);
+		$fleet_location = sc_escape(xlateToGalactic($vars['new_fleet_location']));
 
 		$field_values = array();
-		$field_values[] = 'series_id = '.$vars['series_id'];
-		$field_values[] = 'game_number = '.$vars['game_number'];
-		$field_values[] = 'game_id = '.$game['id'];
-		$field_values[] = 'player_id = '.$player['id'];
-		$field_values[] = 'name = "'.$vars['new_fleet_name'].'"';
-		$field_values[] = 'owner = "'.$vars['name'].'"';
-		$field_values[] = 'location = "'.xlateToGalactic($vars['new_fleet_location']).'"';
+		$field_values[] = 'series_id = '.((int)$vars['series_id']);
+		$field_values[] = 'game_number = '.((int)$vars['game_number']);
+		$field_values[] = 'game_id = '.((int)$game['id']);
+		$field_values[] = 'player_id = '.((int)$player['id']);
+		$field_values[] = 'name = "'.sc_escape(htmlspecialchars($vars['new_fleet_name'])).'"';
+		$field_values[] = 'owner = "'.sc_escape($vars['name']).'"';
+		$field_values[] = 'location = "'.$fleet_location.'"';
 		$field_values[] = 'orders = "standby"';
 		$field_values[] = "order_arguments = ''";
 
 		sc_query('INSERT INTO fleets SET '.implode(',', $field_values));
 		
-		$new_fleet_id = $mysqli->insert_id;
+		$new_fleet_id = (int)$mysqli->insert_id;
 		
 		$conditions = array();
-		$conditions[] = 'game_id = '.$game['id'];		
-		$conditions[] = 'owner = "'.$vars['name'].'"';
-		$conditions[] = 'location = "'.xlateToGalactic($vars['new_fleet_location']).'"';
+		$conditions[] = 'game_id = '.((int)$game['id']);		
+		$conditions[] = 'owner = "'.sc_escape($vars['name']).'"';
+		$conditions[] = 'location = "'.$fleet_location.'"';
 		$conditions[] = 'fleet_id = 0';
 		$conditions[] = 'FIND_IN_SET(type, "Stargate,Satellite,Minefield") = 0';
 		$conditions[] = 'orders = "standby"';				
 		sc_query('UPDATE ships SET orders = "fleet", order_arguments = "'.$new_fleet_id.'", fleet_id = '.$new_fleet_id.' WHERE '.implode(' AND ', $conditions));
 						
-		sc_query('UPDATE fleets SET collapsed = "1" WHERE id = '.$new_fleet_id.' AND owner = "'.$vars['name'].'"');
+		sc_query('UPDATE fleets SET collapsed = "1" WHERE id = '.$new_fleet_id.' AND owner = "'.sc_escape($vars['name']).'"');
 			
 		return sendGameMessage($player, 'Fleet created and ships gathered.');
 		}

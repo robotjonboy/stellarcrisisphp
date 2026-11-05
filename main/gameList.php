@@ -897,9 +897,9 @@ function sendMessage_processing($vars)
 
 	$values = array();
 	$values[] = 'time = '.time();
-	$values[] = 'sender = "'.$vars['name'].'"';
-	$values[] = 'empire_id = "'.$recipient['id'].'"';
-	$values[] = 'text = "'.addslashes($message).'"';
+	$values[] = 'sender = "'.sc_escape($vars['name']).'"';
+	$values[] = 'empire_id = "'.((int)$recipient['id']).'"';
+	$values[] = 'text = "'.sc_escape($message).'"';
 	$values[] = 'type = "instant"';
 	
 	sc_query('INSERT INTO messages SET '.implode(',', $values));

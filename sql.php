@@ -3,6 +3,13 @@
 # Function to make MySQL queries and attempt to trap and correct some key errors
 #
 
+# Escape a value for safe inclusion in a quoted SQL string literal.
+function sc_escape($value)
+{
+	global $mysqli;
+	return $mysqli->real_escape_string((string)$value);
+}
+
 function sc_query($query, $fileinfo = 'unknown*unknown', $ignored_errors = array())
 {
 	global $mysqli;

@@ -71,9 +71,9 @@ function createEmpire_processing($vars)
 	
 	if ($server['require_valid_email'])
 		{
-		$result = mysql_query( 'SELECT * FROM blockedemail WHERE email="'.$vars['email'].'"' );
+		$result = sc_query('SELECT * FROM blockedemail WHERE email="'.sc_escape($vars['email']).'"');
 		
-		if (mysql_num_rows($result))
+		if ($result->num_rows)
 			return createEmpire($vars, 'You have entered an email address that is blocked by our system.');
 		if (preg_match("/^[a-z0-9]+([_\\.-][a-z0-9]+)*@([a-z0-9]+([\.-][a-z0-9]+))*$/", $vars['email']) == 0)
 			return createEmpire($vars, 'Invalid email address entered.');
@@ -204,10 +204,10 @@ function blockEmail($address, $tpass)
 			{
 			sc_query('DELETE FROM empires WHERE email = "'.$mysqli->real_escape_string($address).'"');
 			
-			$result = mysql_query('SELECT * FROM blockedemail WHERE email="'.$address.'"');
+			$result = sc_query('SELECT * FROM blockedemail WHERE email="'.sc_escape($address).'"');
 			
-			if (!mysql_num_rows($result))
-				sc_query('INSERT INTO blockedemail SET email = "'.$address.'", time = '.time().', empname = "'.$empire['name'].'"');
+			if (!$result->num_rows)
+				sc_query('INSERT INTO blockedemail SET email = "'.sc_escape($address).'", time = '.time().', empname = "'.sc_escape($empire['name']).'"');
 			
 			echo $address.' added to our blocked email list.';
 			}

@@ -91,7 +91,7 @@ function mainPage_admin($vars)
 	echo "<div class=pageTitle>".$empire['name']." : Administration</div>\n";
 	authHiddenFields($empire['name']);
 	echo "<input type=hidden name=\"section\" value=\"admin\">
-<input type=hidden name=\"empireID\" value=\"".$vars['empireID']."\"><!--cjp-->
+<input type=hidden name=\"empireID\" value=\"".(int)$empire['id']."\">
 <input type=hidden name=\"page\" value=\"main\">";
 
 	echo drawButtons($empire).serverTime().onlinePlayers().empireMissive($empire);

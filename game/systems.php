@@ -483,19 +483,26 @@ function systemsScreen_processing(&$vars)
 	$affected_rows = 0;
 	if (array_key_exists('system_ids', $vars) && $vars['system_ids'] != '')
 		{
-		foreach (explode('&', $vars['system_ids']) as $id)
+		foreach (explode('&', $vars['system_ids']) as $raw_id)
 			{
 			// I've seen it too-- but how does it happen???
-			if ($id == '') continue;
+			if ($raw_id === '') continue;
+			$id = (int)$raw_id;
+			if ($id <= 0) continue;
+
+			$name_key = 'system_name:'.$id;
+			$pop_key = 'system_population:'.$id;
+			$system_name = array_key_exists($name_key, $vars) ? $vars[$name_key] : '';
+			$system_pop = array_key_exists($pop_key, $vars) ? $vars[$pop_key] : 1;
 			
 			$values = array();
-			$values[] = 'name = "'.htmlspecialchars($vars['system_name:'.$id]).'"';
-			$values[] = 'max_population = "'.max(1, $vars['system_population:'.$id]).'"';
+			$values[] = 'name = "'.sc_escape(htmlspecialchars($system_name)).'"';
+			$values[] = 'max_population = "'.max(1, (int)$system_pop).'"';
 
 			sc_query('UPDATE systems '.
 							'SET '.implode(',', $values).
 							' WHERE id = '.$id.
-							' AND owner = "'.$player['name'].'"');
+							' AND owner = "'.sc_escape($player['name']).'"');
 			$affected_rows += $mysqli->affected_rows;
 			}
 		}

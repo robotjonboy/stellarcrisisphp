@@ -437,22 +437,22 @@ function scoutingScreen_processing($vars)
 				if (trim($system['coordinates']) == '') continue;
 
 				$values = array();
-				$values[] = 'player_id = '.$recipient['id'];
-				$values[] = 'coordinates = "'.$system['coordinates'].'"';
-				$values[] = 'jumps = "'.$system['jumps'].'"';
-				$values[] = 'name = "'.$system['name'].' ['.$game['update_count'].']"';
-				$values[] = 'mineral = "'.$system['mineral'].'"';
-				$values[] = 'fuel = "'.$system['fuel'].'"';
-				$values[] = 'agriculture = "'.$system['agriculture'].'"';
-				$values[] = 'population = "'.$system['population'].'"';
-				$values[] = 'annihilated = "'.$system['annihilated'].'"';
+				$values[] = 'player_id = '.((int)$recipient['id']);
+				$values[] = 'coordinates = "'.sc_escape($system['coordinates']).'"';
+				$values[] = 'jumps = "'.sc_escape($system['jumps']).'"';
+				$values[] = 'name = "'.sc_escape($system['name'].' ['.$game['update_count'].']').'"';
+				$values[] = 'mineral = "'.sc_escape($system['mineral']).'"';
+				$values[] = 'fuel = "'.sc_escape($system['fuel']).'"';
+				$values[] = 'agriculture = "'.sc_escape($system['agriculture']).'"';
+				$values[] = 'population = "'.sc_escape($system['population']).'"';
+				$values[] = 'annihilated = "'.sc_escape($system['annihilated']).'"';
 				
 				if (strlen($system['owner'])) 
-					$values[] = 'owner = "'.$system['owner'].'"';
+					$values[] = 'owner = "'.sc_escape($system['owner']).'"';
 				if (strlen($ships))				
-					$values[] = 'ships = "'.addslashes($ships).'"';
+					$values[] = 'ships = "'.sc_escape($ships).'"';
 				if (strlen($comment))			
-					$values[] = 'comment = "'.addslashes($comment).'"';
+					$values[] = 'comment = "'.sc_escape($comment).'"';
 
 				sc_query('INSERT INTO scouting_reports '.
 								'SET '.implode(',', $values), 

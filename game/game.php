@@ -725,11 +725,11 @@ function sendPlayerMissive($player, $recipient_id, $recipients, $type, $message)
 	$values[] = 'sender = "'.$mysqli->real_escape_string($player['name']).'"';
 	
 	if ($recipients)
-		$values[] = 'recipient = "'.$recipients.'"';
+		$values[] = 'recipient = "'.sc_escape($recipients).'"';
 
 	$values[] = 'player_id = '.((int)$recipient_id);
-	$values[] = 'text = "'.addslashes($message).'"';
-	$values[] = 'type = "'.$mysqli->real_escape_string($type).'"';
+	$values[] = 'text = "'.sc_escape($message).'"';
+	$values[] = 'type = "'.sc_escape($type).'"';
 	
 	sc_query('INSERT INTO messages SET '.implode(',', $values));
 

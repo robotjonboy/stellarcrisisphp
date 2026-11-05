@@ -163,13 +163,14 @@ function customSeries_processing($vars)
 		if ($action == 'killCustomSeries')
 			{
 			// Yep. Delete the series if there are no active games.
+			$series_id = (int)$series_id;
 			$select = sc_query('SELECT id FROM games WHERE series_id = '.$series_id.' AND player_count > 0');
 			if ($select->num_rows)
 				return customSeries($vars, 'This series has active games. Deletion aborted.');
 			else
 				{
 				#echo 'DELETE FROM series WHERE id = '.$series_id.' AND creator = "'.$vars['name'].'"';
-				sc_query('DELETE FROM series WHERE id = '.$series_id.' AND creator = "'.$vars['name'].'"');
+				sc_query('DELETE FROM series WHERE id = '.$series_id.' AND creator = "'.sc_escape($vars['name']).'"');
 				
 				if ($mysqli->affected_rows)
 					{
@@ -458,32 +459,34 @@ function createCustomSeries_processing($vars)
 	$vars['weekend_updates'] = (($vars['weekend_updates'] ?? '') != '' ? 1 : 0);
 	$vars['max_wins'] = (($vars['no_max_wins'] ?? '') != '' ? -1 : $vars['max_wins']);
 
+	$map_type = isset($map_types[$vars['map_type']]) ? $map_types[$vars['map_type']] : 'standard';
+
 	$values = array();
-	$values[] = 'name = "'.$vars['series_name'].'"';
-	$values[] = 'game_type = "'.$vars['game_type'].'"';
-	$values[] = 'update_time = "'.$vars['update_time'].'"';
-	$values[] = 'weekend_updates = "'.$vars['weekend_updates'].'"';
-	$values[] = 'diplomacy = "'.$vars['diplomacy'].'"';
-	$values[] = 'max_players = "'.$vars['max_players'].'"';
-	$values[] = 'team_game = "'.$vars['team_game'].'"';
-	$values[] = 'map_type = "'.$map_types[$vars['map_type']].'"';
-	$values[] = 'map_visible = "'.$vars['map_visible'].'"';
-	$values[] = 'systems_per_player = "'.$vars['systems_per_player'].'"';
-	$values[] = 'tech_multiple = "'.$vars['tech_multiple'].'"';
-	$values[] = 'min_wins = "'.$vars['min_wins'].'"';
-	$values[] = 'max_wins = "'.$vars['max_wins'].'"';
-	$values[] = 'can_draw = "'.$vars['can_draw'].'"';
-	$values[] = 'can_surrender = "'.$vars['can_surrender'].'"';
-	$values[] = 'visible_builds = "'.$vars['visible_builds'].'"';
-	$values[] = 'cloakers_as_attacks = "'.$vars['cloakers_as_attacks'].'"';
-	$values[] = 'build_cloakers_cloaked = "'.$vars['build_cloakers_cloaked'].'"';
-	$values[] = 'average_resources = "'.$vars['avg_min'].'"';
-	$values[] = 'avg_min = "'.$vars['avg_min'].'"';
-	$values[] = 'avg_fuel = "'.$vars['avg_fuel'].'"';
-	$values[] = 'avg_ag = "'.$vars['avg_ag'].'"';
-	$values[] = 'bridier_allowed = "'.$vars['bridier_allowed'].'"';
+	$values[] = 'name = "'.sc_escape($vars['series_name']).'"';
+	$values[] = 'game_type = "'.sc_escape($vars['game_type']).'"';
+	$values[] = 'update_time = "'.((int)$vars['update_time']).'"';
+	$values[] = 'weekend_updates = "'.((int)$vars['weekend_updates']).'"';
+	$values[] = 'diplomacy = "'.((int)$vars['diplomacy']).'"';
+	$values[] = 'max_players = "'.((int)$vars['max_players']).'"';
+	$values[] = 'team_game = "'.((int)!empty($vars['team_game'])).'"';
+	$values[] = 'map_type = "'.sc_escape($map_type).'"';
+	$values[] = 'map_visible = "'.((int)!empty($vars['map_visible'])).'"';
+	$values[] = 'systems_per_player = "'.((int)$vars['systems_per_player']).'"';
+	$values[] = 'tech_multiple = "'.((float)$vars['tech_multiple']).'"';
+	$values[] = 'min_wins = "'.((int)$vars['min_wins']).'"';
+	$values[] = 'max_wins = "'.((int)$vars['max_wins']).'"';
+	$values[] = 'can_draw = "'.((int)!empty($vars['can_draw'])).'"';
+	$values[] = 'can_surrender = "'.((int)!empty($vars['can_surrender'])).'"';
+	$values[] = 'visible_builds = "'.((int)!empty($vars['visible_builds'])).'"';
+	$values[] = 'cloakers_as_attacks = "'.((int)!empty($vars['cloakers_as_attacks'])).'"';
+	$values[] = 'build_cloakers_cloaked = "'.((int)!empty($vars['build_cloakers_cloaked'])).'"';
+	$values[] = 'average_resources = "'.((float)$vars['avg_min']).'"';
+	$values[] = 'avg_min = "'.((float)$vars['avg_min']).'"';
+	$values[] = 'avg_fuel = "'.((float)$vars['avg_fuel']).'"';
+	$values[] = 'avg_ag = "'.((float)$vars['avg_ag']).'"';
+	$values[] = 'bridier_allowed = "'.((int)!empty($vars['bridier_allowed'])).'"';
 	$values[] = 'custom = "1"';
-	$values[] = 'creator = "'.$empire['name'].'"';
+	$values[] = 'creator = "'.sc_escape($empire['name']).'"';
 	$values = array_merge($values, sc3SeriesLevelValuesFromVars($vars, true));
 
 	sc_query('INSERT INTO series SET '.implode(',', $values));
@@ -576,7 +579,7 @@ function canCreateCustomSeries($empire)
 {
 	global $server;
 	
-	$select = sc_query('SELECT COUNT(*) as c FROM series WHERE creator = "'.$empire['name'].'"');
+	$select = sc_query('SELECT COUNT(*) as c FROM series WHERE creator = "'.sc_escape($empire['name']).'"');
 	$line = $select->fetch_assoc();
 	$seriesAlreadyCreated = $line['c'];
 	

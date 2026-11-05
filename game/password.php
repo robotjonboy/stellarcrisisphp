@@ -52,6 +52,7 @@ function passwordScreen_processing(&$vars)
 {
 	$player = $vars['player_data'];
 	$game = $vars['game_data'];
+	$series = $vars['series_data'];
 	
 	if ($vars['cancel']) 
 		return sendGameMessage($player, 'Password '.($game['password1'] ? 'change' : 'set').' cancelled.');
@@ -76,7 +77,9 @@ function passwordScreen_processing(&$vars)
 			else if ($vars['password1'] == $vars['password2'])
 				return sendGameMessage($player, 'Passwords must be different.');
 					
-			sc_query('UPDATE games SET password1 ="'.$vars['password1'].'", password2 ="'.$vars['password2'].'", last_update = '.time().' WHERE id = '.$game['id']);
+			sc_query('UPDATE games SET password1 ="'.sc_escape($vars['password1']).
+				'", password2 ="'.sc_escape($vars['password2']).
+				'", last_update = '.time().' WHERE id = '.((int)$game['id']));
 			
 			return sendGameMessage($player, 'Passwords '.($game['password1'] ? 'changed' : 'set').'.');
 			}
@@ -89,7 +92,8 @@ function passwordScreen_processing(&$vars)
 				$now = time();
 				
 				// We also reset the update time so that the kill game timeout doesn't hit too soon.
-				sc_query('UPDATE games SET password1 = "'.$vars['password1'].'", last_update = '.$now.' WHERE id = '.$game['id']);
+				sc_query('UPDATE games SET password1 = "'.sc_escape($vars['password1']).
+					'", last_update = '.$now.' WHERE id = '.((int)$game['id']));
 				return sendGameMessage($player, 'Password changed.');
 	    		}
 			}
