@@ -706,11 +706,19 @@ function loginGame($vars)
 	// Process team game logins
 	if ($series['team_game'])
 	    return loginTeamGame($vars);
-	
-	if (array_key_exists('gamePassword', $vars) && is_array($vars['gamePassword']) && array_key_exists($game['id'], $vars['gamePassword']) && $vars['gamePassword'][$game['id']] != $game['password1'])
+
+	// Passworded non-team games require a matching password. Omitting the field is not a join.
+	if ($game['password1'] != '')
 		{
-		sendEmpireMessage($empire, 'Incorrect password for <span class=red>'.$series['name'].' '.$game['game_number'].'</span>.');
-        return passwordGameList($vars);
+		$submitted = '';
+		if (array_key_exists('gamePassword', $vars) && is_array($vars['gamePassword']) && array_key_exists($game['id'], $vars['gamePassword']))
+			$submitted = $vars['gamePassword'][$game['id']];
+
+		if ((string)$submitted !== (string)$game['password1'])
+			{
+			sendEmpireMessage($empire, 'Incorrect password for <span class=red>'.$series['name'].' '.$game['game_number'].'</span>.');
+			return passwordGameList($vars);
+			}
 		}
 	
 	return joinGame($vars);
