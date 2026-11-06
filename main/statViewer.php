@@ -411,7 +411,7 @@ function searchEmpire($vars)
 			{
 ?>
 	<tr><td colspan=4><img class=spaceruleThin src="images/spacerule.jpg" width="100%" height=10 alt="spacerule.jpg"></td></tr>
-	<tr><td colspan=4><pre><?php echo stripslashes(urldecode($empire['comment'])); ?></pre></td></tr>
+	<tr><td colspan=4><pre><?php echo htmlspecialchars(stripslashes(urldecode($empire['comment'])), ENT_QUOTES, 'ISO-8859-1'); ?></pre></td></tr>
 <?php					
 			}
 		

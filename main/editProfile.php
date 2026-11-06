@@ -44,7 +44,7 @@ function editProfile($vars)
 	</tr>
 	<tr>
 		<th style="text-align: right;" valign=top>Comments:</th>
-		<td><textarea name="comment" rows=5 cols=40><?php echo stripslashes($empire['comment']); ?></textarea></td>
+		<td><textarea name="comment" rows=5 cols=40><?php echo htmlspecialchars(stripslashes($empire['comment']), ENT_QUOTES, 'ISO-8859-1'); ?></textarea></td>
 	</tr>
 	<tr>
 		<th style="text-align: right; vertical-align: top;">Miscellaneous preferences:</th>
