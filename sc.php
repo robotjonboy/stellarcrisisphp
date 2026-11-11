@@ -169,9 +169,10 @@ function standardHeader($title, $empire = array())
 		// Override background style according to the user's profile.
 		if (array_key_exists('draw_background', $empire) && $empire['draw_background'])
 			{
+			$bg_url = sc_safe_bg_url(isset($empire['custom_bg_url']) ? $empire['custom_bg_url'] : '');
 			echo '<style type="text/css">body { '.
-				 ($empire['custom_bg_url'] ? 'background: url("'.$empire['custom_bg_url'].'"); background-color: black; ' : '').
-				 'background-attachment: '.$empire['background_attachment'].'; }</style>';
+				 ($bg_url !== '' ? 'background: url("'.$bg_url.'"); background-color: black; ' : '').
+				 'background-attachment: '.sc_safe_bg_attachment(isset($empire['background_attachment']) ? $empire['background_attachment'] : '').'; }</style>';
 			}
 		else
 			echo '<style type="text/css">body { background: none; background-color: black; }</style>';

@@ -20,4 +20,22 @@ function sc_post($paramName) {
   return $postVal;
 }
 
+# http(s) background image URL safe to place inside CSS url("...").
+# Returns '' when the value could break out of the style block.
+function sc_safe_bg_url($url) {
+	$url = str_replace(' ', '%20', trim((string)$url));
+	if ($url === '')
+		return '';
+	if (!preg_match('/\Ahttps?:\/\//i', $url))
+		return '';
+	if (preg_match('/[\s"\\\\<>()\x00-\x1F\x7F]/', $url))
+		return '';
+	return $url;
+}
+
+function sc_safe_bg_attachment($value) {
+	$value = strtolower(trim((string)$value));
+	return ($value === 'fixed') ? 'fixed' : 'scroll';
+}
+
 ?>

@@ -1,0 +1,17 @@
+# Optional Apache rules for shared hosting (copy relevant parts into .htaccess
+# in the application directory, or merge with an existing .htaccess).
+# See docs/shared-hosting-error-log.md
+
+<Files "errorlog.html">
+	Require all denied
+</Files>
+
+<FilesMatch "^(serverconfig\.php|\.env)$">
+	Require all denied
+</FilesMatch>
+
+# Apache 2.2 alternative for errorlog.html:
+# <Files "errorlog.html">
+#	Order allow,deny
+#	Deny from all
+# </Files>

@@ -64,7 +64,7 @@ Relevant facts for packaging:
 | DB | `mysqli` only. Schema and seed live in `sc.sql` (current: password hashes, `auth_tokens`, SC3 ship types and series columns). Engine is **MyISAM**, charset **latin1**. Code issues `BEGIN`/`COMMIT`; MyISAM ignores that. |
 | Fresh DB | Tables plus `ship_types` and the `words` dictionary. **No empires, no series, no games.** |
 | Updates | `checkForUpdates()` in `sc.php` runs on ordinary requests (including a GET of the login page). There is no CLI updater and no cron in-tree. If nobody is playing, nothing updates — that is intended. |
-| Writes | `history/` (end-of-game HTML), `images/aliens/custom/` (icon uploads), `errorlog.html` (when `error_log_type=file`). |
+| Writes | `history/` (end-of-game HTML), `images/aliens/custom/` (icon uploads), `/data/logs/errorlog.html` via `error_log_path` (admin View Errors only; not HTTP). |
 | Secrets | `serverconfig.php` holds DB user/password, paths, and server identity. The copy in this tree is host-specific (`Ronin`, `/~jonboy/sc/sc.php`). |
 | Mail | Optional. `require_valid_email` defaults false; `mail()` is used for empire-creation validation, email-change, and optional error reports. Play does not need SMTP. |
 | Must stay private | `utility/`, `serverconfig.php`, `*.sql`, `docs/`, `reference/`, `sql backups/`. There is no `.htaccess` today; shared hosting often relies on not putting those under the docroot, or on luck. |
@@ -157,7 +157,7 @@ Inside the container, the app lives at a fixed path, e.g. `/var/www/sc`. Writabl
 | MariaDB datadir | `/data/mysql` |
 | `history/` | bind/symlink to `/data/history` |
 | `images/aliens/custom/` | bind/symlink to `/data/icons` |
-| `errorlog.html` | `/data/logs/errorlog.html` or config `error_log_path` pointed there |
+| Error log (not under DocumentRoot) | `/data/logs/errorlog.html` via `error_log_path`; admin UI only — no docroot symlink (see `docs/design-private-error-log.md`) |
 
 Code stays in the image. Operators who want to hack PHP bind-mount the working tree over `/var/www/sc` (dev override) and still keep `/data` for state.
 

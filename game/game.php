@@ -492,10 +492,11 @@ function gameHeader($vars, $title)
 		echo '<style>body { background: none; background-color: black; }</style>';
 	else
 		{
-		if ($empire['custom_bg_url'] != '')
-			echo '<style>body { background: url("'.$empire['custom_bg_url'].'"); background-color: black; }</style>';
+		$bg_url = sc_safe_bg_url($empire['custom_bg_url']);
+		if ($bg_url !== '')
+			echo '<style>body { background: url("'.$bg_url.'"); background-color: black; }</style>';
 		
-		echo '<style>body { background-attachment: '.$empire['background_attachment'].'; }</style>';
+		echo '<style>body { background-attachment: '.sc_safe_bg_attachment($empire['background_attachment']).'; }</style>';
 		}
 ?>
 <title>SC <?php echo $server['version'].' @ '.$server['servername'].': '.$title.': '.$series['name'].' '.$game['game_number']; ?></title>

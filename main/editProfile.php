@@ -59,7 +59,7 @@ function editProfile($vars)
 					<option<?php echo ($empire['background_attachment'] == 'fixed' ? ' selected' : ''); ?>>Fixed
 				</select>
 			</div>
-			<div>Custom background image (URL):&nbsp;<input type=text size=30 maxlength=255 name="custom_bg_url" value="<?php echo $empire['custom_bg_url']; ?>"></div>
+			<div>Custom background image (URL):&nbsp;<input type=text size=30 maxlength=255 name="custom_bg_url" value="<?php echo htmlspecialchars((string)$empire['custom_bg_url'], ENT_QUOTES, 'ISO-8859-1'); ?>"></div>
 			<div style="margin-top: 10pt;">Order ships on ships screen by...
 				<select name="list_ships_by">
 					<option<?php echo ($empire['list_ships_by_system']? '' : ' selected'); ?>>Ship type
@@ -158,9 +158,12 @@ function editProfile_processing($vars)
 			$values[] = 'show_coordinates = "'.($vars['show_coordinates'] ? 1 : 0).'"';
 			$values[] = 'show_icons = "'.(array_key_exists('show_icons', $vars) && $vars['show_icons'] ? 1 : 0).'"';
 			$values[] = 'draw_background = "'.($vars['draw_background'] ? 1 : 0).'"';
-			$bg_url = array_key_exists('custom_bg_url', $vars) ? trim($vars['custom_bg_url']) : '';
-			$values[] = 'custom_bg_url = '.($bg_url !== '' ? '"'.sc_escape(str_replace(' ', '%20', $bg_url)).'"' : 'NULL');
-			$attachment = (isset($vars['background_attachment']) && $vars['background_attachment'] === 'fixed') ? 'fixed' : 'scroll';
+			$bg_input = array_key_exists('custom_bg_url', $vars) ? trim($vars['custom_bg_url']) : '';
+			$bg_url = sc_safe_bg_url($bg_input);
+			if ($bg_input !== '' && $bg_url === '')
+				$message = 'Custom background must be an http or https URL.';
+			$values[] = 'custom_bg_url = '.($bg_url !== '' ? '"'.sc_escape($bg_url).'"' : 'NULL');
+			$attachment = sc_safe_bg_attachment(isset($vars['background_attachment']) ? $vars['background_attachment'] : '');
 			$values[] = 'background_attachment = "'.$attachment.'"';
 			$values[] = 'list_ships_by_system = "'.($vars['list_ships_by'] == "Location" ? 1 : 0).'"';
 

@@ -259,6 +259,17 @@ function update_game($series, &$game, $update_time)
 		while ($line = $opts->fetch_assoc())
 			$game['ship_type_options'][$line['ship_type']] = $line;
 	}
+
+	// Wins already recorded but eraseGame never ran (endGame crashed mid-history).
+	// Finish cleanup without running another update or awarding wins again.
+	$prior_win = sc_query('SELECT id FROM history WHERE game_id = '.(int)$game['id'].' AND event = "won" LIMIT 1', __FILE__.'*'.__LINE__);
+	if ($prior_win && $prior_win->num_rows)
+	{
+		$history = array();
+		$saved_map = snapshotSystemsMap($game['id']);
+		endGame($series, $game, $history, $saved_map);
+		return 0;
+	}
 	
 	//ysql_query('BEGIN');
 	
@@ -1109,6 +1120,16 @@ function update_game($series, &$game, $update_time)
 			$values[] = 'annihilated = "0"';
 			$values[] = 'system_active = "1"';
 			sc_query('INSERT INTO systems SET '.implode(', ', $values));
+
+			// Keep endGame's static map in sync; systems created here are otherwise
+			// missing from the pre-builder battle snapshot.
+			$saved_map[$destination] = array(
+				'mineral' => $avg_min,
+				'fuel' => $avg_fuel,
+				'agriculture' => $avg_ag,
+				'population' => 0,
+				'owner' => '=unowned=',
+			);
 
 			foreach ($origin_list as $origin)
 			{

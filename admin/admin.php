@@ -60,7 +60,12 @@ function adminAction($vars)
 
 function viewErrors($vars)
 {
-	echo "<a href='errorlog.html'> View Errors </a>";
+	global $authenticated_as_admin;
+
+	if (!$authenticated_as_admin)
+		return loginFailed('Identity check failed.');
+
+	sc_serve_error_log_to_admin();
 }
 function mainPage_admin($vars)
 {

@@ -363,25 +363,35 @@ function endGame($series, $game, $history, $saved_map)
 	$select = sc_query('SELECT * FROM systems WHERE game_id = '.$game['id']);
 	while ($system = $select->fetch_assoc())
 		{
-		if (count($saved_map))
+		// Prefer the mid-update snapshot when present. Builders can INSERT systems
+		// after that snapshot; missing keys used to TypeError in array_key_exists()
+		// under PHP 8+ and abort endGame before eraseGame().
+		$map_entry = (isset($saved_map[$system['coordinates']]) && is_array($saved_map[$system['coordinates']]))
+			? $saved_map[$system['coordinates']]
+			: null;
+
+		$friends = 0;
+		$enemies = 0;
+
+		if ($map_entry !== null)
 			{
-			$mineral = $saved_map[$system['coordinates']]['mineral'];
-			$fuel = $saved_map[$system['coordinates']]['fuel'];
-			$agriculture = $saved_map[$system['coordinates']]['agriculture'];
-			$population = $saved_map[$system['coordinates']]['population'];
-			$friends = 0;
-			$enemies = 0;
-			
-			if (array_key_exists('ships', $saved_map[$system['coordinates']]))
+			$mineral = $map_entry['mineral'];
+			$fuel = $map_entry['fuel'];
+			$agriculture = $map_entry['agriculture'];
+			$population = $map_entry['population'];
+
+			if (isset($map_entry['ships']) && is_array($map_entry['ships']))
 				{
-				foreach (array_keys($saved_map[$system['coordinates']]['ships']) as $owner)
+				foreach (array_keys($map_entry['ships']) as $owner)
 					{
 					if (in_array($owner, $side))
-						$friends += $saved_map[$system['coordinates']]['ships'][$owner];
+						$friends += $map_entry['ships'][$owner];
 					else
-						$enemies += $saved_map[$system['coordinates']]['ships'][$owner];
+						$enemies += $map_entry['ships'][$owner];
 					}
 				}
+
+			$map_owner = $map_entry['owner'];
 			}
 		else
 			{
@@ -389,12 +399,17 @@ function endGame($series, $game, $history, $saved_map)
 			$fuel = $system['fuel'];
 			$agriculture = $system['agriculture'];
 			$population = $system['population'];
-			$friends = 0;
-			$enemies = 0;
+
+			if ($system['annihilated'])
+				$map_owner = '=annihilated=';
+			else if (!$system['owner'])
+				$map_owner = '=unowned=';
+			else
+				$map_owner = $system['owner'];
 			}
-			
-		// use icon from the saved map-- this makes sure the initial map is good even if history is corrupted
-		$icon = $icon_list[  $player_list[ $saved_map[$system['coordinates']]['owner'] ]  ];
+
+		$owner_icon_index = array_key_exists($map_owner, $player_list) ? $player_list[$map_owner] : 0;
+		$icon = $icon_list[$owner_icon_index];
 
 		echo 'universe[nPlanets] = new planet('.$system['coordinates'].', "'.$system['name'].'", "'.$icon.'", '.$mineral.', '.
 												$fuel.', '.$agriculture.', '.$population.', '.$friends.', '.$enemies;
@@ -413,7 +428,10 @@ function endGame($series, $game, $history, $saved_map)
 				}
 			}
 
-		echo ');'."\n".'owner_history[nPlanets++] = new Array('.implode(',',$owner_history[$system['coordinates']]).');'."\n";
+		$planet_owners = isset($owner_history[$system['coordinates']])
+			? $owner_history[$system['coordinates']]
+			: array(0);
+		echo ');'."\n".'owner_history[nPlanets++] = new Array('.implode(',', $planet_owners).');'."\n";
 		}
 
 	$history_javascript = ob_get_contents();

@@ -65,15 +65,14 @@ if [ -d "$APP/images/aliens/custom" ]; then
 	fi
 fi
 
-# App error log is a hardcoded relative filename in debug.php.
+# Private error log: outside DocumentRoot; admins read via Administration → View Errors.
+# Do not symlink into $APP — that would re-expose the file over HTTP.
+mkdir -p "$DATA/logs"
 touch "$DATA/logs/errorlog.html"
-chown www-data:www-data "$DATA/logs/errorlog.html"
-if [ -e "$APP/errorlog.html" ] && [ ! -L "$APP/errorlog.html" ]; then
-	rm -f "$APP/errorlog.html"
-fi
-if [ ! -e "$APP/errorlog.html" ]; then
-	ln -sfn "$DATA/logs/errorlog.html" "$APP/errorlog.html"
-fi
+chown www-data:www-data "$DATA/logs" "$DATA/logs/errorlog.html"
+chmod 750 "$DATA/logs"
+chmod 640 "$DATA/logs/errorlog.html"
+rm -f "$APP/errorlog.html"
 
 # --- secrets (app DB user; root stays unix_socket) ---
 MYSQL_DATABASE="${MYSQL_DATABASE:-sc}"
@@ -205,7 +204,10 @@ fi
 
 date -u +%Y-%m-%dT%H:%M:%SZ > "$BOOTSTRAP_MARK"
 chown www-data:www-data "$DATA/history" "$DATA/icons" "$DATA/logs" || true
-chmod 755 "$DATA/history" "$DATA/icons" "$DATA/logs"
+chmod 755 "$DATA/history" "$DATA/icons"
+chmod 750 "$DATA/logs"
+chmod 640 "$DATA/logs/errorlog.html" 2>/dev/null || true
+rm -f "$APP/errorlog.html"
 
 log "stopping bootstrap MariaDB"
 mariadb-admin --protocol=socket -uroot shutdown || true

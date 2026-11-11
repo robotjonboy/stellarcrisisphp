@@ -25,7 +25,10 @@ $server['custom_series_per_wins_chunk'] = 1;
 $server['custom_series_wins_chunk'] = 30;
 #$server['discussion_board'] = 'http://discussions.'.$servername'.'/';#
 $server['engineer_br_loss'] = 0.5;
-$server['error_log_path'] = 'debug_data.html'; // filename; relative to server root
+// Absolute path OUTSIDE the web root. See docs/shared-hosting-error-log.md
+// Example: '/home/YOURUSER/private/sc-logs/errorlog.html'
+// Docker AIO uses '/data/logs/errorlog.html' via render-config.php.
+$server['error_log_path'] = '/home/YOURUSER/private/sc-logs/errorlog.html';
 $server['error_log_type'] = 'file'; // file or email
 $server['fleetNameSource'] = 'words'; // table name; leave blank to generate name on-the-fly.
 $server['histories_per_page'] = 9;
