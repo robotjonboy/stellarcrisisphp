@@ -23,6 +23,31 @@ function write_history($game, $history)
 }
 
 #----------------------------------------------------------------------------------------------------------------------#
+# Register an empire in the history movie tables. Missing joined/empire history rows
+# (gaps, purged empires) used to leave $player_list incomplete and crash under PHP 8+.
+#
+
+function historyEnsurePlayer($empire_name, &$player_list, &$icon_list, &$n_icons, &$all_players)
+{
+	if ($empire_name === '' || $empire_name === null)
+		return 0;
+
+	if (array_key_exists($empire_name, $player_list))
+		return $player_list[$empire_name];
+
+	$all_players[] = $empire_name;
+	$player_list[$empire_name] = $n_icons;
+
+	$empire = getEmpire($empire_name);
+	$icon = ($empire && !empty($empire['icon'])) ? $empire['icon'] : 'alien1.gif';
+	$icon_list[$n_icons] = 'aliens/'.$icon;
+
+	$index = $n_icons;
+	$n_icons += 1;
+	return $index;
+}
+
+#----------------------------------------------------------------------------------------------------------------------#
 
 function endGame($series, $game, $history, $saved_map)
 {
@@ -55,6 +80,7 @@ function endGame($series, $game, $history, $saved_map)
 	
 	$first_update = 0;
 	$update = 0;
+	$end_date = time();
 	$bridier_string = '';
 	$nuked_out = array();
 	$draw = array();
@@ -119,19 +145,16 @@ function endGame($series, $game, $history, $saved_map)
 				echo $event['empire'].' joined the game';
 
 				if ($event['coordinates'])
-					$owner_history[$event['coordinates']][$update] = array_key_exists($event['empire'], $player_list) ? $player_list[$event['empire']] : null;
+					$owner_history[$event['coordinates']][$update] = historyEnsurePlayer($event['empire'], $player_list, $icon_list, $n_icons, $all_players);
 				
 				if ($event['info'])
 					echo ' as part of '.$event['info'];
 			
 			// Special record for starting up the history process.
 			case 'empire':
-				$all_players[] = $event['empire'];
-				$player_list[$event['empire']] = $n_icons;
-				$empire = getEmpire($event['empire']);
-				$icon_list[$n_icons] = 'aliens/'.$empire['icon'];
-				$owner_history[$event['coordinates']][$update] = $n_icons;
-				$n_icons += 1;
+				$icon_index = historyEnsurePlayer($event['empire'], $player_list, $icon_list, $n_icons, $all_players);
+				if ($event['coordinates'] !== '' && $event['coordinates'] !== null)
+					$owner_history[$event['coordinates']][$update] = $icon_index;
 				break;
 
 			case 'War':
@@ -150,7 +173,7 @@ function endGame($series, $game, $history, $saved_map)
 #					if ( $owner_history[$location][$update] == $player_list[$event['empire']] )
 #						$owner_history[$location][$update] = 0;
 				echo $event['empire'].' was '.$event['event'].' of the game by '.$event['info'].'.';
-				$nuked_out[] = $player_list[$event['empire']];
+				$nuked_out[] = historyEnsurePlayer($event['empire'], $player_list, $icon_list, $n_icons, $all_players);
 				break;
 			
 			case 'ruins':
@@ -158,7 +181,7 @@ function endGame($series, $game, $history, $saved_map)
 #					if ( $owner_history[$location][$update] == $player_list[$event['empire']] )
 #						$owner_history[$location][$update] = 0;
 				echo $event['empire'].' fell into ruins.';
-				$nuked_out[] = $player_list[$event['empire']];
+				$nuked_out[] = historyEnsurePlayer($event['empire'], $player_list, $icon_list, $n_icons, $all_players);
 				break;
 			
 			case 'surrender':
@@ -167,7 +190,7 @@ function endGame($series, $game, $history, $saved_map)
 #					if ( $owner_history[$location][$update] == $player_list[$event['empire']] )
 #						$owner_history[$location][$update] = 0;
 				echo $event['empire'].' surrendered.';
-				$nuked_out[] = $player_list[$event['empire']];
+				$nuked_out[] = historyEnsurePlayer($event['empire'], $player_list, $icon_list, $n_icons, $all_players);
 				break;
 
 			case 'ship to ship':
@@ -199,13 +222,13 @@ function endGame($series, $game, $history, $saved_map)
 				break;
 
 			case 'invaded':
-				$owner_history[$event['coordinates']][$update] = $player_list[$event['empire']];
+				$owner_history[$event['coordinates']][$update] = historyEnsurePlayer($event['empire'], $player_list, $icon_list, $n_icons, $all_players);
 				echo '<span class=updateInvade>('.$event['coordinates'].') was '.
 					 $event['event'].' by '.($event['info'] ? $event['info'].' of ' : '').$event['empire'].'.</span>';
 				break;
 
 			case 'colonized':
-				$owner_history[$event['coordinates']][$update] = $player_list[$event['empire']];
+				$owner_history[$event['coordinates']][$update] = historyEnsurePlayer($event['empire'], $player_list, $icon_list, $n_icons, $all_players);
 			case 'terraformed':
 				echo '<span class=updateTerraform>('.$event['coordinates'].') was '.
 					 $event['event'].' by '.($event['info'] ? $event['info'].' of ' : '').$event['empire'].'.</span>';
@@ -525,13 +548,19 @@ function endGame($series, $game, $history, $saved_map)
 	$result = sc_query($sql);
 	
 	if ($tourneygame = $result->fetch_assoc()) {
-		$empire = getEmpire($won['0']);
-		$sql = 'update tournamentgame set winner = ' . $empire['id'] . ' where game = ' . $game['id'];
-		sc_query($sql);
+		$empire = (!empty($won[0])) ? getEmpire($won[0]) : null;
+		if ($empire)
+			{
+			$sql = 'update tournamentgame set winner = ' . $empire['id'] . ' where game = ' . $game['id'];
+			sc_query($sql);
+			}
 		
-		$empire = getEmpire($lost['0']);
-		$sql = 'update tournamententrant set eliminated = true where tournamentid = ' . $tourneygame['tournament'] . ' AND empireid = ' . $empire['id'];
-		sc_query($sql);
+		$empire = (!empty($lost[0])) ? getEmpire($lost[0]) : null;
+		if ($empire)
+			{
+			$sql = 'update tournamententrant set eliminated = true where tournamentid = ' . $tourneygame['tournament'] . ' AND empireid = ' . $empire['id'];
+			sc_query($sql);
+			}
 		
 		//is the tournament over?
 		$sql = 'select count(*) as numberofplayersremaining from tournamententrant where tournamentid = ' . $tourneygame['tournament'] . ' AND eliminated = false';
