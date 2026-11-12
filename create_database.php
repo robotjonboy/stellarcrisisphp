@@ -116,8 +116,10 @@ $fields[] = 'show_coordinates enum("1","0") NOT NULL default "1"';
 $fields[] = 'map_origin varchar(11) NOT NULL default "0,0"';
 $fields[] = 'show_icons enum("1","0") NOT NULL default "0"';
 $fields[] = 'join_date int(11) NOT NULL default "1018409756"';
+$fields[] = 'rss_token char(64) default NULL';
 $fields[] = 'PRIMARY KEY  (name)';
 $fields[] = 'UNIQUE KEY id (id)';
+$fields[] = 'UNIQUE KEY rss_token (rss_token)';
 $fields[] = 'KEY bridier_index (bridier_index)';
 
 mysql_query('CREATE TABLE empires ('.implode(',', $fields).') TYPE=MyISAM;') or die('SQL CREATE error for table "empires".');

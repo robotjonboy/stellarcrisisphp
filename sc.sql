@@ -108,9 +108,11 @@ CREATE TABLE IF NOT EXISTS `empires` (
   `tos_accepted` enum('0','1') NOT NULL DEFAULT '0',
   `url` tinytext,
   `validation_info` varchar(50) NOT NULL DEFAULT '',
+  `rss_token` char(64) DEFAULT NULL,
   `wins` smallint(6) NOT NULL DEFAULT '0',
   PRIMARY KEY (`name`),
   UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `rss_token` (`rss_token`),
   KEY `bridier_index` (`bridier_index`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 

@@ -150,6 +150,54 @@ function getEmpire($name)
 }
 
 #--------------------------------------------------------------------------------------------------------------------#
+# Opaque RSS feed token for an empire (64 hex chars). Issues one if missing.
+#
+
+function sc_ensure_rss_token(&$empire)
+{
+	if (!$empire || empty($empire['id']))
+		return '';
+
+	if (!empty($empire['rss_token']) && preg_match('/\A[a-f0-9]{64}\z/', $empire['rss_token']))
+		return $empire['rss_token'];
+
+	$token = bin2hex(random_bytes(32));
+	sc_query(
+		'UPDATE empires SET rss_token = "'.sc_escape($token).'" '.
+		'WHERE id = '.((int)$empire['id']).' '.
+		'AND (rss_token IS NULL OR rss_token = "")'
+	);
+
+	// Another request may have won a race; reload.
+	$fresh = getEmpireByID((int)$empire['id']);
+	if ($fresh && !empty($fresh['rss_token']))
+		{
+		$empire['rss_token'] = $fresh['rss_token'];
+		return $empire['rss_token'];
+		}
+
+	$empire['rss_token'] = $token;
+	return $token;
+}
+
+#--------------------------------------------------------------------------------------------------------------------#
+# Resolve an empire from an RSS ?id= token. Returns null if invalid / unknown.
+# Does not accept legacy md5(id+name+join_date) values.
+#
+
+function sc_empire_from_rss_id($id)
+{
+	if (!is_string($id) || !preg_match('/\A[a-f0-9]{64}\z/', $id))
+		return null;
+
+	$select = sc_query('SELECT * FROM empires WHERE rss_token = "'.sc_escape($id).'" LIMIT 1');
+	if (!$select || !$select->num_rows)
+		return null;
+
+	return $select->fetch_assoc();
+}
+
+#--------------------------------------------------------------------------------------------------------------------#
 # Returns an empire record, retrieved by its ID.
 #
 

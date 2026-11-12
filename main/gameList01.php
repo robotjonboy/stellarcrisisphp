@@ -262,7 +262,7 @@ function gameList($vars)
 <?
 	echo drawButtons($empire).serverTime().
 		 '<div style="margin-top: 10pt; font-size: 8pt; text-align: center;"><a href="open_games.rss"><img src="/server_images/rss.gif" style="vertical-align: middle;" border=0></a> Open games&nbsp;&nbsp;'.
-		 '<a href="updates.rss?id='.md5($empire['id'].$empire['name'].$empire['join_date']).'"><img src="/server_images/rss.gif" style="vertical-align: middle;" border=0></a> Your updates</div>'.
+		 '<a href="rss/updates.php?id='.rawurlencode(sc_ensure_rss_token($empire)).'"><img src="/server_images/rss.gif" style="vertical-align: middle;" border=0></a> Your updates</div>'.
 		 onlinePlayers().empireMissive($empire);
 
 	if (!strlen($player_games.$invitations.$open_games.$empty_games))
@@ -427,7 +427,7 @@ function passwordGameList($vars)
 <?
 	echo drawButtons($empire).serverTime().
 		 '<div style="margin-top: 10pt; font-size: 8pt; text-align: center;"><a href="open_games.rss"><img src="/server_images/rss.gif" style="vertical-align: middle;" border=0></a> Open games&nbsp;&nbsp;'.
-		 '<a href="updates.rss?id='.md5($empire['id'].$empire['name'].$empire['join_date']).'"><img src="/server_images/rss.gif" style="vertical-align: middle;" border=0></a> Your updates</div>'.
+		 '<a href="rss/updates.php?id='.rawurlencode(sc_ensure_rss_token($empire)).'"><img src="/server_images/rss.gif" style="vertical-align: middle;" border=0></a> Your updates</div>'.
 		 onlinePlayers().empireMissive($empire);
 
 	if (!$listing)

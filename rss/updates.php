@@ -6,18 +6,15 @@ require('../debug.php');
 require('../sql.php');
 #=----------------------------------------------------------------------------=#
 
-// decode passed id into empire
-$player = $_GET['id'];
-$result = sc_query('SELECT * FROM empires');
-while ($row = $result->fetch_assoc())
+$empire_row = sc_empire_from_rss_id(isset($_GET['id']) ? $_GET['id'] : '');
+if (!$empire_row)
 {
-	$code5=md5($row['id'].$row['name'].$row['join_date']);
-	if ($code5 == $player)
-	{
-		$empire=$row['name'];
-		break;
-	}
+	header('Content-Type: application/xml; charset=ISO-8859-1');
+	echo '<?xml version="1.0" encoding="ISO-8859-1" ?>'."\n";
+	echo '<rss version="2.0"><channel><title>Unauthorized</title></channel></rss>';
+	exit;
 }
+$empire = $empire_row['name'];
 
 // 
 $fields = array();
@@ -33,7 +30,7 @@ $fields[] = 'players.ended_turn';
 $tables = 'series INNER JOIN games ON series.id = games.series_id '.
 				 'INNER JOIN players ON games.id = players.game_id '.
 				 'INNER JOIN empires ON players.name = empires.name';
-$conditions = 'empires.name = "'.$empire.'" ';
+$conditions = 'empires.name = "'.sc_escape($empire).'" ';
 $order = 'ORDER BY series.update_time, series.name, games.game_number ASC';
 
 $sql=	'SELECT '.implode(',', $fields).
@@ -42,7 +39,7 @@ $sql=	'SELECT '.implode(',', $fields).
 		' '.$order;
 $result = sc_query($sql);
 
-header('Content-Type: application/xml'."\n\n");
+header('Content-Type: application/xml; charset=ISO-8859-1');
 echo '<?xml version="1.0" encoding="ISO-8859-1" ?>';
 echo '<rss version="2.0">';
 echo 	'<channel>';
@@ -84,11 +81,11 @@ if ( $count_all > 0 )
 		if ( $row['ended_turn'] == 0 AND $row['update_count'] > 0)
 		{
 			echo '<item>';
-			echo '<title> '.$row['name'].' </title>';
+			echo '<title> '.htmlspecialchars($row['name'], ENT_QUOTES, 'ISO-8859-1').' </title>';
 			echo '<link> http://homeserve.org/sc/sc.php </link>';
 			echo '<pubDate>'.date('r', time()).'</pubDate>';
 			echo '<description>';
-			echo 	$empire.', you are not ready.';
+			echo 	htmlspecialchars($empire, ENT_QUOTES, 'ISO-8859-1').', you are not ready.';
 			echo '</description>';
 			echo '</item>';
 		}

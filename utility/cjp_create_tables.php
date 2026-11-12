@@ -98,10 +98,12 @@ $fields[] = 'show_icons enum("1","0") NOT NULL default "0"';
 $fields[] = 'tos_accepted enum("0","1") NOT NULL default "0"';  //cjp - accept terms of service
 $fields[] = 'url tinytext';
 $fields[] = 'validation_info varchar(50) NOT NULL default ""';  //cjp - emailed check key
+$fields[] = 'rss_token char(64) default NULL';
 $fields[] = 'wins smallint(6) NOT NULL default "0"';
 
 $fields[] = 'PRIMARY KEY  (name)';
 $fields[] = 'UNIQUE KEY id (id)';
+$fields[] = 'UNIQUE KEY rss_token (rss_token)';
 $fields[] = 'KEY bridier_index (bridier_index)';
 
 $sql = 'CREATE TABLE IF NOT EXISTS empires ('.implode(',', $fields).') TYPE=MyISAM;';

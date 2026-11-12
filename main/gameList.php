@@ -301,9 +301,7 @@ function gameList($vars)
 			Open games
 			&nbsp;&nbsp;'.
 			'<a href="./rss/your_games.php?id='.
-						md5($empire['id'].
-						$empire['name'].
-						$empire['join_date']).
+						rawurlencode(sc_ensure_rss_token($empire)).
 						'">'.
 				'<img src="./images/rss.gif" 
 					style="vertical-align: middle;" 
@@ -312,9 +310,7 @@ function gameList($vars)
 			Your Games
 			&nbsp;&nbsp;'.
 			'<a href="./rss/updates.php?id='.
-						md5($empire['id'].
-						$empire['name'].
-						$empire['join_date']).
+						rawurlencode(sc_ensure_rss_token($empire)).
 						'">'.
 				'<img src="./images/rss.gif" 
 					style="vertical-align: middle;" 
@@ -499,9 +495,7 @@ function passwordGameList($vars)
 			Open games
 			&nbsp;&nbsp;'.
 			'<a href="./rss/updates.php?id='.
-						md5($empire['id'].
-						$empire['name'].
-						$empire['join_date']).
+						rawurlencode(sc_ensure_rss_token($empire)).
 						'">'.
 				'<img src="./images/rss.gif" 
 					style="vertical-align: middle;" 

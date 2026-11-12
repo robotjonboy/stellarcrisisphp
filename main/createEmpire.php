@@ -114,6 +114,7 @@ function createEmpire_processing($vars)
 		$values[] = 'tos_accepted = "'.((array_key_exists('accept_tos', $vars) && $vars['accept_tos']) ? 1 : 0).'"';
 		$values[] = 'comment = "'.$mysqli->real_escape_string($vars['comment']).'"';
 		$values[] = 'password = NULL';
+		$values[] = 'rss_token = "'.$mysqli->real_escape_string(bin2hex(random_bytes(32))).'"';
 		
 		if ($server['require_valid_email'])
 			{

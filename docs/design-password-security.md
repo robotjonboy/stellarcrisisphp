@@ -30,7 +30,7 @@ Deliverable of this document: design for the password-security work. **Implement
 - Do not force password resets or email verification for existing empires.
 - Do not keep plaintext in the DB after an account has been upgraded.
 - Do not change game join passwords (`games.password1` / `password2`) — those are a separate feature.
-- Do not change RSS opaque IDs (`md5(id + name + join_date)`).
+- Do not change RSS opaque IDs in this password project (`md5(id + name + join_date)` was later replaced by `rss_token`; see `upgrade_rss_tokens.sql`).
 - Do not rebuild auth around PHP `$_SESSION` or a modern framework.
 - Do not add OAuth, 2FA, or password-strength meters in this project.
 - Do not require players to clear cookies or update bookmarks.
