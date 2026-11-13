@@ -2,4 +2,5 @@ history/*.html
 serverconfig.php
 .env
 errorlog.html
+dist/
 

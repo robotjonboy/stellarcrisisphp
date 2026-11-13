@@ -1,6 +1,23 @@
 # Stellar Crisis PHP
 This is the PHP implementation of the classic turn based strategy web game Stellar Crisis.  Stellar Crisis is the web's first complete multi-player strategy game. Players from all over the world compete to build megalithic galactic empires, develop powerful new technologies, and fight pitched battles in far away star systems. It is free, absolutely and positively. It also comes with ABSOLUTELY NO WARRANTY.
 
+# Shared hosting releases
+
+For a deployable zip (new install or update on typical shared hosting):
+
+```
+./scripts/build-release-zip.sh              # from working tree
+./scripts/build-release-zip.sh --tag v3.0.1 # from a git tag (prefer for production)
+```
+
+The zip lands in `dist/`. Operator docs inside the archive:
+
+- New install: `docs/INSTALL.md`
+- Update: `docs/UPGRADE.md`
+- Error log setup: `docs/shared-hosting-error-log.md`
+
+Design notes for the packager: `docs/design-release-pipeline.md` (git repo only; not shipped in the zip).
+
 # Servers
 Three stellar crisis servers remain.  Two servers run the php code.  The third runs Almonaster, a different implementation of the game.
 http://homeserve.org/sc/sc.php
@@ -21,6 +38,8 @@ Depending on who you ask, Stellar Crisis first appeared in either 1993 or 1995. 
 Stellar Crisis has a long history of competitive play.  Past competitions include Clan Wars, "Olympics," and the Stellar Kings Cup.  The Stellar Crisis Open Championship, began in 2011, continues to be run annually on the Rocket Empires server.  The tournament starts on the last Saturday in July, with registration opening a week before.
 
 # Installation/Configuration
+**Preferred checklist:** `docs/INSTALL.md` (shared hosting). Summary:
+
 1. Preqrequisites: windows or linux, apache, mysql or mariadb, and php.
 2. Create a database in mysql or mariadb to house the stellar crisis data.  Run the sc.sql script to create the tables and insert the initial data. (eg mysql -u user -p --database=stellarcrisis <sc.sql)
 3. Copy the code into a directory that will be served by apache.  If on shared hosting, this is usually a "public_html" directory.  Optionally, the code may be put into a subfolder (eg publichtml/sc).
@@ -73,6 +92,8 @@ Open `http://localhost:8080/sc.php`, log in as `admin` with `SC_ADMIN_PASSWORD`,
 Backup: `docker stop sc`, copy the `sc-data` volume (or `/data` in the container), then start again. A SQL dump alone does not include history HTML or custom icons.
 
 # Upgrade
+**Preferred checklist** for overlaying a release zip and choosing `upgrade_*.sql` scripts: `docs/UPGRADE.md`.
+
 These instructions are to upgrade a server that is running code from before the addition of tournaments.
 Run the Following mysql script:
 ```    alter table games add game_type varchar(3) not null default 'sc2';

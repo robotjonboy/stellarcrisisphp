@@ -2,7 +2,7 @@
 
 Stellar Crisis appends HTML bug reports to a file when `error_log_type` is `file`. That file must **not** be downloadable over HTTP. Use a directory **outside** your web root (`public_html`, `www`, `htdocs`, etc.) and open the log only via **Administration → View Errors** while logged in as an admin empire.
 
-See also: [design-private-error-log.md](design-private-error-log.md).
+(Design background for developers lives in the git repo as `docs/design-private-error-log.md`; it is not required for this setup.)
 
 ## 1. Find your home and web root
 
