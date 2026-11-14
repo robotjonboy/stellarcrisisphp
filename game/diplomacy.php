@@ -243,8 +243,9 @@ function diplomacyScreen_processing($vars)
 			$id = (int)$id;
 			$offer = (int)$offer;
 			if ($id <= 0) continue;
-			// Diplomacy offer levels are 0–5; reject anything else.
-			if ($offer < 0 || $offer > 5) continue;
+			// Diplomacy offer levels are 0–6 (War … Shared HQ); cap at series max.
+			$max_offer = (int)$series['diplomacy'];
+			if ($offer < 0 || $offer > $max_offer) continue;
 			sc_query('UPDATE diplomacies SET offer = "'.$offer.'"'.
 				' WHERE id = '.$id.
 				' AND game_id = '.((int)$game['id']).
