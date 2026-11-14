@@ -31,7 +31,10 @@ function openInstantMessage(recipient)
 	else
 		ensureHiddenField(form, 'section', 'main');
 
-	form.submit();
+	// Defer navigation so mobile Chrome can finish dismissing the native
+	// <select> picker. A synchronous form.submit() from onchange is often
+	// ignored or cancelled there.
+	setTimeout(function() { form.submit(); }, 0);
 }
 
 //-------------------------------------------------------------------------------------------//
@@ -44,8 +47,10 @@ function blab()
 
 	if (form.onlinePlayers.selectedIndex > 0)
 		{
+		// Do not reset selectedIndex before/after submit. Mutating the
+		// <select> after form.submit() cancels the POST on Chrome mobile
+		// (legacy popup code could reset safely because it did not navigate).
 		openInstantMessage(form.onlinePlayers.value);
-		form.onlinePlayers.selectedIndex = 0;
 		}
 	else
 		alert('Select a player first.');
