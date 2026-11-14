@@ -177,6 +177,15 @@ function gameAction($vars)
 				// Neighbor click on the local map (image input), same as Map → Systems.
 				if (mapScreen_processing($vars))
 					$vars['gameAction'] = 'Systems';
+				// Top-nav Systems while drilled into one planet still POSTs zoomed_planet;
+				// treat that like All Systems so the full list shows. Neighbor clicks above
+				// already replaced zoomed_planet; Update System / empty action keep zoom.
+				else if (isset($vars['gameAction']) && $vars['gameAction'] == 'Systems'
+					&& array_key_exists('zoomed_planet', $vars) && $vars['zoomed_planet'] != '')
+					{
+					unset($vars['zoomed_planet']);
+					$vars['gameAction'] = 'Systems';
+					}
 				else if (!isset($vars['gameAction']) || $vars['gameAction'] == ''
 					|| $vars['gameAction'] == 'Update System')
 					$vars['gameAction'] = 'Systems';
@@ -478,7 +487,12 @@ function gameHeader($vars, $title)
 		}*/
 
 	// finally, set the JavaScript command for the timeout
-  	$gotoDoc = "'document.forms[0].elements[".$gotoDoc."].click()'";
+	// Single-system view: form.submit() keeps zoomed_planet (no gameAction). Clicking the
+	// Systems nav button would clear zoom and jump to the full list on auto-update.
+	if ($title == 'Systems' && array_key_exists('zoomed_planet', $vars) && $vars['zoomed_planet'] != '')
+		$gotoDoc = "'document.forms[0].submit()'";
+	else
+  		$gotoDoc = "'document.forms[0].elements[".$gotoDoc."].click()'";
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html><head>
