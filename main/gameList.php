@@ -554,12 +554,13 @@ function passwordGameList($vars)
 function gameList_processing($vars)
 {
 	$empire = $vars['empire_data'];
+	$action = '';
 	
 	// Buttons on the game list screens are mini-arrays named after the action.
 	// Their first element's key is the game ID we need to know about.
 	foreach (array('login', 'accept', 'decline', 'join', 'create', 'createp') as $button)
 		{
-		if (isset($vars[$button]))
+		if (isset($vars[$button]) && is_array($vars[$button]) && count($vars[$button]))
 			{
 			list($game_id) = array_keys($vars[$button]);
 
@@ -578,6 +579,12 @@ function gameList_processing($vars)
 
 			break;
 			}
+		}
+
+	if ($action === '')
+		{
+		sendEmpireMessage($empire, 'Invalid action.');
+		return gameList($vars);
 		}
 
 	if ($action == 'decline')
