@@ -107,16 +107,16 @@ function inviteScreen_processing(&$vars)
 			sc_query('DELETE FROM invitations WHERE game_id = '.((int)$game['id']).
 			               ' AND empire = "'.$mysqli->real_escape_string($empire).'"');
 
-	// ...and to add.
-	if ($vars['Add'] == 'Add')
+	// ...and to add. (Add is only posted when that submit button is clicked.)
+	if (isset($vars['Add']) && $vars['Add'] == 'Add')
 		{
 		$vars['gameAction'] = 'Invite Players';
 		
 		$player_to_invite = '';
 		
-		if ($vars['invite_name'] != '')
+		if (!empty($vars['invite_name']))
 			$player_to_invite = $vars['invite_name'];
-		else if ($vars['onlinePlayers'] != '')
+		else if (!empty($vars['onlinePlayers']))
 			$player_to_invite = urldecode($vars['onlinePlayers']);
 
 		$select = sc_query('SELECT empire FROM invitations WHERE game_id = '.((int)$game['id']).
@@ -137,7 +137,7 @@ function inviteScreen_processing(&$vars)
 			$values[] = 'game_id = '.((int)$game['id']);
 			$values[] = 'empire ="'.$mysqli->real_escape_string($empire['name']).'"';
 			
-			if ($vars['messageText'])
+			if (!empty($vars['messageText']))
 				{
 				// Sanitize.
 				$text = htmlspecialchars($vars['messageText']);				
@@ -146,7 +146,7 @@ function inviteScreen_processing(&$vars)
 				}
 			
 			if ($series['team_game'])
-				$values[] = 'team = '.((int)$vars['invite_team']);
+				$values[] = 'team = '.((int)($vars['invite_team'] ?? 0));
 
 			sc_query('INSERT INTO invitations SET '.implode(',', $values));
 			
