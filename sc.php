@@ -342,12 +342,18 @@ function login($vars)
 		return loginFailed('You must enter a name and a password.');
 
 	// Prevent people from faking empire names with extra spaces.
-	$vars['name'] = preg_replace('/[[:space:]]+/', ' ', trim($vars['name']) );
+	$vars['name'] = preg_replace('/[[:space:]]+/', ' ', trim((string)$vars['name']));
+	$vars['pass'] = (string)$vars['pass'];
+
+	if ($vars['name'] === '' or $vars['pass'] === '')
+		return loginFailed('You must enter a name and a password.');
+	if (strlen($vars['name']) > 20 or strlen($vars['pass']) > 20)
+		return loginFailed('Empire name and password must be 20 characters or fewer.');
 
 	// Filter out bad characters.
-	if (preg_match('[\*\\\"\'<>%=,\$'.chr(173).']', $vars['name'].$vars['pass']))
+	if (preg_match('/[\*\\\"\'<>%=,$'.chr(173).']/', $vars['name'].$vars['pass']))
 		return loginFailed('Your name and/or password contains illegal characters.');# (*\\"\'&lt;&gt;%=,$).');
-
+	
 	if ($empire = getEmpire($vars['name']))
   	{
 		if (auth_verify_password($empire, $vars['pass']))
@@ -1621,6 +1627,9 @@ function seriesParameters($series_id)
 
 function sendEmpireMessage($empire, $message)
 {
+	if (!$empire || !isset($empire['id']))
+		return;
+
 	$values = array();
 	$values[] = 'time = '.time();
 	$values[] = 'empire_id = '.((int)$empire['id']);

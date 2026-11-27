@@ -62,8 +62,16 @@ function createEmpire_processing($vars)
 		return loginFailed('You must enter a name and a password.');
 
 	// Prevent people from faking empire names with extra spaces.
-	$vars['name'] = preg_replace('/[[:space:]]+/', ' ', $vars['name']);
+	$vars['name'] = preg_replace('/[[:space:]]+/', ' ', (string)$vars['name']);
 	$vars['name'] = trim($vars['name']);
+	$vars['pass'] = (string)$vars['pass'];
+
+	// Re-check after trim; also enforce DB column sizes. Non-strict MySQL will
+	// silently truncate varchar(20) on INSERT, then getEmpire($fullName) returns null.
+	if ($vars['name'] === '' or $vars['pass'] === '')
+		return loginFailed('You must enter a name and a password.');
+	if (strlen($vars['name']) > 20 or strlen($vars['pass']) > 20)
+		return loginFailed('Empire name and password must be 20 characters or fewer.');
 
 	// Filter out bad charactres.
 	if (preg_match('/[\*\\\"\'<>%=]/', $vars['name'].$vars['pass']))
@@ -96,10 +104,14 @@ function createEmpire_processing($vars)
 
 	if ($vars['pass'] == $vars['pass_check'])
 		{
+		$real_name = array_key_exists('real_name', $vars) ? (string)$vars['real_name'] : '';
+		$email = array_key_exists('email', $vars) ? (string)$vars['email'] : '';
+		$comment = array_key_exists('comment', $vars) ? (string)$vars['comment'] : '';
+
 		$values = array();
 		$values[] = 'name = "'.$mysqli->real_escape_string($vars['name']).'"';
-		$values[] = 'real_name = "'.$mysqli->real_escape_string($vars['real_name']).'"';
-		$values[] = 'email = "'.$mysqli->real_escape_string($vars['email']).'"';
+		$values[] = 'real_name = "'.$mysqli->real_escape_string($real_name).'"';
+		$values[] = 'email = "'.$mysqli->real_escape_string($email).'"';
 		$values[] = 'email_visible = "0"';
 		$values[] = 'icon = "alien1.gif"';
 		$values[] = 'wins = 0';
@@ -112,9 +124,10 @@ function createEmpire_processing($vars)
 		$values[] = 'last_ip = "'.$_SERVER['REMOTE_ADDR'].'"';
 		$values[] = 'join_date = "'.time().'"';
 		$values[] = 'tos_accepted = "'.((array_key_exists('accept_tos', $vars) && $vars['accept_tos']) ? 1 : 0).'"';
-		$values[] = 'comment = "'.$mysqli->real_escape_string($vars['comment']).'"';
+		$values[] = 'comment = "'.$mysqli->real_escape_string($comment).'"';
 		$values[] = 'password = NULL';
-		$values[] = 'rss_token = "'.$mysqli->real_escape_string(bin2hex(random_bytes(32))).'"';
+		// Leave rss_token NULL here; sc_ensure_rss_token() fills it on first Game List
+		// visit. Avoids hard-failing create when upgrade_rss_tokens.sql is not applied.
 		
 		if ($server['require_valid_email'])
 			{
@@ -124,7 +137,7 @@ function createEmpire_processing($vars)
 			$values[] = 'password_hash = "'.$mysqli->real_escape_string($temp_hash).'"';
 			$values[] = 'validation_info = "C/'.$mysqli->real_escape_string($vars['pass']).'"';
 			
-			$mailsent = mail($vars['email'], $server['servername']." Empire Creation", 
+			$mailsent = mail($email, $server['servername']." Empire Creation", 
 							 "Welcome to ".$server['servername']."! To complete the creation of your empire\n".
 							 "please log in to the server using this temporary password:\n\n".$temp_pass."\n\n".
 							 "We recommend using cut and paste to enter this password into your browser \n".
@@ -133,11 +146,11 @@ function createEmpire_processing($vars)
 							 "select a player icon to represent you in the game.\n\n".
 							 "If you have received this email in error, we apologize. If you have not recently\n".
 							 "attempted to register on our server, you can ignore this email. To block future emails from\n".
-							 "our server, please visit the following web page: \n\n".$server['server_URL']."?blockEmail=".$vars['email']."&tpass=".$temp_pass."\n\n".
+							 "our server, please visit the following web page: \n\n".$server['server_URL']."?blockEmail=".$email."&tpass=".$temp_pass."\n\n".
 							 "(Blocking your email address may prevent you from registering with us in the future.)\n\nThank You\n");
 			
 			if (!$mailsent)
-				return loginFailed('Unable to send mail to '.$vars['email'].'.');
+				return loginFailed('Unable to send mail to '.$email.'.');
 			}
 		else
 			{
@@ -149,7 +162,30 @@ function createEmpire_processing($vars)
 		$sql='INSERT INTO empires SET '.implode(', ', $values);
 		sc_query($sql);
 
-		$empire = getEmpire($vars['name']);
+		$affected = (int)$mysqli->affected_rows;
+		$new_id = (int)$mysqli->insert_id;
+
+		// Prefer insert_id over re-query by name (avoids charset/name mismatches
+		// after insert). Fall back to name lookup if insert_id is unavailable.
+		$empire = $new_id > 0 ? getEmpireByID($new_id) : null;
+		if (!$empire)
+			$empire = getEmpire($vars['name']);
+
+		if (!$empire)
+			{
+			reportError(
+				E_WARNING,
+				'Empire create inserted but could not reload row. '.
+				'insert_id='.$new_id.
+				' affected_rows='.$affected.
+				' name_hex='.bin2hex((string)$vars['name']).
+				' name_len='.strlen((string)$vars['name']).
+				"\n".$sql,
+				__FILE__,
+				__LINE__
+			);
+			return loginFailed('Empire creation failed to finalize. Please contact the administrator.');
+			}
 		
 		if ($server['require_valid_email'])
 			return newEmpireLogin($vars);

@@ -19,6 +19,12 @@ if ($mysqli->connect_errno) {
 	die;
 }
 
+// Schema and pages are latin1 / ISO-8859-1. Pin the connection so escapes and
+// stored names stay consistent (MySQL 8 often defaults to utf8mb4).
+if (!$mysqli->set_charset('latin1')) {
+	error_log('sc: failed to set mysqli charset latin1: '.$mysqli->error);
+}
+
 // Allow scripts to run for as long as they need to. You should comment this line out
 // if your server is running in safe mode (it will throw an error otherwise).
 set_time_limit(0);
